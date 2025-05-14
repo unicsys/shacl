@@ -1,27 +1,13 @@
-{
-  "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "target": "ES6",
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./*"]
-    }
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
-}
+Hi Alberto,
+
+I just met with Megan Merce from RealmOne, the Anzo consulting partner engaged by Collins. She’s talking with the Landing Systems, Aftermarket, and Power & Controls teams, but her remit is limited to data mapping into Anzo and building dashboards/queries.
+
+Defining use-case scope, designing ontologies, and aligning models to the RTX Enterprise Ontology (REO) are out of her scope, and she’s looking to us to fill that gap.
+
+How would you like us to support RealmOne without exposing REO or our internal modeling patterns?
+Question: How do we support them without exposing REO or our internal modeling patterns and internal ontologies?
+
+Gap: RealmOne cannot define use-case scope, design ontologies, or align models to the RTX Enterprise Ontology (REO). They’re asking us to fill that gap.
+
+Thanks,
+Shatad
