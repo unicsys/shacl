@@ -27,3 +27,45 @@ yarn-error.log*
 next-env.d.ts
 
 
+Subject,Predicate,Object
+DesignativeInformationContentEntity (for SN),cco:designates,CircuitCardAssembly (the specific CCA instance)
+DesignativeInformationContentEntity (for SN),cco:generically_depends_on,"InformationBearingEntity (e.g., a label, database record for SN)"
+InformationBearingEntity (for SN),cco:has_text_value,"Literal ""XYZ123"""
+DesignativeInformationContentEntity (for RefDes),cco:designates,ElectronicComponent (the U1 instance)
+DesignativeInformationContentEntity (for RefDes),cco:generically_depends_on,InformationBearingEntity (for RefDes)
+InformationBearingEntity (for RefDes),cco:has_text_value,"Literal ""U1"""
+DesignativeInformationContentEntity (for PinID),cco:designates,ComponentPin (the pin3 instance of U1)
+DesignativeInformationContentEntity (for PinID),cco:generically_depends_on,InformationBearingEntity (for PinID)
+InformationBearingEntity (for PinID),cco:has_text_value,"Literal ""3"""
+ComponentPin,BFO:0000050 (part of),ElectronicComponent
+ElectronicComponent,BFO:0000050 (part of),CircuitCardAssembly
+XRayInspectionProcess,RO:0002234 (has output),DescriptiveInformationContentEntity (the XRayFinding ICE)
+DescriptiveInformationContentEntity (XRayFinding ICE),cco:describes,SolderJoint (the specific joint at U1-pin3)
+DescriptiveInformationContentEntity (XRayFinding ICE),cco:generically_depends_on,"InformationBearingEntity (XRayFinding IBE, e.g., X-ray log entry)"
+InformationBearingEntity (XRayFinding IBE),"myOnt:referencesNonConformanceTypeNamed (custom relation, or a chain)","DesignativeInformationContentEntity (for NC Type Name ""Voiding > 25%"")"
+DesignativeInformationContentEntity (for NC Type Name),cco:designates,NonConformanceType (the class/individual representing 'Voiding > 25%')
+DesignativeInformationContentEntity (for NC Type Name),cco:generically_depends_on,InformationBearingEntity (for NC Type Name IBE)
+InformationBearingEntity (for NC Type Name IBE),cco:has_text_value,"Literal ""Voiding > 25%"""
+SolderJoint,RO:0001025 (located in) (or myOnt:atSite),ComponentPin (the specific pin U1-pin3)
+SPIProcess,RO:0002234 (has output),MeasurementInformationContentEntity (the SPI Volume Measurement ICE)
+MeasurementInformationContentEntity (SPI Volume ICE),cco:describes (or CCO's is_measured_by from Quality to MeasurementICE),PhysicalVolume (the quality inhering in the solder paste deposit)
+PhysicalVolume,BFO:0000197 (inheres in),SolderPasteDeposit (at U1-pin3)
+MeasurementInformationContentEntity (SPI Volume ICE),cco:generically_depends_on,"InformationBearingEntity (SPI Volume IBE, e.g., SPI log entry for this measurement)"
+InformationBearingEntity (SPI Volume IBE),cco:has_decimal_value (or has_integer_value),"Literal <volume_value> (e.g., 750000.0)"
+InformationBearingEntity (SPI Volume IBE),cco:uses_measurement_unit,"MeasurementUnit (e.g., instance cubic_micrometer_unit)"
+DesignativeInformationContentEntity (for Measurement Unit Name),cco:designates,"MeasurementUnit (e.g., instance cubic_micrometer_unit)"
+DesignativeInformationContentEntity (for Measurement Unit Name),cco:generically_depends_on,InformationBearingEntity (for Measurement Unit Name IBE)
+InformationBearingEntity (for Measurement Unit Name IBE),cco:has_text_value,"Literal ""µm³"""
+SolderPasteDeposit,RO:0001025 (located in) (or myOnt:atSite),ComponentPin (the specific pin U1-pin3)
+ScreenPrintingProcess,RO:0002234 (has output),SolderPasteDeposit
+SolderPasteDeposit,RO:0000056 (participates in) (as input/subject of inspection),SPIProcess
+SolderPasteDeposit,RO:0002233 (has input),ReflowProcess
+ReflowProcess,RO:0002234 (has output),SolderJoint
+SolderJoint,RO:0000056 (participates in) (as input/subject of inspection),XRayInspectionProcess
+ScreenPrintingProcess,BFO:0000063 (precedes),SPIProcess
+SPIProcess,BFO:0000063 (precedes),ReflowProcess
+ReflowProcess,BFO:0000063 (precedes),XRayInspectionProcess
+CircuitCardAssembly,RO:0000056 (participates in),ScreenPrintingProcess
+CircuitCardAssembly,RO:0000056 (participates in),SPIProcess
+CircuitCardAssembly,RO:0000056 (participates in),ReflowProcess
+CircuitCardAssembly,RO:0000056 (participates in),XRayInspectionProcess
