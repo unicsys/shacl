@@ -19,3 +19,180 @@
   },
   "iconLibrary": "lucide"
 }
+
+=======================
+
+1. CCA Identification (S/N: XYZ123)
+* Subject: DesignativeInformationContentEntity (for SN)
+* Predicate: cco:designates
+* Object: CircuitCardAssembly (the specific CCA instance)
+* ---
+* Subject: DesignativeInformationContentEntity (for SN)
+* Predicate: cco:generically_depends_on
+* Object: InformationBearingEntity (e.g., a label, database record for SN)
+* ---
+* Subject: InformationBearingEntity (for SN)
+* Predicate: cco:has_text_value
+* Object: Literal "XYZ123"
+
+2. Component Identification (U1)
+* Subject: DesignativeInformationContentEntity (for RefDes)
+* Predicate: cco:designates
+* Object: ElectronicComponent (the U1 instance)
+* ---
+* Subject: DesignativeInformationContentEntity (for RefDes)
+* Predicate: cco:generically_depends_on
+* Object: InformationBearingEntity (for RefDes)
+* ---
+* Subject: InformationBearingEntity (for RefDes)
+* Predicate: cco:has_text_value
+* Object: Literal "U1"
+
+3. Pin Identification (pin3)
+* Subject: DesignativeInformationContentEntity (for PinID)
+* Predicate: cco:designates
+* Object: ComponentPin (the pin3 instance of U1)
+* ---
+* Subject: DesignativeInformationContentEntity (for PinID)
+* Predicate: cco:generically_depends_on
+* Object: InformationBearingEntity (for PinID)
+* ---
+* Subject: InformationBearingEntity (for PinID)
+* Predicate: cco:has_text_value
+* Object: Literal "3"
+
+4. Partonomy (Structural Relationships)
+* Subject: ComponentPin
+* Predicate: BFO:0000050 (part of)
+* Object: ElectronicComponent
+* ---
+* Subject: ElectronicComponent
+* Predicate: BFO:0000050 (part of)
+* Object: CircuitCardAssembly
+
+5. X-Ray Finding Context ('Voiding > 25%')
+* Subject: XRayInspectionProcess
+* Predicate: RO:0002234 (has output)
+* Object: DescriptiveInformationContentEntity (the XRayFinding ICE)
+* ---
+* Subject: DescriptiveInformationContentEntity (XRayFinding ICE)
+* Predicate: cco:describes
+* Object: SolderJoint (the specific joint at U1-pin3)
+* ---
+* Subject: DescriptiveInformationContentEntity (XRayFinding ICE)
+* Predicate: cco:generically_depends_on
+* Object: InformationBearingEntity (XRayFinding IBE, e.g., X-ray log entry)
+* ---
+* Subject: InformationBearingEntity (XRayFinding IBE)
+* Predicate: myOnt:referencesNonConformanceTypeNamed (custom relation, or a chain)
+* Object: DesignativeInformationContentEntity (for NC Type Name "Voiding > 25%")
+* This part details how the finding refers to a type of non-conformance. The "Voiding > 25%" is a string that names a NonConformanceType class/individual.
+* ---
+* Subject: DesignativeInformationContentEntity (for NC Type Name)
+* Predicate: cco:designates
+* Object: NonConformanceType (the class/individual representing 'Voiding > 25%')
+* ---
+* Subject: DesignativeInformationContentEntity (for NC Type Name)
+* Predicate: cco:generically_depends_on
+* Object: InformationBearingEntity (for NC Type Name IBE)
+* ---
+* Subject: InformationBearingEntity (for NC Type Name IBE)
+* Predicate: cco:has_text_value
+* Object: Literal "Voiding > 25%"
+* ---
+* Subject: SolderJoint
+* Predicate: RO:0001025 (located in) (or myOnt:atSite)
+* Object: ComponentPin (the specific pin U1-pin3)
+
+6. SPI Measurement Context (e.g., Volume)
+* Subject: SPIProcess
+* Predicate: RO:0002234 (has output)
+* Object: MeasurementInformationContentEntity (the SPI Volume Measurement ICE)
+* ---
+* Subject: MeasurementInformationContentEntity (SPI Volume ICE)
+* Predicate: cco:describes (or CCO's is_measured_by from Quality to MeasurementICE)
+* Object: PhysicalVolume (the quality inhering in the solder paste deposit)
+* ---
+* Subject: PhysicalVolume
+* Predicate: BFO:0000197 (inheres in)
+* Object: SolderPasteDeposit (at U1-pin3)
+* ---
+* Subject: MeasurementInformationContentEntity (SPI Volume ICE)
+* Predicate: cco:generically_depends_on
+* Object: InformationBearingEntity (SPI Volume IBE, e.g., SPI log entry for this measurement)
+* ---
+* Subject: InformationBearingEntity (SPI Volume IBE)
+* Predicate: cco:has_decimal_value (or has_integer_value)
+* Object: Literal <volume_value> (e.g., 750000.0)
+* ---
+* Subject: InformationBearingEntity (SPI Volume IBE)
+* Predicate: cco:uses_measurement_unit
+* Object: MeasurementUnit (e.g., instance cubic_micrometer_unit)
+* ---
+* Subject: DesignativeInformationContentEntity (for Measurement Unit Name)
+* Predicate: cco:designates
+* Object: MeasurementUnit (e.g., instance cubic_micrometer_unit)
+* ---
+* Subject: DesignativeInformationContentEntity (for Measurement Unit Name)
+* Predicate: cco:generically_depends_on
+* Object: InformationBearingEntity (for Measurement Unit Name IBE)
+* ---
+* Subject: InformationBearingEntity (for Measurement Unit Name IBE)
+* Predicate: cco:has_text_value
+* Object: Literal "µm³"
+* ---
+* Subject: SolderPasteDeposit
+* Predicate: RO:0001025 (located in) (or myOnt:atSite)
+* Object: ComponentPin (the specific pin U1-pin3)
+* (Repeat for Height and Offset measurements, each with their own ICE, IBE, Quality, Value, and Unit)
+
+7. Process Flow and Transformation
+* Subject: ScreenPrintingProcess
+* Predicate: RO:0002234 (has output)
+* Object: SolderPasteDeposit
+* ---
+* Subject: SolderPasteDeposit
+* Predicate: RO:0000056 (participates in) (as input/subject of inspection)
+* Object: SPIProcess
+* ---
+* Subject: SolderPasteDeposit
+* Predicate: RO:0002233 (has input)
+* Object: ReflowProcess
+* ---
+* Subject: ReflowProcess
+* Predicate: RO:0002234 (has output)
+* Object: SolderJoint
+* ---
+* Subject: SolderJoint
+* Predicate: RO:0000056 (participates in) (as input/subject of inspection)
+* Object: XRayInspectionProcess
+
+8. Process Sequencing (Chronological Order - "Upstream")
+* Subject: ScreenPrintingProcess
+* Predicate: BFO:0000063 (precedes)
+* Object: SPIProcess
+* ---
+* Subject: SPIProcess
+* Predicate: BFO:0000063 (precedes)
+* Object: ReflowProcess
+* ---
+* Subject: ReflowProcess
+* Predicate: BFO:0000063 (precedes)
+* Object: XRayInspectionProcess
+
+9. Participant in Process (Linking specific CCA to its processes)
+* Subject: CircuitCardAssembly
+* Predicate: RO:0000056 (participates in)
+* Object: ScreenPrintingProcess
+* ---
+* Subject: CircuitCardAssembly
+* Predicate: RO:0000056 (participates in)
+* Object: SPIProcess
+* ---
+* Subject: CircuitCardAssembly
+* Predicate: RO:0000056 (participates in)
+* Object: ReflowProcess
+* ---
+* Subject: CircuitCardAssembly
+* Predicate: RO:0000056 (participates in)
+* Object: XRayInspectionProcess
