@@ -1,198 +1,157 @@
-{
-  "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "default",
-  "rsc": true,
-  "tsx": true,
-  "tailwind": {
-    "config": "tailwind.config.ts",
-    "css": "app/globals.css",
-    "baseColor": "neutral",
-    "cssVariables": true,
-    "prefix": ""
-  },
-  "aliases": {
-    "components": "@/components",
-    "utils": "@/lib/utils",
-    "ui": "@/components/ui",
-    "lib": "@/lib",
-    "hooks": "@/hooks"
-  },
-  "iconLibrary": "lucide"
-}
+Great. I’ll explore recent research that uses large language models (LLMs) like GPT, BERT, or T5 to convert natural language—especially from requirement documents or maintenance data—into formal logic representations suitable for OWL DL or similar ontology frameworks. This will include research from various domains, relevant methodologies, model architectures, and available tools, datasets, or benchmarks.
 
-=======================
+I’ll get back to you with a detailed overview and insights soon.
 
-1. CCA Identification (S/N: XYZ123)
-* Subject: DesignativeInformationContentEntity (for SN)
-* Predicate: cco:designates
-* Object: CircuitCardAssembly (the specific CCA instance)
-* ---
-* Subject: DesignativeInformationContentEntity (for SN)
-* Predicate: cco:generically_depends_on
-* Object: InformationBearingEntity (e.g., a label, database record for SN)
-* ---
-* Subject: InformationBearingEntity (for SN)
-* Predicate: cco:has_text_value
-* Object: Literal "XYZ123"
 
-2. Component Identification (U1)
-* Subject: DesignativeInformationContentEntity (for RefDes)
-* Predicate: cco:designates
-* Object: ElectronicComponent (the U1 instance)
-* ---
-* Subject: DesignativeInformationContentEntity (for RefDes)
-* Predicate: cco:generically_depends_on
-* Object: InformationBearingEntity (for RefDes)
-* ---
-* Subject: InformationBearingEntity (for RefDes)
-* Predicate: cco:has_text_value
-* Object: Literal "U1"
+# Natural Language to OWL DL with Large Language Models (2020–2025)
 
-3. Pin Identification (pin3)
-* Subject: DesignativeInformationContentEntity (for PinID)
-* Predicate: cco:designates
-* Object: ComponentPin (the pin3 instance of U1)
-* ---
-* Subject: DesignativeInformationContentEntity (for PinID)
-* Predicate: cco:generically_depends_on
-* Object: InformationBearingEntity (for PinID)
-* ---
-* Subject: InformationBearingEntity (for PinID)
-* Predicate: cco:has_text_value
-* Object: Literal "3"
+## Introduction and Background
 
-4. Partonomy (Structural Relationships)
-* Subject: ComponentPin
-* Predicate: BFO:0000050 (part of)
-* Object: ElectronicComponent
-* ---
-* Subject: ElectronicComponent
-* Predicate: BFO:0000050 (part of)
-* Object: CircuitCardAssembly
+Converting natural language (NL) statements into formal logic representations (such as OWL DL ontologies) is a challenging task with high practical importance. In domains like aerospace, industrial maintenance, biomedicine, and law, experts often write requirements, maintenance notes, or regulations in free text. Translating these into **description logic** (DL)–based ontologies (e.g. OWL DL) enables automated reasoning, consistency checking, and knowledge reuse. Traditional approaches have included *controlled natural languages* (like Attempto Controlled English) and rule-based semantic parsers, but recent years have seen a surge of interest in applying **Large Language Models (LLMs)** (e.g. GPT-style transformers and seq2seq models like T5) to this problem. LLMs can leverage their vast linguistic knowledge to interpret complex NL inputs and generate structured outputs. However, they must overcome issues of ambiguity, domain-specific vocabulary, and logical consistency. Recent research (2020–2025) explores a variety of neuro-symbolic methods, **fine-tuned models**, prompt-driven pipelines, and hybrid systems to bridge NL and OWL DL. This report surveys the latest approaches, architectures, tools, and datasets for NL-to-ontology translation, with examples spanning aerospace maintenance, biomedical ontologies, industrial knowledge graphs, and more. We focus especially on how LLMs are used to encode and structure the translation, what intermediate representations or pipelines are employed, and how these methods are evaluated.
 
-5. X-Ray Finding Context ('Voiding > 25%')
-* Subject: XRayInspectionProcess
-* Predicate: RO:0002234 (has output)
-* Object: DescriptiveInformationContentEntity (the XRayFinding ICE)
-* ---
-* Subject: DescriptiveInformationContentEntity (XRayFinding ICE)
-* Predicate: cco:describes
-* Object: SolderJoint (the specific joint at U1-pin3)
-* ---
-* Subject: DescriptiveInformationContentEntity (XRayFinding ICE)
-* Predicate: cco:generically_depends_on
-* Object: InformationBearingEntity (XRayFinding IBE, e.g., X-ray log entry)
-* ---
-* Subject: InformationBearingEntity (XRayFinding IBE)
-* Predicate: myOnt:referencesNonConformanceTypeNamed (custom relation, or a chain)
-* Object: DesignativeInformationContentEntity (for NC Type Name "Voiding > 25%")
-* This part details how the finding refers to a type of non-conformance. The "Voiding > 25%" is a string that names a NonConformanceType class/individual.
-* ---
-* Subject: DesignativeInformationContentEntity (for NC Type Name)
-* Predicate: cco:designates
-* Object: NonConformanceType (the class/individual representing 'Voiding > 25%')
-* ---
-* Subject: DesignativeInformationContentEntity (for NC Type Name)
-* Predicate: cco:generically_depends_on
-* Object: InformationBearingEntity (for NC Type Name IBE)
-* ---
-* Subject: InformationBearingEntity (for NC Type Name IBE)
-* Predicate: cco:has_text_value
-* Object: Literal "Voiding > 25%"
-* ---
-* Subject: SolderJoint
-* Predicate: RO:0001025 (located in) (or myOnt:atSite)
-* Object: ComponentPin (the specific pin U1-pin3)
+## Challenges in Mapping Language to Ontologies
 
-6. SPI Measurement Context (e.g., Volume)
-* Subject: SPIProcess
-* Predicate: RO:0002234 (has output)
-* Object: MeasurementInformationContentEntity (the SPI Volume Measurement ICE)
-* ---
-* Subject: MeasurementInformationContentEntity (SPI Volume ICE)
-* Predicate: cco:describes (or CCO's is_measured_by from Quality to MeasurementICE)
-* Object: PhysicalVolume (the quality inhering in the solder paste deposit)
-* ---
-* Subject: PhysicalVolume
-* Predicate: BFO:0000197 (inheres in)
-* Object: SolderPasteDeposit (at U1-pin3)
-* ---
-* Subject: MeasurementInformationContentEntity (SPI Volume ICE)
-* Predicate: cco:generically_depends_on
-* Object: InformationBearingEntity (SPI Volume IBE, e.g., SPI log entry for this measurement)
-* ---
-* Subject: InformationBearingEntity (SPI Volume IBE)
-* Predicate: cco:has_decimal_value (or has_integer_value)
-* Object: Literal <volume_value> (e.g., 750000.0)
-* ---
-* Subject: InformationBearingEntity (SPI Volume IBE)
-* Predicate: cco:uses_measurement_unit
-* Object: MeasurementUnit (e.g., instance cubic_micrometer_unit)
-* ---
-* Subject: DesignativeInformationContentEntity (for Measurement Unit Name)
-* Predicate: cco:designates
-* Object: MeasurementUnit (e.g., instance cubic_micrometer_unit)
-* ---
-* Subject: DesignativeInformationContentEntity (for Measurement Unit Name)
-* Predicate: cco:generically_depends_on
-* Object: InformationBearingEntity (for Measurement Unit Name IBE)
-* ---
-* Subject: InformationBearingEntity (for Measurement Unit Name IBE)
-* Predicate: cco:has_text_value
-* Object: Literal "µm³"
-* ---
-* Subject: SolderPasteDeposit
-* Predicate: RO:0001025 (located in) (or myOnt:atSite)
-* Object: ComponentPin (the specific pin U1-pin3)
-* (Repeat for Height and Offset measurements, each with their own ICE, IBE, Quality, Value, and Unit)
+Translating unrestricted NL into a formal ontology **poses significant challenges**. Natural language is often *ambiguous* and context-dependent, whereas description logics require precise, unambiguous axioms. For example, a requirement sentence like *“Every fuel pump that is faulty must be replaced within 2 hours”* must be mapped to OWL classes/properties (e.g. a class `FaultyFuelPump` and a restriction on a `replacementTime` property) with no loss of meaning. Key challenges include:
 
-7. Process Flow and Transformation
-* Subject: ScreenPrintingProcess
-* Predicate: RO:0002234 (has output)
-* Object: SolderPasteDeposit
-* ---
-* Subject: SolderPasteDeposit
-* Predicate: RO:0000056 (participates in) (as input/subject of inspection)
-* Object: SPIProcess
-* ---
-* Subject: SolderPasteDeposit
-* Predicate: RO:0002233 (has input)
-* Object: ReflowProcess
-* ---
-* Subject: ReflowProcess
-* Predicate: RO:0002234 (has output)
-* Object: SolderJoint
-* ---
-* Subject: SolderJoint
-* Predicate: RO:0000056 (participates in) (as input/subject of inspection)
-* Object: XRayInspectionProcess
+* **Vocabulary Alignment:** Identifying domain concepts, relations, and individuals mentioned in text and aligning them with ontology terms (or creating new ontology entities). Domain-specific jargon or abbreviations in maintenance notes can be tricky for general LLMs. Some approaches leverage existing ontologies or thesauri to recognize entities in text.
+* **Syntactic Complexity and Ambiguity:** Natural sentences can have complex structures (relative clauses, negations, modality) that are hard to interpret in DL. For instance, parsing “No technician who lacks certification X may approve a repair” requires handling negation and existential conditions. LLMs sometimes struggle with logical structures like negation or quantifiers, as noted by recent analyses. Ensuring the *correct logical reading* of a sentence (e.g. scoping of “every” and “if-then” statements) remains nontrivial.
+* **Logical Consistency and Constraints:** The generated OWL axioms must be consistent with each other and with any existing ontology. A naive NL-to-OWL conversion might produce axioms that introduce unsatisfiable classes or contradictions. Mitigating these errors is crucial for high-stakes domains. Some neuro-symbolic systems now *verify and enforce consistency* using OWL reasoners in the loop.
+* **Completeness vs. Conciseness:** A single sentence can imply multiple ontology axioms. For example, *“Anna is a skilled pilot”* might add an individual `Anna`, assert `Anna : Pilot` and perhaps `Pilot ⊑ Person` if not already in the ontology. Deciding which axioms to include (and not to over-generate nonsense axioms) requires contextual judgment. LLMs sometimes hallucinate facts not in the text, so constraining output to relevant axioms is a challenge.
+* **Domain Knowledge and Constraints:** In specialized domains (e.g. aerospace or medical), correct formalization often requires domain knowledge (units, physical laws, taxonomies) that the language model might not fully capture. Incorporating domain ontologies or expert feedback into the process is often necessary.
 
-8. Process Sequencing (Chronological Order - "Upstream")
-* Subject: ScreenPrintingProcess
-* Predicate: BFO:0000063 (precedes)
-* Object: SPIProcess
-* ---
-* Subject: SPIProcess
-* Predicate: BFO:0000063 (precedes)
-* Object: ReflowProcess
-* ---
-* Subject: ReflowProcess
-* Predicate: BFO:0000063 (precedes)
-* Object: XRayInspectionProcess
+Despite these challenges, research since 2020 has made progress by combining LLMs’ language understanding with symbolic knowledge and careful system design.
 
-9. Participant in Process (Linking specific CCA to its processes)
-* Subject: CircuitCardAssembly
-* Predicate: RO:0000056 (participates in)
-* Object: ScreenPrintingProcess
-* ---
-* Subject: CircuitCardAssembly
-* Predicate: RO:0000056 (participates in)
-* Object: SPIProcess
-* ---
-* Subject: CircuitCardAssembly
-* Predicate: RO:0000056 (participates in)
-* Object: ReflowProcess
-* ---
-* Subject: CircuitCardAssembly
-* Predicate: RO:0000056 (participates in)
-* Object: XRayInspectionProcess
+## Approaches to NL-to-OWL Conversion with LLMs
+
+Recent work can be categorized by how they use LLMs in the conversion process. Broadly, approaches include **direct end-to-end neural semantic parsing**, **prompt-based (few-shot) methods**, and **hybrid neuro-symbolic pipelines**. Many systems also leverage intermediate representations (like templates or controlled language) to structure the task. We outline key methods below.
+
+### 1. Supervised Fine-Tuning of LLMs for OWL Generation
+
+One approach is to *fine-tune* a language model on pairs of natural language statements and their corresponding ontology axioms. By learning from examples, the model can directly generate OWL in a given syntax (such as Manchester or Functional syntax). For instance, Mateiu and Groza (2023) fine-tuned an **OpenAI GPT-3** model (Davinci) to translate sentences into OWL **Functional Syntax** axioms. They constructed a training set of 150 sentence–axiom pairs covering a variety of DL constructs (class subsumptions, object property relations, domain/range restrictions, cardinalities, disjointness, instances, etc.). Each sentence was a concise statement (e.g. *“Anna is a girl”*, *“Every rose is a flower”*) and the target was the corresponding OWL axioms (in Functional syntax, e.g. `Declaration(Class: girl)`, `ClassAssertion(:girl :Anna)` etc.). After fine-tuning, the model could produce axioms for new inputs with similar sentence structure. The authors integrated this into a **Protégé plugin** that takes user-written sentences and returns asserted axioms in the active ontology. This demonstrates a *practical tool* for ontology engineers to rapidly add knowledge from text. Notably, the plugin operates in a human-in-the-loop fashion: the suggested axioms are presented for verification before being committed, recognizing that the model isn’t perfectly accurate. This fine-tuning approach showed that even a relatively small dataset of carefully curated examples can teach an LLM the “grammar” of OWL statements for a given domain of discourse. It effectively treats the problem as a **semantic parsing** task, similar to mapping NL to SQL or SPARQL, but with OWL as the target formal language.
+
+A related effort by **Doumanas et al. (2025)** explored fine-tuning LLMs on *domain-specific ontology generation* tasks. They compare GPT-4 (a 2023 GPT series model) with a smaller open-source model (Mistral 7B) when fine-tuned on ontology content for **search and rescue (SAR) missions**. Their study created a dataset from an *Operational Requirements* document in the SAR domain, including 95 user story descriptions paired with formal competency questions and expected ontology axioms. Fine-tuned models were evaluated on how well they could produce an OWL ontology that covers those requirements. Interestingly, they reported that domain specialization improves the quality of generated ontologies, and even a fine-tuned 7B model can perform competitively in that narrow domain. This suggests that for specialized requirements (like aerospace maintenance procedures or specific engineering domains), *fine-tuning on in-domain text-logic pairs is beneficial*. However, obtaining training data is a bottleneck – often tackled by *synthetically generating* NL-to-logic pairs using existing ontologies (e.g. enumerating logical sentences from an ontology and verbalizing them, as done in some prototypes).
+
+Earlier precursors to these include work by de Azevedo et al. (2014) and Gyawali et al. (2017) on mapping NL to DL statements using statistical methods and small networks. Today’s fine-tuning approaches build on that by using powerful transformers capable of outputting structured text. Fine-tuned models essentially learn to **mimic a deterministic semantic parser** given enough examples. The advantage is direct, one-shot conversion. The drawback is the need for representative training data covering all the patterns we expect in requirements or notes. If the incoming sentences differ greatly from training examples, even a fine-tuned LLM may falter or misinterpret them.
+
+### 2. Prompt-Based and Few-Shot Semantic Parsing
+
+Another line of research avoids task-specific fine-tuning and instead uses *prompt engineering and few-shot learning* with large pre-trained models (like GPT-3.5 or GPT-4). In this approach, the LLM is given carefully designed prompts (and possibly a few example Q\&A pairs) to induce it to output a logical form. For example, a prompt might say: *“You are an expert ontology engineer. Translate the following requirement into OWL DL axioms in Manchester syntax: ...”* and possibly provide a format or example. **Tammet et al. (2024)** systematically experimented with such strategies. They evaluated GPT-based parsing of English into first-order logic (FOL) under *zero-shot*, *one-shot*, and *few-shot* settings. In zero-shot, the model is only given an instruction (no examples) and must rely on its internal knowledge. In few-shot, the prompt includes a handful of NL sentences with their correct formal translations as demonstrations, before asking it to parse a new sentence. Their results showed that few-shot prompting can significantly improve accuracy over zero-shot, but still did not match the reliability of supervised models. The most promising outcome was when the LLM was integrated as a component in a larger *pipeline* (more on this below), rather than used in isolation. This indicates that prompt-based methods are useful, but often need additional scaffolding to handle complex or domain-specific inputs.
+
+To improve prompt-based parsing, researchers have developed specialized prompting techniques. **Lippolis et al. (2024)** introduced a method called **“metacognitive prompting”** (in their system *Ontogenia*) to guide GPT models in ontology generation. Metacognitive prompting encourages the LLM to **reflect on the structure and consistency** of the ontology it’s building – essentially a self-check mechanism. For example, the prompt might break the task into steps: identify key concepts in the text, propose relationships, then finally output OWL axioms, with the model self-critiquing at each step. This is related to the idea of *Chain-of-Thought prompting*, where the LLM is prompted to reason step-by-step. By simulating a “multi-persona” collaboration within a single model (sometimes called *Solo Performance Prompting*), the LLM can catch some of its own errors or ambiguities before final output. Ontogenia was evaluated on a benchmark of 100 competency questions spanning different domains and showed improvement in correctness of generated axioms by using such reflective prompts, compared to a straightforward single-shot prompt. Although the details of Ontogenia’s performance are in a conference paper, the approach highlights how **prompt design** can inject domain knowledge or logical rules into the LLM’s reasoning without explicit training.
+
+In practice, prompt-based methods have also been applied using **ChatGPT/GPT-4** directly in ontology engineering tasks. For instance, Benson et al. (2024) used ChatGPT (GPT-4) via its chat interface to generate ontology content consistent with the **Basic Formal Ontology (BFO)**, which is a foundational ontology in biomedicine. They provided definitions and asked ChatGPT to produce class axioms and relations that fit BFO’s ontological categories. While GPT-4 could produce plausibly structured content, it sometimes violated subtle BFO constraints or invented new classes incorrectly. This underscores that *even powerful LLMs need careful prompting and oversight* to produce valid ontological knowledge. Generally, few-shot prompting is most viable when the input sentences follow patterns the base model likely has seen (e.g. simple taxonomic statements, “X is a Y” or “All X have property Y”). For more complex inputs (nested conditions, conditional requirements, etc.), purely prompt-based parsing may struggle, and researchers then turn to pipeline or neuro-symbolic solutions.
+
+### 3. Neuro-Symbolic Pipelines and Hybrid Systems
+
+To achieve high accuracy and logical consistency, a number of recent works combine LLMs with symbolic reasoning components in a **pipeline**. In these neuro-symbolic approaches, the LLM might handle the unstructured language understanding, but a symbolic module ensures the output adheres to formal rules and domain knowledge. A representative example is the **ontology-guided LLM pipeline** proposed by Monti et al. (2024). In their *workflow*, the LLM is first prompted normally to answer a user query (e.g. a question or requirement) in English. Then a *Formulizer* module converts the LLM’s *natural language answer* into formal expressions (logical axioms) in the vocabulary of a given domain ontology. This conversion can be done by a trained classifier or parser – Monti et al. cite that description logic researchers have addressed this sub-problem and that it can even be learned by a neural network. In their prototype, they used a simple logistic regression classifier to map certain structured answer patterns to OWL axioms. Once the answer is formalized as axioms (denoted formul(a)), a **coherence checker** module takes the domain ontology *KB* and the new axioms, and runs a reasoner to detect any inconsistencies or violations. If an inconsistency is found (meaning the LLM’s answer contradicts known facts or constraints in the ontology), the system doesn’t just reject it; instead, it *generates an explanatory feedback message* highlighting the issue and feeds this back to the LLM in a refined prompt. The LLM then has a chance to revise its answer to be consistent. This loop may iterate until the output is coherent with the ontology. By *“arguing” with the LLM* through formal feedback, the pipeline significantly improved answer consistency in their experiments. Essentially, the ontology and reasoner act as an **automated critic**, ensuring the LLM’s output respects logical constraints and domain truths. This approach falls under **Neuro-Symbolic AI**, harnessing both data-driven generation and symbolic verification.
+
+Another neuro-symbolic strategy is to use the LLM to propose candidate axioms, but rely on a separate selection or ranking mechanism to choose the best ones. **LogicLM (Pan et al., EMNLP 2023)** is an approach where an LLM’s generation is augmented with a logical solver: during generation of a proof or logical form, the system can call a theorem prover or consistency checker to prune invalid steps. Although LogicLM was demonstrated on solving puzzles and doing logical reasoning, the paradigm is applicable to NL-to-ontology: the LLM can be guided not to produce axioms that the reasoner flags as inconsistent. Similarly, **LLM-ARC (2023)** introduced an *“Automated Reasoning Critic”* that sits on top of an LLM, evaluating its output for logical validity and correctness using an external knowledge graph or ontology. In the context of OWL, one can imagine an LLM-ARC that checks whether a generated OWL axiom is entailed by or at least not contradicting a reference ontology.
+
+Yet another variation is using **intermediate structured representations** as a bridge. Some pipelines first translate the NL into a controlled intermediate (for example, a set of *Competency Questions (CQs)* or a structured template), then convert that to OWL using deterministic rules. *Competency questions* are natural language questions that an ontology should be able to answer; they can be easier to parse than free-form text. **Antia and Keet (2023)** developed a system called *Agile Ontology CQs (AgOCQs)* which generates CQs from a text corpus using NLP patterns and templates. They applied it to a COVID-19 literature corpus to extract potential ontology requirements, then used an LLM (referred to as NeOn-GPT in follow-up work) to help transform those CQs and textual definitions into axioms. The use of a controlled representation like CQs can simplify the LLM’s job (since questions often map to specific ontology patterns). Other work has looked at using **controlled natural languages** (CNL) as intermediates, leveraging the fact that CNL like *OWL Manchester Syntax* or *DSLs for requirements* are close to English but unambiguous. For example, approaches based on the old *Attempto Controlled English (ACE)* have been revived: one idea is to prompt an LLM to rewrite an input sentence in ACE or Manchester Syntax (which have strict mappings to OWL). Once in that form, it can be automatically converted to OWL by existing tools. This two-step “translate to CNL, then to OWL” can harness LLMs for what they are best at (language fluency) while relying on symbolic translation for the final mile. However, few 2020+ systems explicitly do this; most either go directly to OWL or use the ontology itself to constrain output.
+
+In summary, hybrid pipelines attempt to get the *best of both worlds*: the comprehension and flexibility of LLMs with the rigor and reliability of formal reasoning. The cost is increased system complexity – multiple components (parsers, reasoners, etc.) need to be maintained and integrated. Nonetheless, for high-value domains like aerospace or healthcare, this extra complexity is justified by the need for **trustworthy output**. In fact, one of the main motivations cited for combining LLMs with ontologies is to mitigate hallucinations and enforce domain rules. Early evidence suggests these pipelines markedly improve coherence of the generated knowledge.
+
+### 4. Mechanics of the Conversion Process
+
+Regardless of approach, there are common “mechanics” or design patterns in how the conversion is structured:
+
+* **Template-based Parsing:** Many systems categorize input sentences into types (e.g. simple class assertion, subclass definition, relation assertion, restriction, etc.) and handle each with a template. For instance, a sentence containing keywords like “is a kind of” indicates a subclass axiom. LLMs can aid in classification (determining which template applies) and filling in the slots. Monti et al. note that their OWL-to-English *verbalizer* (used for feedback) is nearly a direct template mapping from Manchester OWL syntax to English, implying the reverse is also templatic. Some fine-tuning approaches implicitly learn these templates from data (essentially performing template matching under the hood).
+* **Intermediate Triple Extraction:** Especially for *instance data* (individuals and relationships mentioned in text), a common step is extracting subject-predicate-object triples from the sentence, then linking those to ontology classes/properties. For example, Tahsin et al. (2023) in a maintenance domain pipeline first use an LLM (fine-tuned on maintenance work orders) to identify key entities and actions in a repair note, yielding triples like *(ConveyorBelt123, hasSymptom, Misalignment)*. These are then mapped to an ontology where `Misalignment` might be a class and `hasSymptom` an object property. Converting triples to OWL assertions (individual declarations, class assertions and property assertions) is straightforward once the entities are recognized. LLMs can contribute by improving recall of relevant entities, using domain thesauri and context to catch variations (e.g. “motor” vs “engine”). This triple-first approach effectively uses the ontology as a **knowledge graph schema** and populates it from text.
+* **Use of Ontology Context in Prompts:** When using prompting methods, researchers often include parts of the ontology (existing class names or definitions) in the prompt to ground the LLM. For instance, a prompt might list relevant ontology concepts (like `Pump, FuelPump, Failure`) and then ask the model to convert the sentence “A failed fuel pump is a critical issue” into axioms using those terms. By providing the ontology signature, the model is less likely to hallucinate unknown classes and more likely to output correct identifiers. Some studies report that prompting GPT-4 with ontology excerpts yields outputs that align better with the ontology’s structure (though it still requires post-editing).
+* **Iterative Refinement and Human-in-the-Loop:** Almost all practical systems include either an automated refinement loop (as in neuro-symbolic pipelines) or a human review step. The **Protégé plugin** by Mateiu & Groza, for example, appends axioms to an ontology but under user supervision. If the axiom is wrong, the user can discard or edit it. In a similar vein, OntoGenix (Val-Calvo et al., 2025) is a semi-automatic pipeline where the LLM suggests ontology edits (classes, properties, hierarchies) and a human expert validates them before acceptance. This interactive approach acknowledges that current LLMs are not 100% reliable, but they can significantly accelerate ontology engineering by doing the first draft of formalization.
+
+The mechanics above show that NL-to-OWL conversion is often decomposed into smaller tasks (classification, entity linking, triple extraction, consistency checking), with LLMs contributing where natural language understanding is needed and symbolic methods handling the formal logic constraints.
+
+## Tools, Libraries, and Frameworks
+
+Several **tools and frameworks** have been built around these approaches in the last few years, aiming to make NL-to-ontology conversion more accessible:
+
+* **Protégé OWL Plugin (2023)** – As mentioned, Mateiu & Groza released a plugin for the Protégé ontology editor that allows users to type natural language sentences and get OWL DL axioms in return. It uses a fine-tuned GPT-3 model as the backend. This plugin is particularly useful in interactive ontology development, letting ontology engineers quickly add classes or restrictions by describing them in English. The plugin relies on the OWL API to append axioms to the ontology programmatically. (Since it’s a research prototype, the exact plugin name and repository were provided in their paper; it’s available for the community to experiment with.)
+
+* **OntoGenix (2024–2025)** – OntoGenix is an **LLM-powered ontology learning pipeline** developed by Val-Calvo et al.. It was designed to automate ontology construction from data sources. In their 2025 study, they focus on using GPT-4 to help generate an e-commerce ontology from **CSV files** (product catalogs). OntoGenix breaks the process into steps aligned with the NeOn methodology (a standard for ontology engineering): identifying domain terms from data, class hierarchy induction, relation identification, and axiom writing. At each step, structured **prompts guide the LLM** – for example, given a set of product types, ask the LLM to draft a subclass hierarchy. The human engineer can approve or adjust the suggestions, then move to the next step. OntoGenix was shown to produce ontologies that are **comparable to human-developed ontologies** in quality for many aspects. The framework’s design and even some code are publicly documented (the team provides a GitHub repository for the pipeline’s implementation) – making it a valuable reference for those building LLM-in-the-loop ontology tools.
+
+* **Ontogenia (2024)** – Ontogenia is the system by Lippolis et al. that implements the *metacognitive prompting* approach for ontology generation (the name is a play on “ontology” and “Gen AI”). It was introduced as a method at ESWC 2024. While not a standalone tool with a UI, its methodology is notable. It essentially wraps a GPT-3.5/4 model in a custom prompting routine to generate ontologies from **competency questions** and brief domain descriptions. For instance, given a domain like “wildlife conservation” and some competency questions, Ontogenia will prompt the LLM first to list key classes and properties, then refine them, then output axioms. The authors report that this yields a more *structured and complete ontology* than a one-shot generation. This method is especially relevant for teaching or automated ontology bootstrapping from requirement questions.
+
+* **Domain-OntoGen / NeOn-GPT (2024)** – A pipeline emerging from work by Saeedizadeh, Blomqvist, Fathallah, and others, often termed “NeOn-GPT”, integrates LLMs into the NeOn ontology engineering methodology. One instantiation of this is a system that takes *user stories* plus *competency questions* (essentially, requirements in narrative form and corresponding questions the ontology should answer) and uses an LLM to generate ontology **modules** for each. Their 2024 ESWC paper *“Navigating ontology development with LLMs”* outlines this process. The **NeOn-GPT pipeline** guides the LLM to output OWL axioms stepwise: first, parse the user story to identify relevant concepts, then draft axioms (like class definitions or property domains) that would enable answering the competency question. They also incorporate an evaluation phase where the axioms are checked by querying if the competency question can be answered from the generated ontology (using SPARQL or DL reasoning). This approach was tested on multiple domains (life sciences, e-commerce, automotive, etc.), showing that a single pipeline can be adapted given domain-specific input texts. While not packaged as a public tool, the methodology demonstrates how LLMs can *drive the ontology creation process from requirements*, providing a blueprint for future tooling.
+
+* **KnowLO (2023)** – In the industrial maintenance domain, Tahsin et al. developed *KnowLO*, an open-source Java-based tool for **text-to-knowledge graph** generation from maintenance work orders. KnowLO isn’t solely an LLM system, but it uses a fine-tuned language model to extend a SKOS thesaurus and perform entity extraction on noisy maintenance texts (which often include typos and domain-specific shorthand). The pipeline then links the extracted terms to an OWL ontology of maintenance operations. The result is an RDF knowledge graph of maintenance events, enriched with ontology semantics (classes for equipment, faults, actions, etc.). KnowLO’s integration of an LLM improved the recall of domain-specific terms from text (by suggesting synonyms and related terms to add to the thesaurus). They validated the framework on real maintenance records from a manufacturer, showing better information retrieval and reasoning on those records once converted to a structured graph. This tool exemplifies a practical application in the **aerospace/industrial maintenance** sector: it helps convert unstructured work orders into a structured form aligned with an ontology, facilitating fault diagnosis and trend analysis.
+
+In addition to the above, there are libraries and research code for specific subtasks. For example, some projects provide **OWL verbalization and parsing libraries** (to turn OWL axioms into English and vice versa) which can be paired with LLMs for data augmentation. The *LangChain* framework, while not ontology-specific, is often used to build LLM applications and could be adapted to manage prompts and reasoning calls in an ontology pipeline. We also see emerging interest in using **knowledge graph embeddings** or Graph Neural Networks alongside LLMs (e.g., to validate that generated axioms make sense by embedding them in vector space). However, such integrations are still experimental as of 2025.
+
+The table below summarizes a few key systems and their characteristics:
+
+| **System / Approach**                    | **Year** | **Method**                                                       | **Output Formalism**       | **Notes / Domain**                                                         |
+| ---------------------------------------- | -------- | ---------------------------------------------------------------- | -------------------------- | -------------------------------------------------------------------------- |
+| *Protégé NL2OWL Plugin* (Mateiu & Groza) | 2023     | Fine-tuned GPT-3 model for direct NL-to-OWL conversion           | OWL DL (Functional Syntax) | Plugin for Protégé; covers classes, properties, restrictions, etc.         |
+| *Tammet et al. Experiments*              | 2024     | Zero-shot vs. few-shot GPT prompting; also pipeline integration  | First-Order Logic (FOL)    | Evaluated parsing English to logic for a QA reasoner pipeline.             |
+| *Monti et al. Neuro-Symbolic Loop*       | 2024     | Pipeline: LLM (black-box) + “Formulizer” + OWL reasoner feedback | OWL DL (Axioms)            | Ensures coherence with domain ontology; applied in legal/finance examples. |
+| *Mateiu & Groza Protege Plugin*          | 2023     | Fine-tuned Davinci (GPT-3) on 150 NL/OWL pairs                   | OWL DL                     | Protégé plugin for ontology enrichment.                                    |
+| *Ontogenia* (Lippolis et al.)            | 2024     | Metacognitive multi-turn prompting (GPT-3.5/4)                   | OWL DL (TTL syntax)        | Uses competency questions; tested on multi-domain ontology tasks.          |
+| *OntoGenix* (Val-Calvo et al.)           | 2025     | Structured prompting pipeline (GPT-4) + human validation         | OWL/RDF + KG               | Automates ontology building from tabular datasets; e-commerce focus.       |
+| *KnowLO* (Tahsin et al.)                 | 2023     | Fine-tuned LLM for entity extraction + ontology mapping          | RDF/OWL (Knowledge Graph)  | Converts maintenance work orders to OWL-aligned KG; industrial domain.     |
+| *Domain-OntoGen (NeOn-GPT)*              | 2024–25  | Prompt-guided ontology module generation (GPT-4 & Open models)   | OWL DL (modules)           | Uses user stories & competency questions; tested on 5–6 domains.           |
+
+*(Table: Selected LLM-based systems for NL-to-Logic conversion, 2020–2025.)*
+
+*Note:* Many of these are research prototypes rather than off-the-shelf products. They often rely on private API models (GPT-3/4) or require custom setup. However, their emergence indicates a trend toward assistive tools for ontology engineers, where the heavy lifting of parsing is done by AI and the expert focuses on verification and refinement.
+
+## Datasets, Benchmarks, and Evaluation
+
+The evaluation of NL-to-ontology systems typically considers **accuracy** of the logical conversion and the **usefulness** of the resulting ontology. Several datasets and benchmarks have been introduced recently:
+
+* **Synthetic Sentence–Axiom Corpora:** One simple benchmark is the set of 150 prompts by Mateiu & Groza (2023) used for their GPT-3 fine-tuning. It includes sentences across different DL constructs. Although small, this set (or similar ones) can serve as a unit test for models – i.e. can the model correctly translate each case (subclass, disjointness, cardinality, etc.)? Accuracy can be measured by exact match of the produced axiom to the gold axiom. Monti et al. (2024) also mention generating a comprehensive dataset by *exhaustively enumerating logical statements from an ontology and paraphrasing them to NL*. Such synthetic data can be used to fine-tune or evaluate how well models handle a *closed world* of ontology statements.
+
+* **Ontology Competency Question (CQ) Benchmarks:** Lippolis et al. (2024) released a dataset of 100 competency questions (in NL) along with target ontologies (or SPARQL queries) for each. One part of it came from a Semantic Web course scenario (covering e.g. an “African Wildlife ontology” exercise), and another from a water quality monitoring domain. Evaluating on this kind of dataset means checking if the generated ontology can answer the competency questions – often via SPARQL queries or description logic queries. A related resource is the **OWL2SPARQL dataset** by Potoniec et al. (2020), which provides 234 competency questions with corresponding SPARQL translations. While originally for QA, it indirectly evaluates if an ontology covers the question. If an NL-to-OWL system outputs an ontology, one can attempt the SPARQL queries and see if they retrieve the correct answers (assuming a reference dataset). Doumanas et al. (2025) use a similar approach: they consider a competency question *modeled* if the ontology contains the necessary classes/properties to answer it (via a query). This is a **functional evaluation** – rather than comparing axioms one-to-one, it checks if the ontology fulfills its intended requirements.
+
+* **Domain-specific Corpora:** In the biomedical domain, a dataset used by Fathallah et al. (2024) involves ontology learning in life sciences. They likely compiled domain texts (like definitions from biomedical literature) mapped to axioms in existing ontologies (e.g. SNOMED CT or others). Similarly, Alharbi et al. (2024) in the SWAT4HCLS workshop collected a set of drug indication descriptions and expected to build a knowledge graph (ontology + instances) from them. These domain datasets are valuable to test an LLM’s ability to handle jargon and long, complex sentences. Evaluation often involves domain experts rating the correctness of produced ontologies or measuring overlaps with gold-standard ontologies (precision/recall of classes and relations).
+
+* **Maintenance/Industrial Data:** The maintenance work orders dataset from KnowLO (Tahsin et al.) consists of 100 real maintenance tickets from a manufacturer, annotated with the expected knowledge graph triples. This can evaluate how well an LLM-based system extracts the right entities and relations. Metrics include precision/recall of extracted facts against a manually curated ground truth, as well as the improvement in downstream tasks (e.g. information retrieval success) when using the generated graph. Given the unstructured and often noisy nature of such text, it’s a challenging real-world testbed.
+
+* **Human Evaluation and Expert Review:** Because ontologies ultimately need to make sense to human experts, many papers include human evaluation. For example, Benson et al. (2024) had ontology experts judge whether the axioms produced by ChatGPT were consistent with BFO and the intended meaning. In Monti et al.’s coherence pipeline, a domain expert might evaluate if the final LLM answer (after iteration) is not only logically consistent but also *relevant and correct*. These evaluations can be qualitative but are crucial for domains like legal and aerospace, where even a logically consistent statement might be *nonsense* or non-compliant with regulations.
+
+Common **evaluation metrics** reported include: exact match accuracy of logical forms, F1-score for components of axioms (e.g. predicting the correct class and relation in a restriction), consistency ratio (percentage of outputs that yield no ontology inconsistency), coverage of competency questions, and user satisfaction or effort saved (in tool-based evaluations). There is not yet a single standardized benchmark for NL-to-OWL tasks, partly because each use-case (requirements vs. maintenance logs vs. QA) emphasizes different aspects. However, the community is moving toward shared resources. The *LLM4OE* (LLMs for Ontology Engineering) literature review maintains a GitHub of resources and might catalyze a unified benchmark in the future.
+
+## Domain Examples and Use Cases
+
+LLM-driven NL-to-ontology techniques are being explored in numerous domains. We highlight a few to illustrate the breadth:
+
+* **Aerospace & Maintenance:** The aerospace industry deals with complex maintenance logs, safety reports, and requirement specifications. Converting these into a formal ontology can improve predictive maintenance and safety assurance. The KnowLO system applied to construction equipment maintenance is a close analog – one can imagine a similar approach for aircraft maintenance work orders or incident reports. Each text entry (e.g. a maintenance action report) is transformed into triples and class assertions using an ontology of aircraft systems. Likewise, requirements for avionics or spacecraft (often written in structured NL) could be parsed by fine-tuned LLMs to check compliance with ontologies like NASA’s **Mission Ontology**. While concrete papers on aerospace-specific LLM ontology parsing are still emerging, the methods from industrial engineering are directly transferable. Early adoption is seen in defense and automotive sectors where LLMs help formalize *operational requirements* into OWL for simulation and verification.
+
+* **Biomedical and Healthcare:** Biomedical ontologies (e.g. gene ontologies, disease taxonomies) are extensive and always evolving. LLMs have been used to ingest new scientific literature and propose new ontology entries or relationships. For instance, Fathallah et al. (2024) use an LLM to learn ontological relations from life science texts – e.g. reading a pharmacology article and suggesting a new subclass or an equivalent class axiom for a drug’s mechanism. Another use case is **clinical notes**: hospitals have piles of free-text notes that could populate a patient knowledge graph. LLMs fine-tuned on clinical text can extract, say, a diagnosis and link it to an ontology like ICD or SNOMED, creating a patient-specific OWL individual with relationships (diagnosedWith, hasSymptom, etc.). There is also the example of drug indication KG construction, where the LLM reads indications and builds a graph aligned with a drug ontology for decision support. Evaluation often ties into how well the resulting ontology supports tasks like drug discovery queries or semantic search in literature.
+
+* **Legal and Regulatory:** Legal documents are written in (often complex) natural language but need to be interpreted in a rigorous, logical manner. There is growing interest in translating laws and regulations into formal rules/ontologies for automated compliance checking. LLMs could assist by parsing legislative text into, say, OWL ontologies that represent the legal norms (classes of actions, relations like *prohibitedBy*, *requiresPermit*, etc.). Monti et al. explicitly mention legal and financial domains as targets where their ontology-based LLM refinement is useful – these fields demand high accuracy and consistency. A possible scenario: using GPT-4 to translate a data privacy regulation into a set of OWL axioms that define what constitutes personal data, what processing is allowed, etc., then using a reasoner to flag violations. While full automation is distant, partial solutions exist (e.g. compliance ontologies augmented by LLM text classification). In 2023, some legal-tech prototypes used GPT models to identify logical *if-then* structures in contract text and map them to logic rules (though mostly using intermediate Python/Prolog representations rather than OWL). This domain poses challenges due to the subtlety of legal language (modalities like “shall”, “may”, exceptions, etc.), but progress is being made in *controlled natural language drafting of legislation*, where an LLM could serve as a drafting assistant that ensures the text corresponds to formal logic models.
+
+* **Industrial & Manufacturing:** Beyond maintenance logs, manufacturing companies often have **standard operating procedures** and process manuals in NL. Researchers have applied LLM-based ontology learning to factory process descriptions, creating ontologies for smart manufacturing. For example, one could parse a welding robot’s operating instructions into an ontology of tasks, parameters, and safety conditions. By doing so, it becomes easier to integrate with Industry 4.0 systems (which use ontologies for interoperability). The OntoGenix pipeline was partly motivated by industrial needs: one case was generating an ontology from e-commerce product data, which can extend to manufacturing product catalogs or supply chain data. Another case is **water distribution networks** – Huang et al. (2024) looked at using LLMs for ontology learning in the water management domain, showing that even infrastructure domains benefit from formal knowledge models created via NL analysis.
+
+* **Software and Requirements Engineering:** Converting software requirements (often written in user story format or plain English) into formal specifications is a classic problem. LLMs are now being tested as requirements-to-Ontology translators. For instance, an agile user story like *“As a user, I want two-factor authentication so that my account is secure”* could be turned into an ontology class `TwoFactorAuthRequirement` with properties linking it to security principles. Researchers have explored using GPT-4 to transform requirements into OWL to support traceability and automated reasoning about requirements conflicts. Some early works (2021–2022) used BERT-based models to classify requirements and then generate OWL representations of system components (though not full logical translation). The aerospace and automotive industries, which use *requirements ontologies* for systems engineering, are piloting LLMs to ease the burden of formalizing hundreds of requirements statements. Doumanas et al.’s multi-domain study specifically included *user stories* as input and measured how well the resulting ontology captured the requirements’ intent. This is directly applicable to software requirement documents or standards (like DO-178C in aerospace) where natural language statements define verifiable conditions.
+
+## Conclusion and Future Directions
+
+From 2020 to 2025, the intersection of large language models and ontology engineering has rapidly evolved. **LLMs have proven to be powerful allies** in translating natural language into OWL DL and related formalisms, but they are not a silver bullet. Fine-tuned models and clever prompts can achieve high fidelity on constrained examples (simple sentences or controlled input), while more complex or domain-specific texts still require hybrid approaches and expert oversight. The latest research prototypes show that combining LLMs with *symbolic knowledge* – ontologies, reasoners, logical constraints – yields far better results than using LLMs alone for this task. This neuro-symbolic synergy helps curb hallucinations and ensures the output is *logically sound* and domain-accurate.
+
+Looking forward, we anticipate several trends:
+
+* **Larger and Specialized Models:** With the advent of models like GPT-4 (with 32k context) and domain-tuned LLMs (e.g. BioGPT, LegalBERT variants), NL-to-logic conversion will handle longer texts (entire requirement documents) and use domain knowledge more effectively. There is ongoing work on *LLMs that natively understand logical formalisms*, sometimes called *Logic-Augmented LLMs*, which might drastically improve zero-shot capabilities in this area. Early examples like *PiLM* (Polifonia’s music ontology LLM) suggest that giving the model some structural training (like an ontology serialization in its pretraining) can make it more “ontology-aware”.
+
+* **Benchmarking and Competitions:** We may see shared tasks or challenge benchmarks introduced (perhaps at ISWC or ESWC conferences) specifically on NL-to-ontology mapping. These would drive the development of more standardized evaluation metrics and encourage the release of larger curated datasets (e.g. a multi-domain set of requirements with gold OWL ontologies). The community survey by Li et al. (2024) is a step toward consolidating such resources. As more researchers contribute, a public leaderboard for tasks like “translate this paragraph to OWL” could emerge, akin to semantic parsing leaderboards in NLP.
+
+* **Improved Intermediate Representations:** Future systems might use intermediate representations that are learned, not just templated. For example, a *abstract meaning representation (AMR)* or a *graph-based semantic parse* of the sentence could be an intermediate, which is then deterministically mapped to OWL. LLMs could produce such intermediate graphs (some recent work on text-to-graph using transformers exists) and thereby ensure the logical structure is captured before labeling it with ontology terms. This two-step approach (text → abstract logical form → OWL) could combine the robustness of AMR parsing with the preciseness of ontology mapping.
+
+* **Tool Integration and Automation:** We can expect tighter integration of these capabilities into mainstream ontology tools and workflows. Protégé and other ontology editors might incorporate LLM-driven suggestion engines to auto-formalize text definitions or to generate documentation (the reverse direction). On the enterprise side, knowledge graph platforms might offer “ingest unstructured text” features that under the hood use LLM pipelines to populate ontologies. Microsoft’s and Google’s AI-for-documents services, for instance, could be extended to output RDF/OWL for enterprise knowledge management.
+
+* **Ethical and Quality Considerations:** In sensitive domains, it’s crucial that the formalized knowledge is correct. An error in a safety ontology or a medical ontology can have serious consequences. Thus, future work will continue emphasizing *validation, explainability, and user control*. Techniques like the iterative feedback loop or the multi-persona prompting are forms of making the LLM’s decision process more transparent and adjustable. Research on **explainable AI** is intersecting with this field: for instance, generating not just an axiom but an explanation of why that axiom is warranted by the text. This could help humans trust and verify LLM outputs.
+
+In conclusion, the period 2020–2025 has laid the groundwork for **intelligent ontology engineering assistants**. Large Language Models, when properly guided, can handle much of the grunt work in translating natural language into formal knowledge, across technical domains from aerospace maintenance to biomedicine. The best results come from marrying the generative strength of LLMs with the meticulous consistency of logic-based systems. As these models improve and as hybrid techniques mature, we move closer to the vision of seamlessly converting everyday documentation and expertise into **machine-interpretable ontologies**, dramatically speeding up the development of knowledge-based systems.
+
+**Sources:**
+
+1. Monti et al., *“Improving the Accuracy of Black-Box LMs with Ontologies: A Preliminary Roadmap,”* FOIS 2024 – describes a pipeline with an English-to-logic *Formulizer* and ontology consistency feedback.
+2. ArXiv 2025 (Bassa et al.), *“Enhancing LLMs through Neuro-Symbolic Integration and Ontological Reasoning,”* – proposes using OWL ontologies and a reasoner to iteratively refine LLM outputs.
+3. Mateiu & Groza 2023, *“Ontology Engineering with LLMs,”* – fine-tuning GPT-3 to produce OWL axioms, Protégé plugin implementation.
+4. Tammet et al. 2024, *“Experiments with LLMs for Converting Language to Logic,”* – evaluates GPT-based semantic parsing to FOL in zero-shot, few-shot, and pipeline settings.
+5. Lippolis et al. 2024, *“Ontogenia: Ontology Generation with Metacognitive Prompting,”* ESWC 2024 – uses GPT-3.5/4 with special prompting for multi-domain ontology creation.
+6. Val-Calvo et al. 2025, *“OntoGenix: Leveraging LLMs for Ontology Engineering from Datasets,”* Inf. Proc. & Management – LLM-powered pipeline (with code) for ontology building from CSV datasets.
+7. Tahsin et al. 2023, *“Generation of Semantic Knowledge Graphs from Maintenance Work Orders,”* SemWeb Journal – fine-tuned LLM for extracting maintenance knowledge, integrated with an OWL ontology.
+8. Saeedizadeh & Blomqvist 2024, *“Navigating Ontology Development with LLMs,”* ESWC 2024 – outlines using LLM (NeOn-GPT) to translate requirements and competency questions into ontology fragments.
+9. Doumanas et al. 2025, *“Fine-Tuning LLMs for Ontology Engineering: GPT-4 vs Mistral,”* Applied Sciences – comparative study on domain-specific ontology generation (search & rescue).
+10. Benson et al. 2024, *“My Ontologist: Evaluating BFO-based AI for Definition Support,”* arXiv 2407.17657 – tests ChatGPT’s ability to generate BFO-consistent ontology content.
