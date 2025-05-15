@@ -1,8 +1,9 @@
-/** @type {import('postcss-load-config').Config} */
-const config = {
-  plugins: {
-    tailwindcss: {},
-  },
-};
-
-export default config;
+"System / Approach","Year","Method","Output Formalism","Notes / Domain"
+"Protégé NL2OWL Plugin (Mateiu & Groza)","2023","Fine‑tuned GPT‑3 model for direct NL‑to‑OWL conversion","OWL DL (Functional Syntax)","Plugin for Protégé; covers classes, properties, restrictions, etc."
+"Tammet et al. Experiments","2024","Zero‑shot vs. few‑shot GPT prompting; also pipeline integration","First‑Order Logic (FOL)","Evaluated parsing English to logic for a QA reasoner pipeline."
+"Monti et al. Neuro‑Symbolic Loop","2024","Pipeline: LLM (black‑box) + “Formulizer” + OWL reasoner feedback","OWL DL (Axioms)","Ensures coherence with domain ontology; applied in legal/finance examples."
+"Mateiu & Groza Protege Plugin","2023","Fine‑tuned Davinci (GPT‑3) on 150 NL/OWL pairs","OWL DL","Protégé plugin for ontology enrichment."
+"Ontogenia (Lippolis et al.)","2024","Metacognitive multi‑turn prompting (GPT‑3.5/4)","OWL DL (TTL syntax)","Uses competency questions; tested on multi‑domain ontology tasks."
+"OntoGenix (Val‑Calvo et al.)","2025","Structured prompting pipeline (GPT‑4) + human validation","OWL/RDF + KG","Automates ontology building from tabular datasets; e‑commerce focus."
+"KnowLO (Tahsin et al.)","2023","Fine‑tuned LLM for entity extraction + ontology mapping","RDF/OWL (Knowledge Graph)","Converts maintenance work orders to OWL‑aligned KG; industrial domain."
+"Domain‑OntoGen (NeOn‑GPT)","2024-2025","Prompt‑guided ontology module generation (GPT‑4 & open models)","OWL DL (modules)","Uses user stories & competency questions; tested on multiple domains."
