@@ -3,244 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About MBDX Initiative</title>
+    <title>Agile Model Based Enterprise - Mission & Vision</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* 
         SharePoint Embedding Notes:
-        1. You'll likely paste everything from <div class="mbdx-about-container"> onwards into a SharePoint "Embed" web part or "Text" web part (HTML view).
-        2. The <style> block should ideally be included. If SharePoint strips it, you might need to link to a CSS file hosted in SharePoint or use inline styles (less ideal).
-        3. Test thoroughly in SharePoint as its environment can sometimes override styles. You might need to make selectors more specific or use !important sparingly.
+        1. Paste everything from <div class="mission-vision-container"> onwards into SharePoint.
+        2. The <style> block should be included. If SharePoint strips it, you might need to link to CSS or use inline styles (less ideal).
+        3. Test thoroughly in SharePoint. Use !important sparingly if styles are overridden.
         */
 
-        /* --- Global Styles for this component --- */
-        .mbdx-about-container {
+        .mission-vision-root {
             font-family: 'Inter', 'Roboto', sans-serif;
-            color: #333;
-            line-height: 1.6;
-            background-color: #f9faff; /* Very light blue background for the whole section */
-            padding: 20px; /* Add padding if SharePoint doesn't provide it */
-            max-width: 900px; /* Adjust as needed for SharePoint column width */
-            margin: 0 auto; /* Center if it's a standalone page */
+            background-color: #f4f4f4; /* Light Gray background for the whole section */
+            padding: 40px 20px; /* Ample padding for the section */
+            display: flex; /* For centering the container if needed on a full page */
+            justify-content: center;
+            align-items: center;
+            min-height: 300px; /* Example minimum height */
         }
 
-        .mbdx-about-container h2,
-        .mbdx-about-container h3,
-        .mbdx-about-container h4 {
-            color: #00205B; /* RTX Navy */
-            font-weight: 700;
-            margin-top: 0;
+        .mission-vision-container {
+            display: flex;
+            gap: 30px; /* Space between Mission and Vision cards */
+            max-width: 1000px; /* Max width of the component */
+            width: 100%;
         }
 
-        .mbdx-about-container p {
-            margin-bottom: 1.2em;
-            color: #454545;
+        .mv-card {
+            background-color: #ffffff; /* White card background */
+            border-radius: 12px; /* Softer, modern rounded corners */
+            padding: 30px;
+            flex: 1; /* Each card takes equal space */
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); /* Softer, more diffused shadow */
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-top: 5px solid transparent; /* Placeholder for accent border */
         }
 
-        .mbdx-about-container a {
-            color: #005EB8; /* Sky Blue */
-            text-decoration: none;
-        }
-        .mbdx-about-container a:hover {
-            text-decoration: underline;
+        .mv-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
         }
 
-        /* --- Section Styling --- */
-        .mbdx-section {
-            background-color: #ffffff; /* White cards for sections */
-            padding: 25px 30px;
-            margin-bottom: 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 32, 91, 0.08); /* Subtle shadow using navy */
-            border-left: 5px solid #005EB8; /* Sky Blue accent */
+        .mv-card.mission {
+            border-top-color: #D32F2F; /* Red accent for Mission */
         }
-        
-        .mbdx-section.accent-orange {
-             border-left-color: #F47920; /* Accent Orange for some sections */
+        .mv-card.mission .mv-icon svg {
+            fill: #D32F2F; /* Red icon for Mission */
         }
 
-        .mbdx-section h2 {
-            font-size: 1.8em; /* 28.8px */
+        .mv-card.vision {
+            border-top-color: #333333; /* Dark Gray/Black accent for Vision */
+        }
+         .mv-card.vision .mv-icon svg {
+            fill: #333333; /* Dark Gray/Black icon for Vision */
+        }
+
+
+        .mv-header {
+            display: flex;
+            align-items: center;
             margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #e0e0e0;
         }
 
-        /* --- Specific Section Elements --- */
-        
-        /* Roles / Team Section */
-        .mbdx-roles-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
+        .mv-icon {
+            margin-right: 15px;
+            flex-shrink: 0; /* Prevent icon from shrinking */
         }
 
-        .mbdx-role-card {
-            background-color: #f0f7ff; /* Lighter Sky Blue */
-            padding: 20px;
-            border-radius: 6px;
-            border: 1px solid #cce4ff;
+        .mv-icon svg {
+            width: 40px; /* Adjust size as needed */
+            height: 40px;
         }
 
-        .mbdx-role-card h3 {
-            font-size: 1.3em; /* 20.8px */
-            color: #00205B; /* RTX Navy */
-            margin-bottom: 10px;
+        .mv-card h2 {
+            font-size: 1.8em; /* 28.8px */
+            color: #1a1a1a; /* Very dark gray / almost black for headings */
+            margin: 0;
+            font-weight: 700;
         }
-        .mbdx-role-card p {
-            font-size: 0.95em;
+
+        .mv-card p {
+            font-size: 1.05em; /* 16.8px */
+            color: #4d4d4d; /* Medium-dark gray for text */
+            line-height: 1.7;
+            flex-grow: 1; /* Allows paragraph to take available space */
             margin-bottom: 0;
         }
         
-        /* Deliverables List */
-        .mbdx-deliverables-list {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        .mbdx-deliverables-list li {
-            padding: 10px 0 10px 35px;
-            position: relative;
-            font-size: 1.05em;
-            border-bottom: 1px dashed #e0e0e0;
-        }
-        .mbdx-deliverables-list li:last-child {
-            border-bottom: none;
-        }
-
-        .mbdx-deliverables-list li::before {
-            content: '➤'; /* Simple arrow, or use an SVG/FontIcon if possible in SP */
-            position: absolute;
-            left: 5px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #F47920; /* Accent Orange */
-            font-size: 1.4em;
-            line-height: 1;
-        }
-
-        /* Optional: Intro/Hero style for "Who We Are" */
-        .mbdx-intro {
-            text-align: center;
-            padding: 20px 0;
-        }
-        .mbdx-intro h1 {
-            font-size: 2.5em; /* 40px */
-            color: #00205B; /* RTX Navy */
-            margin-bottom: 15px;
-        }
-        .mbdx-intro .lead-text {
-            font-size: 1.2em; /* 19.2px */
-            color: #005EB8; /* Sky Blue */
-            max-width: 700px;
-            margin: 0 auto 25px auto;
-        }
-
-        /* Responsive Adjustments (basic) */
+        /* Responsive adjustments */
         @media (max-width: 768px) {
-            .mbdx-about-container {
-                padding: 15px;
+            .mission-vision-container {
+                flex-direction: column; /* Stack cards on smaller screens */
+                gap: 25px;
             }
-            .mbdx-section {
-                padding: 20px;
+            .mv-card {
+                padding: 25px;
             }
-            .mbdx-section h2 {
+            .mv-card h2 {
                 font-size: 1.6em;
             }
-            .mbdx-intro h1 {
-                font-size: 2em;
-            }
-            .mbdx-intro .lead-text {
-                font-size: 1.1em;
+            .mv-icon svg {
+                width: 32px;
+                height: 32px;
             }
         }
-        @media (max-width: 480px) {
-             .mbdx-roles-grid {
-                grid-template-columns: 1fr; /* Stack roles on small screens */
+         @media (max-width: 480px) {
+            .mission-vision-root {
+                padding: 20px 15px;
             }
-            .mbdx-section h2 {
+             .mv-card h2 {
                 font-size: 1.4em;
+            }
+             .mv-card p {
+                font-size: 1em;
             }
         }
 
     </style>
 </head>
 <body>
+    <!-- 
+        Agile Model Based Enterprise - Section Title (Optional)
+        If you want a title above the two cards, you can add it here, for example:
+        <h1 style="text-align: center; color: #1a1a1a; margin-bottom: 30px; font-size: 2.5em;">
+            Agile Model Based Enterprise
+        </h1>
+    -->
+    <div class="mission-vision-root">
+        <div class="mission-vision-container">
 
-    <div class="mbdx-about-container">
-
-        <!-- Section: Who We Are (Intro) -->
-        <div class="mbdx-intro">
-            <h1>Model-Based Digital X (MBDX) Initiative</h1>
-            <p class="lead-text">
-                We are a dynamic and forward-thinking team dedicated to transforming how [Your Company/Organization] approaches engineering, manufacturing, and the entire product lifecycle through the power of integrated digital models.
-            </p>
-        </div>
-
-        <!-- Section: Our Mission -->
-        <div class="mbdx-section">
-            <h2>Our Mission</h2>
-            <p>
-                To empower every engineer and manufacturing professional with the tools, methodologies, and knowledge to leverage model-based practices, fostering innovation, improving efficiency, and accelerating time-to-market for all our products and solutions. We aim to create a seamless digital thread that connects every stage of the lifecycle.
-            </p>
-        </div>
-
-        <!-- Section: Our Vision -->
-        <div class="mbdx-section accent-orange">
-            <h2>Our Vision</h2>
-            <p>
-                A future where design, analysis, manufacturing, and sustainment are seamlessly integrated through authoritative digital models. We envision an environment where data flows effortlessly, decisions are model-informed, and collaboration across disciplines and business units is the standard, leading to unprecedented quality and agility.
-            </p>
-        </div>
-
-        <!-- Section: Our Roles / The Team -->
-        <div class="mbdx-section">
-            <h2>Our Roles & Expertise</h2>
-            <p>Our core team and extended network of champions bring expertise across several key domains to drive MBDX adoption:</p>
-            <div class="mbdx-roles-grid">
-                <div class="mbdx-role-card">
-                    <h3>MBSE Strategists</h3>
-                    <p>Defining system architectures, modeling best practices, and ensuring SysML v2 standards are adopted and effective.</p>
+            <!-- Mission Card -->
+            <div class="mv-card mission">
+                <div class="mv-header">
+                    <div class="mv-icon">
+                        <!-- Simple Target/Goal SVG Icon -->
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/></svg>
+                    </div>
+                    <h2>Our Mission</h2>
                 </div>
-                <div class="mbdx-role-card">
-                    <h3>Digital Manufacturing Leads</h3>
-                    <p>Connecting models to the shop floor, implementing standards like STEP & QIF, and optimizing production processes.</p>
-                </div>
-                <div class="mbdx-role-card">
-                    <h3>Semantic Thread Architects</h3>
-                    <p>Developing ontologies, URI policies, and SPARQL expertise to ensure data is connected, discoverable, and meaningful.</p>
-                </div>
-                <div class="mbdx-role-card">
-                    <h3>Process & Governance Experts</h3>
-                    <p>Establishing review gates, model maturity levels, and change management processes to ensure quality and consistency.</p>
-                </div>
-                <div class="mbdx-role-card">
-                    <h3>Training & Support Specialists</h3>
-                    <p>Developing learning materials, conducting workshops, and providing direct support to MBDX users.</p>
-                </div>
-                <div class="mbdx-role-card">
-                    <h3>Use Case Champions</h3>
-                    <p>Identifying, developing, and promoting successful applications of MBDX across various business units and domains.</p>
-                </div>
+                <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.
+                </p>
             </div>
-        </div>
 
-        <!-- Section: Our Deliverables -->
-        <div class="mbdx-section accent-orange">
-            <h2>Our Deliverables</h2>
-            <p>The MBDX initiative provides tangible resources and services to support your journey:</p>
-            <ul class="mbdx-deliverables-list">
-                <li>Comprehensive MBDX Playbook (Principles, Workflows, Templates)</li>
-                <li>Standardized Modeling Rules & Guidance (SysML v2, Manufacturing Standards)</li>
-                <li>Ontology Definitions & URI Policies</li>
-                <li>Validated Use Cases & Best Practice Demonstrators</li>
-                <li>Training Programs & Workshops</li>
-                <li>Expert Consultation & Model Review Services</li>
-                <li>Governance Frameworks & Model Maturity Guidelines</li>
-                <li>A Centralized MBDX Portal for all resources and support.</li>
-            </ul>
-        </div>
+            <!-- Vision Card -->
+            <div class="mv-card vision">
+                <div class="mv-header">
+                    <div class="mv-icon">
+                        <!-- Simple Eye/Foresight SVG Icon -->
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                    </div>
+                    <h2>Our Vision</h2>
+                </div>
+                <p>
+                    Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur.
+                </p>
+            </div>
 
+        </div>
     </div>
 
 </body>
