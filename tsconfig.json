@@ -1,11 +1,1 @@
 
-#,Phase,Key activities,Primary owner,Support / tools
-1,Scope & DSQs,"Frame purpose; decision-support questions; success metrics","BU SMEs","Ontology lead; workshop template"
-2,ROI case,"Quantify cost/time savings & compliance benefits","BU SMEs","Ontology lead"
-3,Pattern reuse & extension,"Import patterns; extend classes/relations; align to REO","Ontology lead; BU SMEs","Modeling-pattern library"
-4,Data mapping,"Map source tables/files to ontology terms","Ontology lead; Data engineer; tool-vendor support","Mapping-tool templates"
-5,Graph build,"Ingest & materialize triples","Ontology lead; Data engineer; tool-vendor support","Graph platform (free/EDX); tool-vendor support"
-6,Query & analytics,"Craft SPARQL / GraphQL for KPIs","Ontology lead; tool-vendor support","Sample query pack"
-7,Dashboards,"Assemble charts & unified views","Ontology lead; Data engineer; tool-vendor support","Graph UI"
-8,Validation,"Spot-check results; iterate","BU SMEs","Review checklist"
-9,Govern & evolve,"Ownership; versioning; change control","BU SMEs; Ontology team","Governance playbook"
