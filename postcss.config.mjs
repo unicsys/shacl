@@ -1,14 +1,15 @@
-Headline
-Build Faster. Fly Smarter.
+Agile Model-Based Enterprise – Why It Matters
 
-Sub-line / Mission Statement
-Agile Model-Based Enterprise (AMBE) unites every digital model, dataset, and decision—delivering first-time quality and accelerated schedules for aerospace and defense programs around the globe.
+AMBE drives safety, first-time quality, and productivity through:
 
-Value Bar
-30 % shorter development cycles • 15 % cost reduction • Single source of truth
+    A single source of truth – one authoritative model and data backbone that spans concept, build, and sustainment.
 
-Primary CTA
-Download AMBE Overview
+    Digital twins & simulation loops – virtual replicas of products and production systems enable iterative learning, risk-free testing, and predictive maintenance.
 
-Secondary CTA
-Start Vendor Onboarding
+    Industry 4.0 feedback – sensor-rich factories feed real-time data back to engineering models, tightening the design-to-shop-floor loop.
+
+    Standards-driven models – high-fidelity authoring in SysML v2, STEP, and QIF enforces consistency and accelerates certification.
+
+    Rigorous change management – every requirement, model element, and work-instruction is trace-linked, so updates propagate instantly and accurately.
+
+    Reusable model libraries – validated patterns and components slash NRE cost and cut program ramp-up time.
