@@ -1,15 +1,19 @@
-Agile Model-Based Enterprise – Why It Matters
+AMBE – Customer & Supplier Collaboration
 
-AMBE drives safety, first-time quality, and productivity through:
+RTX Focus Areas
+Icon suggestion	Heading	Blurb	CTA
+🤝 (hands-puzzle)	Co-Engineering Excellence	
+    We continuously refine AMBE methods and upskill our teams together with customers and suppliers. A self-service Capability Assessment helps you benchmark your digital-model maturity.	Start the Assessment →
+🌐 (nodes-framework)	
+    Open Interoperability Framework	We are piloting a 4-level engagement framework that maps data exchange, governance, and toolchain alignment—fueling vendor-neutral, standards-driven collaboration.	See the AMBE Framework →
+📜 (check-list)	Standards Leadership	
+    AMBE is grounded in open specs (STEP, SysML v2, QIF). We publish guidance on how these standards knit the digital thread, ensuring version-agnostic data flow.	View Data Standards Guide →
 
-    A single source of truth – one authoritative model and data backbone that spans concept, build, and sustainment.
-
-    Digital twins & simulation loops – virtual replicas of products and production systems enable iterative learning, risk-free testing, and predictive maintenance.
-
-    Industry 4.0 feedback – sensor-rich factories feed real-time data back to engineering models, tightening the design-to-shop-floor loop.
-
-    Standards-driven models – high-fidelity authoring in SysML v2, STEP, and QIF enforces consistency and accelerates certification.
-
-    Rigorous change management – every requirement, model element, and work-instruction is trace-linked, so updates propagate instantly and accurately.
-
-    Reusable model libraries – validated patterns and components slash NRE cost and cut program ramp-up time.
+Supplier Focus Areas
+Icon suggestion	Heading	Blurb	CTA
+🗣️ (dialog-balloon)	Voice Your Needs	
+    Join industry working groups and RTX-hosted roundtables to shape next-gen model standards.	Upcoming Forums →
+🔢 (1-0 binary)	Map Your Data Fit	
+    Use our quick reference to see where your models slot into the AMBE taxonomy and required exchange formats.	Check Taxonomy Alignment →
+💡 (light-bulb)	Grow Digital Capability	
+    Whether you’re a three-person shop or a tier-one integrator, our playbook outlines key competencies—data, process, tools, people—to boost your model-based readiness.	Download Skills Playbook →
