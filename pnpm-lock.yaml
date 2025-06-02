@@ -1,1 +1,1 @@
-We use Ontop to build a virtual knowledge graph on top of our existing relational and warehouse systems—think (PostgreSQL, MySQL, Oracle, SQL Server, Databricks, Snowflake)—so the data stays where it is, no copying required. Ontop just needs a set of “translation rules” (R2RML mappings) that tell it how each table and column should appear in the graph. Our ready-made mapping templates let you drop in your table names, run a helper script, and instantly generate those rules, turning database rows into graph facts in minutes instead of days.
+
