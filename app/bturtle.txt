@@ -1,81 +1,21 @@
-@prefix : <http://example.org/yourdid#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix xml: <http://www.w3.org/XML/1998/namespace> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix dc: <http://purl.org/dc/elements/1.1/> .
-@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
-@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> . # Verify CCO namespace
+PREFIX : <http://example.org/yourdid#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
 
-# Ontology Metadata (Optional but good practice)
-<http://example.org/yourdid> rdf:type owl:Ontology ;
-    rdfs:comment "Ontology for Data Item Descriptions based on DI-SESS-81000F example."@en .
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT ?title ?identifier ?approvalDateValue
+WHERE {
+  # Get the title and identifier directly from DI-SESS-81000F
+  :DI-SESS-81000F dc:title ?title ;
+                  dc:identifier ?identifier .
 
-# Class Declarations and Hierarchy
-:DataItemDescription rdf:type owl:Class ;
-                     rdfs:subClassOf cco:InformationContentEntity .
-
-:ApprovalProcess rdf:type owl:Class ;
-                 rdfs:subClassOf bfo:0000015 . # bfo:Process
-
-:Organization rdf:type owl:Class ;
-              rdfs:subClassOf cco:Agent .
-
-:PreparationProcess rdf:type owl:Class ;
-                    rdfs:subClassOf bfo:0000015 , # bfo:Process
-                                    cco:Creating .
-
-# BFO/CCO Classes used (ensure they are declared if not imported)
-# It's better to import BFO and CCO than to redeclare their classes.
-# If you are not importing, you'd need:
-# bfo:0000015 rdf:type owl:Class . # Process
-# bfo:0000160 rdf:type owl:Class . # temporal_region
-# bfo:0000151 rdf:type owl:Class . # temporal_instant
-# cco:InformationContentEntity rdf:type owl:Class .
-# cco:Agent rdf:type owl:Class .
-# cco:Creating rdf:type owl:Class .
-
-
-# Property Declarations
-dc:title rdf:type owl:DatatypeProperty .
-dc:identifier rdf:type owl:DatatypeProperty .
-:isOutputOf rdf:type owl:ObjectProperty .
-bfo:0000199 rdf:type owl:ObjectProperty . # bfo:occupies_temporal_region
-dc:date rdf:type owl:DatatypeProperty . # Note: dc:date is a property, not a class for the instant
-bfo:0000224 rdf:type owl:ObjectProperty . # bfo:has_last_instant
-rdfs:label rdf:type owl:DatatypeProperty . # rdfs:label is inherently a DatatypeProperty
-bfo:0000056 rdf:type owl:ObjectProperty . # bfo:participates_in_at_some_time
-cco:hasSpecifiedOutput rdf:type owl:ObjectProperty .
-:hasProjectIdentifier rdf:type owl:DatatypeProperty .
-
-
-# Individuals and Assertions
-
-:DI-SESS-81000F rdf:type owl:NamedIndividual ,
-                         :DataItemDescription ;
-                dc:title "PRODUCT ENGINEERING DESIGN DATA AND ASSOCIATED LISTS"^^xsd:string ;
-                dc:identifier "DI-SESS-81000F"^^xsd:string ;
-                :isOutputOf :ApprovalProcess_For_81000F ; # Relation to its approval process
-                :hasProjectIdentifier "SESS-2019-023"^^xsd:string .
-
-:ApprovalProcess_For_81000F rdf:type owl:NamedIndividual ,
-                                     :ApprovalProcess ;
-                            bfo:0000199 :TemporalRegion_Approval_81000F . # occupies_temporal_region
-
-:TemporalRegion_Approval_81000F rdf:type owl:NamedIndividual ,
-                                         bfo:0000160 ; # instance of bfo:temporal_region
-                                bfo:0000224 :Instant_20190417 . # has_last_instant
-
-:Instant_20190417 rdf:type owl:NamedIndividual ,
-                           bfo:0000151 ; # instance of bfo:temporal_instant
-                  dc:date "2019-04-17"^^xsd:date . # The actual date value associated with the instant
-
-:Org_AR rdf:type owl:NamedIndividual ,
-                 :Organization ;
-        rdfs:label "AR"^^xsd:string ;
-        bfo:0000056 :PrepProcess_81000F_by_AR . # participates_in_at_some_time
-
-:PrepProcess_81000F_by_AR rdf:type owl:NamedIndividual ,
-                                  :PreparationProcess ;
-                         cco:hasSpecifiedOutput :DI-SESS-81000F .
+  # Navigate to the approval date
+  # Path: DI-SESS-81000F -> isOutputOf -> ApprovalProcess -> occupies_temporal_region -> TemporalRegion -> has_last_instant -> Instant -> dc:date
+  OPTIONAL { # Using OPTIONAL in case some part of the approval date path is missing for some data
+    :DI-SESS-81000F :isOutputOf ?approvalProcess .
+    ?approvalProcess rdf:type :ApprovalProcess ; # Ensure it's an approval process
+                     bfo:0000199 ?temporalRegion . # bfo:occupies_temporal_region
+    ?temporalRegion bfo:0000224 ?approvalInstant . # bfo:has_last_instant
+    ?approvalInstant dc:date ?approvalDateValue .
+  }
+}
