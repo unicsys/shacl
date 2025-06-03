@@ -1,21 +1,171 @@
-PREFIX : <http://example.org/yourdid#>
-PREFIX dc: <http://purl.org/dc/elements/1.1/>
-PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
+@prefix : <http://example.org/yourdid#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> . 
+@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> . # PLEASE VERIFY
 
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-SELECT ?title ?identifier ?approvalDateValue
-WHERE {
-  # Get the title and identifier directly from DI-SESS-81000F
-  :DI-SESS-81000F dc:title ?title ;
-                  dc:identifier ?identifier .
+# --- Class Declarations and Axioms for PEDD_Type ---
+# ... (all previous declarations up to PEDD_Type supports procurement) ...
 
-  # Navigate to the approval date
-  # Path: DI-SESS-81000F -> isOutputOf -> ApprovalProcess -> occupies_temporal_region -> TemporalRegion -> has_last_instant -> Instant -> dc:date
-  OPTIONAL { # Using OPTIONAL in case some part of the approval date path is missing for some data
-    :DI-SESS-81000F :isOutputOf ?approvalProcess .
-    ?approvalProcess rdf:type :ApprovalProcess ; # Ensure it's an approval process
-                     bfo:0000199 ?temporalRegion . # bfo:occupies_temporal_region
-    ?temporalRegion bfo:0000224 ?approvalInstant . # bfo:has_last_instant
-    ?approvalInstant dc:date ?approvalDateValue .
-  }
-}
+:PEDD_Type rdf:type owl:Class ;
+    rdfs:subClassOf cco:InformationContentEntity ;
+    rdfs:subClassOf :EngineeringData ; 
+    rdfs:comment "Represents a type of Product Engineering Design Data."@en .
+
+:EngineeringData rdf:type owl:Class ;
+    rdfs:subClassOf cco:InformationContentEntity ;
+    rdfs:comment "Represents engineering data."@en .
+
+:Item rdf:type owl:Class ;
+    rdfs:subClassOf cco:Object ; 
+    rdfs:comment "Represents a physical or conceptual item being described."@en .
+
+:TechnicalDescription rdf:type owl:Class ;
+    rdfs:subClassOf cco:Description , 
+                    cco:InformationContentEntity ;
+    rdfs:comment "Represents a technical description."@en .
+
+cco:describes rdf:type owl:ObjectProperty ;
+    rdfs:domain cco:InformationContentEntity ;
+    rdfs:range cco:Object .
+
+:PEDD_Type rdfs:subClassOf [
+        rdf:type owl:Restriction ;
+        owl:onProperty cco:describes ;
+        owl:someValuesFrom :Item
+    ] ;
+    rdfs:subClassOf :TechnicalDescription . 
+
+:AuthoritativeQuality rdf:type owl:Class ;
+    rdfs:subClassOf bfo:0000019 ; 
+    rdfs:comment "The quality of being authoritative."@en .
+
+bfo:0000196 rdf:type owl:ObjectProperty ; 
+    rdfs:domain bfo:0000001 ; 
+    rdfs:range bfo:0000019 .  
+
+:PEDD_Type rdfs:subClassOf [
+        rdf:type owl:Restriction ;
+        owl:onProperty bfo:0000196 ; 
+        owl:someValuesFrom :AuthoritativeQuality
+    ] .
+
+:CompleteQuality rdf:type owl:Class ;
+    rdfs:subClassOf bfo:0000019 ; 
+    rdfs:comment "The quality of being complete."@en .
+
+:PEDD_Type rdfs:subClassOf [
+        rdf:type owl:Restriction ;
+        owl:onProperty bfo:0000196 ; 
+        owl:someValuesFrom :CompleteQuality
+    ] .
+
+:SupportProcurementFunction rdf:type owl:Class ;
+    rdfs:subClassOf cco:FunctionalSpecification ,
+                    bfo:0000016 ; 
+    rdfs:comment "The function of supporting a procurement process."@en .
+
+:PEDD_Type rdfs:subClassOf [
+        rdf:type owl:Restriction ;
+        owl:onProperty bfo:0000196 ; 
+        owl:someValuesFrom :SupportProcurementFunction
+    ] .
+
+:CompetitiveProcurementProcess rdf:type owl:Class ;
+    rdfs:subClassOf bfo:0000015 ; 
+    rdfs:comment "A process of competitive procurement."@en .
+
+cco:isRealizedBy rdf:type owl:ObjectProperty ;
+    rdfs:domain cco:FunctionalSpecification ;
+    rdfs:range bfo:0000015 . 
+
+# Define cco:isInputTo (as per your original snippet)
+cco:isInputTo rdf:type owl:ObjectProperty ;
+    rdfs:domain cco:InformationContentEntity ;
+    rdfs:range bfo:0000015 .
+
+# Define a bfo:has_input property (inverse of cco:isInputTo IF cco:isInputTo was Process -> ICE)
+# For BFO, has_input typically Process -> InformationContentEntity or MaterialEntity
+bfo:has_input rdf:type owl:ObjectProperty ; # Hypothetical or actual BFO relation
+    rdfs:label "has input"@en ;
+    rdfs:comment "A relation between a process and an entity that is input to it."@en ;
+    rdfs:domain bfo:0000015 ; # process
+    rdfs:range cco:InformationContentEntity . # Or a more general bfo:Entity
+    # Optionally, owl:inverseOf cco:isInputFor (if cco:isInputFor existed with domain ICE, range Process)
+
+:SupportProcurementFunction rdfs:subClassOf [
+        rdf:type owl:Restriction ;
+        owl:onProperty cco:isRealizedBy ;
+        owl:someValuesFrom [ # This is a class expression for "a process that has_input some :PEDD_Type"
+            rdf:type owl:Class ;
+            owl:intersectionOf (
+                bfo:0000015 # It must be a bfo:Process
+                [ # And it must satisfy this restriction
+                    rdf:type owl:Restriction ;
+                    owl:onProperty bfo:has_input ; # Using the clearer has_input
+                    owl:someValuesFrom :PEDD_Type
+                ]
+            )
+        ]
+    ] ;
+    rdfs:subClassOf [
+        rdf:type owl:Restriction ;
+        owl:onProperty cco:isRealizedBy ;
+        owl:someValuesFrom :CompetitiveProcurementProcess
+    ] .
+
+:SupportMaintenanceFunction rdf:type owl:Class ;
+    rdfs:subClassOf cco:FunctionalSpecification ,
+                    bfo:0000016 ; 
+    rdfs:comment "The function of supporting a maintenance process."@en .
+
+:PEDD_Type rdfs:subClassOf [
+        rdf:type owl:Restriction ;
+        owl:onProperty bfo:0000196 ; 
+        owl:someValuesFrom :SupportMaintenanceFunction
+    ] .
+
+:MaintenanceProcess rdf:type owl:Class ;
+    rdfs:subClassOf bfo:0000015 ; 
+    rdfs:comment "A process of maintenance."@en .
+
+:SupportMaintenanceFunction rdfs:subClassOf [
+        rdf:type owl:Restriction ;
+        owl:onProperty cco:isRealizedBy ;
+        owl:someValuesFrom [ # Similar class expression using bfo:has_input
+            rdf:type owl:Class ;
+            owl:intersectionOf (
+                bfo:0000015 # It must be a bfo:Process
+                [ # And it must satisfy this restriction
+                    rdf:type owl:Restriction ;
+                    owl:onProperty bfo:has_input ;
+                    owl:someValuesFrom :PEDD_Type
+                ]
+            )
+        ]
+    ] ;
+    rdfs:subClassOf [
+        rdf:type owl:Restriction ;
+        owl:onProperty cco:isRealizedBy ;
+        owl:someValuesFrom :MaintenanceProcess
+    ] .
+
+:DesignDisclosure rdf:type owl:Class ;
+    rdfs:subClassOf cco:InformationContentEntity ;
+    rdfs:comment "Represents design disclosure information."@en .
+
+:PEDD_Type rdfs:subClassOf :DesignDisclosure .
+
+:HighestLevelDisclosureQuality rdf:type owl:Class ;
+    rdfs:subClassOf bfo:0000019 ; 
+    rdfs:comment "The quality of being the highest level of design disclosure."@en .
+
+:PEDD_Type rdfs:subClassOf [
+        rdf:type owl:Restriction ;
+        owl:onProperty bfo:0000196 ; 
+        owl:someValuesFrom :HighestLevelDisclosureQuality
+    ] .
