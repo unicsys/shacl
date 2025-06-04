@@ -1,1 +1,29 @@
 
+Hi Megan,
+
+Thanks for the warm introduction and for outlining the vision around Graph Studio.
+
+Rob and I have already connected and plan to reconvene once he wraps up his current deliverable. In parallel, I’d welcome a joint session with you and Patrick to:
+
+    walk through the enterprise-level capabilities now available in Graph Studio (model onboarding, reasoning, security, DevOps, etc.);
+
+    review Collins’ current use-case threads and key lessons learned; and
+
+    discuss how the platform might plug into our existing ontology-governance and integration roadmap.
+
+REO is still being socialized internally, so I’ll keep the discussion at a high level but can share representative patterns and integration requirements.
+
+My upcoming availability (PT):
+
+    Tue 10 Jun 09:00 – 11:00
+
+    Wed 11 Jun 13:00 – 15:00
+
+    Fri 13 Jun 08:00 – 11:00
+
+Feel free to send a hold that suits everyone.
+
+Looking forward to comparing notes.
+
+Best,
+Shatad
