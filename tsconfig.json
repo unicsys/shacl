@@ -1,1 +1,148 @@
+import pandas as pd
+import networkx as nx
+from pyvis.network import Network
+import json
+
+
+def modify_html(input_file, output_file, graph_title):
+    with open(input_file, 'r', encoding='utf-8') as file:
+        content = file.read()
+
+    search_html = """
+    <div style="position: absolute; top: 10px; left: 10px; z-index: 1000;">
+        <input type="text" id="search-input" placeholder="Search node..." />
+        <button onclick="searchNode()">Search</button>
+    </div>
+    """
+    
+    # Define the title HTML
+    title_html = f"""
+    <div style="position: absolute; top: 10px; right: 10px; z-index: 1000; font-size: 18px; font-weight: bold;">
+        {graph_title}
+    </div>
+    """
+
+
+    search_script = """
+    <script>
+    function searchNode() {
+        var input = document.getElementById('search-input').value.toLowerCase();
+        var nodesFound = [];
+        network.body.data.nodes.forEach(function(node) {
+            network.body.data.nodes.update({id: node.id, color: null});
+        });
+        network.body.data.nodes.forEach(function(node) {
+            if (node.id.toLowerCase().includes(input)) {
+                nodesFound.push(node.id);
+                network.body.data.nodes.update({id: node.id, color: "red"});
+            }
+        });
+        if (nodesFound.length > 0) {
+            network.selectNodes(nodesFound);
+            network.fit({nodes: nodesFound, animation: true});
+        } else {
+            alert("Node(s) not found!");
+        }
+    }
+    </script>
+    """
+
+    # Insert search and title sections
+    content = content.replace('<body>', '<body>' + search_html + title_html)
+    content = content.replace('</body>', search_script + '\n</body>')
+
+    with open(output_file, 'w', encoding='utf-8') as file:
+        file.write(content)
+
+
+# Path to your CSV file
+file_path = "bfo_file1.csv"
+G = nx.DiGraph()
+data_source_nodes = set()
+node_colors = {}
+df = pd.read_csv(file_path)
+
+for index, row in df.iterrows():
+    subject = row['Subject']
+    predicate = row['Predicate']
+    object_ = row['Object']
+    
+    # Create nodes for subject and object as before
+    G.add_node(subject)
+    G.add_node(object_)
+    
+    # Create a new node for the predicate and connect it to both subject and object with the specified appearance
+    predicate_node_id = f"{subject}_{predicate}_{object_}"  # Create a unique ID for predicate node
+    G.add_node(predicate_node_id, shape='box', color={'background':'white', 'border':'lightgray', 'highlight': {'background':'white', 'border':'gray'}}, font={'size': 10}, label=predicate, title=predicate)
+    G.add_edge(subject, predicate_node_id)
+    G.add_edge(predicate_node_id, object_)
+    
+    if predicate == "has data source":
+        data_source_nodes.add(object_)
+        node_colors[object_] = "yellow"
+
+nt = Network(notebook=True, height="750px", width="100%", bgcolor="#ffffff", font_color="black", directed=True)
+for node in G.nodes(data=True):
+    nt.add_node(node[0], **node[1])
+for edge in G.edges():
+    nt.add_edge(edge[0], edge[1])
+
+physics_config = {
+    "barnesHut": {
+        "gravitationalConstant": -2000,
+        "centralGravity": 0.3,
+        "springLength": 95,
+        "springConstant": 0.04,
+        "damping": 0.09,
+        "avoidOverlap": 0.1
+    },
+    "minVelocity": 0.75
+}
+options = {
+    "physics": physics_config,
+    "configure": {
+        "enabled": True,
+        "filter": ["physics"]
+    },
+    "edges": {
+        "color": {
+            "color": "blue",
+            "highlight": "blue",
+            "hover": "blue"
+        },
+        "font": {
+            "size": 12,
+            "color": "black",
+            "face": "arial",
+        },
+        "arrows": {
+            "to": {
+                "enabled": True,
+                "scaleFactor": 0.5
+            }
+        },
+        "labelHighlightBold": True,
+        "width": 0.5
+    },
+    "interaction": {
+        "multiselect": True,
+        "navigationButtons": True,
+        "keyboard": {
+            "enabled": True,
+            "speed": { "x": 10, "y": 10, "zoom": 0.02 },
+            "bindToWindow": True
+        }
+    }
+}
+nt.set_options(json.dumps(options))
+temp_output_file = "temp_graph_visualization1.html"
+nt.save_graph(temp_output_file)
+
+# Modify the saved file to include search functionality
+output_file = "graph_bfo2.html"
+graph_title = "DiD Ontology"
+modify_html(temp_output_file, output_file, graph_title)
+
+
+
 
