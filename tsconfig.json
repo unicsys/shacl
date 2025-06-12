@@ -1,102 +1,13 @@
-Predicate (Relation),Domain,Range,Description
-BFO/RO Core (Reused),,,
-bfo:0000050 (part of),myont:ComponentPin,myont:ElectronicComponent,Pin is part of Component
-bfo:0000050 (part of),myont:ElectronicComponent,myont:CircuitCardAssembly,Component is part of CCA
-bfo:0000197 (inheres in),"myont:PhysicalQuality (e.g., Volume)","myont:MaterialEntity (e.g., SolderPasteDeposit)",Quality exists in a material thing
-ro:0000056 (participates in),"myont:MaterialEntity (e.g., CCA)","myont:Process (e.g., SPIProcess)",A thing is involved in a process
-ro:0002233 (has input),"myont:Process (e.g., ReflowProcess)","myont:MaterialEntity (e.g., SolderPasteDeposit)",Process consumes/uses an input
-ro:0002234 (has output),"myont:Process (e.g., ReflowProcess)",myont:MaterialEntity OR myont:ICE,Process produces an output (material or data)
-bfo:0000063 (precedes),"myont:Process (e.g., SPIProcess)","myont:Process (e.g., ReflowProcess)",One process happens before another
-CCO-aligned (Reused/Mirrored),,,
-cco:designates,myont:DesignativeInformationContentEntity,owl:Thing (any entity),An ICE (like a name/ID) refers to/identifies an entity
-cco:describes,myont:DescriptiveInformationContentEntity,owl:Thing (any entity),An ICE (like a report/measurement) is about an entity
-cco:generically_depends_on,myont:InformationContentEntity,myont:InformationBearingEntity,Information content relies on a physical bearer
-cco:uses_measurement_unit,myont:InformationBearingEntity,myont:MeasurementUnit,An IBE (holding a value) uses a specific unit
-ro:0001025 (located in),"myont:MaterialEntity (e.g., SolderJoint)",myont:MaterialEntity OR myont:Site,A thing is spatially located within another (e.g. SolderJoint in CCA)
-Custom myont: Relations,,,
-myont:atSite,myont:MaterialEntity (SolderJoint/Deposit),myont:ComponentPin,Solder deposit/joint is at a specific pin site
-myont:specifiesNonConformanceType,myont:FindingDatum,myont:NonConformanceType,A finding indicates a specific type of non-conformance
-myont:specifiesMeasurementType,myont:MeasurementInformationContentEntity,myont:MeasurementType,"A measurement datum is of a specific measurement type (e.g., Volume)"
-myont:hasParameterDatum,myont:Process,myont:ProcessParameterDatum,A process has an associated parameter data point (setting or measurement)
-myont:parameterDatumSpecifies,myont:ProcessParameterDatum,myont:ProcessParameterSpecification,"A parameter datum is for a specific parameter type (e.g., Squeegee Pressure)"
-myont:resultsInDisposition,myont:ManualDispositionProcess,myont:DispositionDecision,A disposition process results in a decision
-myont:decisionSpecifiesType,myont:DispositionDecision,myont:DispositionDecisionType,"A disposition decision is of a certain type (Accept, Rework)"
-,,,
-,,,
-Part 3: Core Data Properties (Linking to Literals),,,
-,,,
-(Domain is always myont:InformationBearingEntity as per CCO pattern),,,
-,,,
-Predicate (Data Property),Domain,Range,Description
-cco:has_text_value,myont:InformationBearingEntity,xsd:string,"For string literals (S/N, RefDes, names)"
-cco:has_integer_value,myont:InformationBearingEntity,xsd:integer,"For integer literals (some counts, pin numbers)"
-cco:has_decimal_value,myont:InformationBearingEntity,xsd:decimal,For decimal literals (measurement values)
-cco:has_datetime_value,myont:InformationBearingEntity,xsd:dateTime,For timestamps
-cco:has_date_value,myont:InformationBearingEntity,xsd:date,For dates
-,,,
-,,,
-Part 1: Core Classes,,,
-,,,
-(Note: myont: is your ontology prefix. Subclassing implies BFO/CCO alignment discussed previously.),,,
-,,,
-A. Real-World Entities (BFO:Independent Continuant / BFO:Material Entity / BFO:Site),,,
-* myont:CircuitCardAssembly (A physical CCA),,,
-"* myont:ElectronicComponent (A physical component, e.g., U1)",,,
-"* myont:ComponentPin (A physical pin, e.g., pin3 of U1)",,,
-* myont:SolderPasteDeposit (The physical solder paste material on a pad),,,
-* myont:SolderJoint (The physical solder connection after reflow),,,
-"* myont:ManufacturingMachine (A physical machine, e.g., screen printer, SPI machine)",,,
-"* myont:InspectionMachine (Subclass for AOI, X-Ray, SPI machines)",,,
-* myont:SolderPasteBatch (A specific physical batch of solder paste),,,
-"* myont:Operator (A person performing an action, if needed from user_id)",,,
-,,,
-B. Qualities (BFO:Specifically Dependent Continuant / BFO:Quality),,,
-* myont:PhysicalQuality (General superclass for qualities),,,
-"* myont:Volume (e.g., of solder paste)",,,
-"* myont:Height (e.g., of solder paste)",,,
-"* myont:PositionalOffset (e.g., of solder paste)",,,
-"* myont:VoidingLevel (e.g., in a solder joint)",,,
-* myont:DefectState (The quality of being defective),,,
-,,,
-C. Information Entities (BFO:Generically Dependent Continuant / IAO:InformationContentEntity / CCO Classes),,,
-* myont:InformationContentEntity (ICE - General CCO concept),,,
-* myont:DesignativeInformationContentEntity (CCO: Designates things),,,
-* myont:IdentifierValue (Abstract superclass for specific ID ICEs),,,
-* myont:SerialNumberValue (ICE for the S/N string),,,
-* myont:PartNumberValue (ICE for the P/N string),,,
-"* myont:ReferenceDesignatorValue (ICE for ""U1"")",,,
-"* myont:PinIdentifierValue (ICE for ""3"")",,,
-* myont:MachineIdentifierValue (ICE for machine ID),,,
-* myont:SolderPasteBatchIdentifierValue (ICE for solder paste lot ID),,,
-* myont:TypeName (Abstract superclass for ICEs that name types),,,
-"* myont:NonConformanceTypeName (ICE for ""Voiding > 25%"")",,,
-"* myont:MeasurementTypeName (ICE for ""Volume Measurement"")",,,
-"* myont:ProcessTypeName (ICE for ""Screen Printing"")",,,
-"* myont:InspectionEventModalityName (ICE for ""Initial Inspection"")",,,
-* myont:DescriptiveInformationContentEntity (CCO: Describes things),,,
-* myont:FindingDatum (General ICE for an inspection finding),,,
-* myont:XRayFindingDatum,,,
-* myont:AOIFindingDatum,,,
-* myont:MeasurementInformationContentEntity (CCO: Measurement data),,,
-* myont:SPIMeasurementDatum,,,
-* myont:ProcessParameterDatum (ICE for a recorded process parameter like pressure),,,
-* myont:DirectiveInformationContentEntity (CCO: Prescribes things),,,
-* myont:WorkOrder,,,
-"* myont:InformationBearingEntity (IBE - CCO: Physical carrier of information, e.g., a database record, a label)",,,
-"* myont:MeasurementUnit (CCO: e.g., µm³, mm)",,,
-"* myont:NonConformanceType (The actual type of defect, designated by myont:NonConformanceTypeName)",,,
-"* myont:MeasurementType (The actual type of measurement, designated by myont:MeasurementTypeName)",,,
-"* myont:DispositionDecisionType (e.g., ""Accept"", ""Rework"", designated by an ICE)",,,
-,,,
-D. Processes (BFO:Occurrent / BFO:Process),,,
-* myont:ManufacturingProcess,,,
-* myont:ScreenPrintingProcess,,,
-* myont:PickAndPlaceProcess,,,
-* myont:ReflowProcess,,,
-* myont:ReworkProcess,,,
-* myont:InspectionProcess,,,
-* myont:SPIProcess,,,
-* myont:AOIProcess,,,
-* myont:XRayInspectionProcess,,,
-* myont:InspectionReviewProcess,,,
-* myont:ManualDispositionProcess,,,
+PREFIX : <http://www.yourdomain.com/ontology/dido#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?standard ?label
+WHERE {
+  # Find any subject (?standard) that has the type :Standard.
+  ?standard rdf:type :Standard .
+  
+  # Get its human-readable label to make the results clear.
+  OPTIONAL { ?standard rdfs:label ?label . }
+}
+ORDER BY ?label
