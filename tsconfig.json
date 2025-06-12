@@ -1,13 +1,152 @@
+DSQ 1: The Program Manager's Compliance Question
+
+Persona: A Program Manager or a Compliance Officer at a defense contractor.
+
+Motivation: They are starting a new project phase and need to ensure all documentation references are current. Using an obsolete or incorrect document can lead to contract non-compliance, costly rework, and delays.
+
+The Question:
+
+    "I know we have to use DI-SESS-81000F for our technical data package. What document version did this new 'F' revision replace, and what other DIDs are officially related to it? I need a quick summary for my project kickoff meeting to ensure my team isn't referencing old or incomplete information."
+
+The SPARQL Query:
+This query combines information about what the DID supersedes and what it is related to, presenting it in a single, clean table.
+
+      
 PREFIX : <http://www.yourdomain.com/ontology/dido#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-SELECT ?standard ?label
+SELECT ?relationship_type ?document_label
 WHERE {
-  # Find any subject (?standard) that has the type :Standard.
-  ?standard rdf:type :Standard .
+  {
+    # Find the document that DI-SESS-81000F supersedes
+    :DI-SESS-81000F :supersedes ?document .
+    BIND("Supersedes" AS ?relationship_type)
+  }
+  UNION
+  {
+    # Find all documents related to DI-SESS-81000F
+    :DI-SESS-81000F :isRelatedTo ?document .
+    BIND("Is Related To" AS ?relationship_type)
+  }
   
-  # Get its human-readable label to make the results clear.
-  OPTIONAL { ?standard rdfs:label ?label . }
+  # Get the label of the found document for readability
+  # Using a simple pattern since these DIDs don't have formal labels in the KG
+  BIND(STRAFTER(STR(?document), "#") AS ?document_label)
 }
-ORDER BY ?label
+ORDER BY ?relationship_type
+
+    
+
+IGNORE_WHEN_COPYING_START
+Use code with caution. Sparql
+IGNORE_WHEN_COPYING_END
+
+Expected Answer:
+A clear table summarizing the document's context.
+relationship_type	document_label
+"Is Related To"	"DI-SESS-81001F"
+"Is Related To"	"DI-SESS-81002F"
+"Is Related To"	"DI-SESS-81003F"
+"Supersedes"	"DI-SESS-81000E"
+
+Industrial Value: Instead of manually searching a defense standards database, the Program Manager gets an immediate, authoritative answer directly from the organization's verified knowledge graph. This reduces risk, saves time, and ensures the entire team starts with the correct information, preventing costly downstream errors.
+DSQ 2: The Systems Engineer's Requirements Question
+
+Persona: A Systems Engineer or a Technical Writer.
+
+Motivation: They are responsible for creating the actual engineering data package. They need a definitive checklist of all standards that the data must comply with to be accepted by the customer (the DoD).
+
+The Question:
+
+    "We're tasked with creating a Product Engineering Design Data package. To write our internal procedures and check our outputs, I need a complete list of all the mandatory MIL-STD and ASME standards that this type of data package must conform to."
+
+The SPARQL Query:
+This query looks at the class :ProductEngineeringDesignData and retrieves all standards linked to it via the iof:conforms_to property in its definition (its class axioms).
+
+      
+PREFIX : <http://www.yourdomain.com/ontology/dido#>
+PREFIX iof: <https://spec.industrialontologies.org/iof/ontology/core/Core/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?standard_label
+WHERE {
+  # Look at the axioms for the class itself, not just one instance
+  :ProductEngineeringDesignData rdfs:subClassOf [
+    owl:onProperty iof:conforms_to ;
+    owl:someValuesFrom ?standard
+  ] .
+  
+  # Get the human-readable label for the standard
+  ?standard rdfs:label ?standard_label .
+}
+ORDER BY ?standard_label
+
+    
+
+IGNORE_WHEN_COPYING_START
+Use code with caution. Sparql
+IGNORE_WHEN_COPYING_END
+
+Expected Answer:
+A precise list of required standards.
+standard_label
+"Standard ASME Y14.100"@en
+"Standard ASME Y14.34"@en
+"Standard ASME Y14.41-1"@en
+"Standard ASME Y14.41"@en
+"Standard MIL-STD-31000"@en
+
+Industrial Value: This demonstrates the power of the ontology to act as a "requirements engine." The engineer doesn't have to read through pages of prose to extract a list of standards. The KG provides it instantly and accurately. This can be used to auto-generate compliance checklists, configure validation tools, and ensure contractual requirements are met from the very beginning.
+DSQ 3: The Supply Chain Analyst's Sourcing Question
+
+Persona: A Supply Chain Analyst or a Procurement Officer.
+
+Motivation: They need to source a new component that is classified as a "purchased item" (also known as a vendor part). They need to understand what this classification implies in terms of data standards and business processes to source it correctly.
+
+The Question:
+
+    "Our engineers have designated a component as a 'purchased item'. To create the purchase order and ensure we get the right supporting data from the vendor, what is the governing standard that defines a 'purchased item', and what are its key characteristics according to our ontology?"
+
+The SPARQL Query:
+This query inspects the :PurchasedItem class to pull out its defining characteristics, such as the standard that describes it and its aliases.
+
+      
+PREFIX : <http://www.yourdomain.com/ontology/dido#>
+PREFIX iof: <https://spec.industrialontologies.org/iof/ontology/core/Core/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?characteristic ?value
+WHERE {
+  {
+    :PurchasedItem rdfs:subClassOf [
+      owl:onProperty iof:isDescribedBy ;
+      owl:someValuesFrom ?standard
+    ] .
+    BIND("Defined by Standard" AS ?characteristic)
+    ?standard rdfs:label ?value .
+  }
+  UNION
+  {
+    :PurchasedItem skos:altLabel ?value .
+    BIND("Also Known As" AS ?characteristic)
+  }
+}
+ORDER BY ?characteristic
+
+    
+
+IGNORE_WHEN_COPYING_START
+Use code with caution. Sparql
+IGNORE_WHEN_COPYING_END
+
+Expected Answer:
+A profile of what it means to be a "Purchased Item."
+characteristic	value
+"Also Known As"	"vendor item"@en
+"Also Known As"	"vendor-developed item"@en
+"Defined by Standard"	"Standard ASME Y14.24"@en
+
+Industrial Value: This bridges the gap between engineering and procurement. The KG provides a shared, unambiguous definition for a critical supply chain concept. The procurement officer can immediately see the governing standard (ASME Y14.24) and use the correct terminology (vendor item), ensuring clear communication with suppliers and alignment with engineering requirements. This leads to faster sourcing, fewer errors in purchase orders, and better supplier management.
