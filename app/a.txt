@@ -1,13 +1,1 @@
-Linking Element,Present in CSVs,Simplified Ontology Link (Concept)
-Product ID (S/N),"INSPECTION_HIST_ALL, DEFECT_HIST_ALL, PRODUCT_TRACEABILITY_ALL",Circuit Card Assembly (Instance)
-Product P/N,"INSPECTION_HIST_ALL, DEFECT_HIST_ALL, PRODUCT_TRACEABILITY_ALL",Circuit Card Assembly (Type/Model)
-Batch ID / Work Order ID,"PROCESS_DATA_SNAPSHOT_ALL, INSPECTION_HIST_ALL, PRODUCT_TRACEABILITY_ALL, MATERIAL_HISTORY_ALL",Work Order
-Tool ID / Machine ID,"PROCESS_DATA_SNAPSHOT_ALL, INSPECTION_HIST_ALL, DEFECT_HIST_ALL, PRODUCT_TRACEABILITY_ALL, MATERIAL_HISTORY_ALL",Manufacturing/Inspection Machine (Instance)
-Tool Key / Snapshot Tool Key,"PROCESS_DATA_SNAPSHOT_ALL, PRODUCT_TRACEABILITY_ALL, MATERIAL_HISTORY_ALL, TRACEABILITY_DETAIL_ALL",Manufacturing/Inspection Machine (Instance)
-Timestamps (Various),"PROCESS_DATA_SNAPSHOT_ALL, INSPECTION_HIST_ALL, DEFECT_HIST_ALL, PRODUCT_TRACEABILITY_ALL, MATERIAL_HISTORY_ALL, TRACEABILITY_DETAIL_ALL",Temporal Region (Time of event/data)
-Operation Name,"INSPECTION_HIST_ALL, DEFECT_HIST_ALL, PRODUCT_TRACEABILITY_ALL","Process Type (e.g., SPI, Reflow)"
-Product Key (Internal),"INSPECTION_HIST_ALL, DEFECT_HIST_ALL, PRODUCT_TRACEABILITY_ALL, TRACEABILITY_DETAIL_ALL",Circuit Card Assembly (Instance)
-Raw Material Key (Internal),"MATERIAL_HISTORY_ALL, TRACEABILITY_DETAIL_ALL","Material Lot (e.g., Solder Paste Batch)"
-Raw Material ID,MATERIAL_HISTORY_ALL,"Material Lot (e.g., Solder Paste Batch)"
-Part Ref ID (RefDes),DEFECT_HIST_ALL,Electronic Component (Instance on board)
-Pin Number,DEFECT_HIST_ALL,Component Pin (Instance on component)
+
