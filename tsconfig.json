@@ -1,1 +1,301 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix bfo: <http://purl.obolibrary.org/obo/BFO_> .
+@prefix ro: <http://purl.obolibrary.org/obo/RO_> .
+@prefix cco: <http://www.ontologyrepository.com/CommonCoreOntologies/> . # Placeholder CCO URI
+# @prefix iao: <http://purl.obolibrary.org/obo/IAO_> . # Not strictly needed for this minimal example
+@prefix myont: <http://example.org/cca-dsq-ontology#> .
 
+<http://example.org/cca-dsq-ontology> rdf:type owl:Ontology ;
+    rdfs:label "CCA DSQ Ontology with Sample Data" ;
+    owl:versionInfo "1.0.1" ;
+    rdfs:comment "Ontology and sample data to support answering specific CCA decision support questions." ;
+    owl:imports <http://purl.obolibrary.org/obo/bfo/2020/bfo.owl> ,
+                <http://purl.obolibrary.org/obo/ro/core.owl> .
+
+# --- Ontology Schema (TBox) ---
+
+# Independent Continuants (Material Entities, Sites)
+myont:CircuitCardAssembly rdf:type owl:Class ; rdfs:subClassOf bfo:0000004 ; rdfs:label "Circuit Card Assembly"@en .
+myont:ElectronicComponent rdf:type owl:Class ; rdfs:subClassOf bfo:0000004 ; rdfs:label "Electronic Component"@en .
+myont:ComponentPin rdf:type owl:Class ; rdfs:subClassOf bfo:0000030 ; rdfs:label "Component Pin"@en .
+myont:SolderPasteDeposit rdf:type owl:Class ; rdfs:subClassOf bfo:0000030 ; rdfs:label "Solder Paste Deposit"@en .
+myont:SolderJoint rdf:type owl:Class ; rdfs:subClassOf bfo:0000004 ; rdfs:label "Solder Joint"@en .
+
+# Specifically Dependent Continuants (Qualities)
+myont:PhysicalQuality rdf:type owl:Class ; rdfs:subClassOf bfo:0000019 ; rdfs:label "Physical Quality"@en .
+myont:VolumeQuality rdf:type owl:Class ; rdfs:subClassOf myont:PhysicalQuality ; rdfs:label "Volume Quality"@en .
+myont:HeightQuality rdf:type owl:Class ; rdfs:subClassOf myont:PhysicalQuality ; rdfs:label "Height Quality"@en .
+myont:OffsetQuality rdf:type owl:Class ; rdfs:subClassOf myont:PhysicalQuality ; rdfs:label "Positional Offset Quality"@en .
+
+# Generically Dependent Continuants (Information Entities - ICEs)
+myont:InformationContentEntity rdf:type owl:Class ; rdfs:subClassOf bfo:0000031 ; rdfs:label "Information Content Entity"@en .
+    myont:DesignativeInformationContentEntity rdfs:subClassOf myont:InformationContentEntity ; rdfs:label "Designative ICE"@en .
+        myont:IdentifierValue rdfs:subClassOf myont:DesignativeInformationContentEntity ; rdfs:label "Identifier Value"@en .
+            myont:SerialNumberValue rdfs:subClassOf myont:IdentifierValue ; rdfs:label "Serial Number Value"@en .
+            myont:ReferenceDesignatorValue rdfs:subClassOf myont:IdentifierValue ; rdfs:label "Reference Designator Value"@en .
+            myont:PinIdentifierValue rdfs:subClassOf myont:IdentifierValue ; rdfs:label "Pin Identifier Value"@en .
+        myont:TypeNameValue rdfs:subClassOf myont:DesignativeInformationContentEntity ; rdfs:label "Type Name Value"@en .
+            myont:NonConformanceTypeNameValue rdfs:subClassOf myont:TypeNameValue ; rdfs:label "Non Conformance Type Name Value"@en .
+            myont:MeasurementTypeNameValue rdfs:subClassOf myont:TypeNameValue ; rdfs:label "Measurement Type Name Value"@en .
+            myont:MeasurementUnitNameValue rdfs:subClassOf myont:TypeNameValue ; rdfs:label "Measurement Unit Name Value"@en .
+    myont:DescriptiveInformationContentEntity rdfs:subClassOf myont:InformationContentEntity ; rdfs:label "Descriptive ICE"@en .
+        myont:FindingDatum rdfs:subClassOf myont:DescriptiveInformationContentEntity ; rdfs:label "Finding Datum"@en .
+            myont:XRayFindingDatum rdfs:subClassOf myont:FindingDatum ; rdfs:label "X-Ray Finding Datum"@en .
+        myont:MeasurementInformationContentEntity rdfs:subClassOf myont:DescriptiveInformationContentEntity ; rdfs:label "Measurement ICE"@en .
+            myont:SPIMeasurementDatum rdfs:subClassOf myont:MeasurementInformationContentEntity ; rdfs:label "SPI Measurement Datum"@en .
+
+myont:InformationBearingEntity rdf:type owl:Class ; rdfs:subClassOf bfo:0000030 ; rdfs:label "Information Bearing Entity"@en .
+
+# Types (Universals/Kinds, designated by TypeNameValues)
+myont:NonConformanceType rdf:type owl:Class ; rdfs:subClassOf owl:Thing ; rdfs:label "Non Conformance Type"@en .
+myont:MeasurementType rdf:type owl:Class ; rdfs:subClassOf owl:Thing ; rdfs:label "Measurement Type"@en .
+    myont:VolumeMeasurementType rdfs:subClassOf myont:MeasurementType ; rdfs:label "Volume Measurement Type"@en .
+    myont:HeightMeasurementType rdfs:subClassOf myont:MeasurementType ; rdfs:label "Height Measurement Type"@en .
+    myont:OffsetMeasurementType rdfs:subClassOf myont:MeasurementType ; rdfs:label "Offset Measurement Type"@en .
+myont:MeasurementUnit rdf:type owl:Class ; rdfs:subClassOf myont:InformationContentEntity ; rdfs:label "Measurement Unit"@en .
+
+# Occurrents (Processes)
+myont:Process rdf:type owl:Class ; rdfs:subClassOf bfo:0000015 ; rdfs:label "Process"@en .
+myont:ManufacturingProcess rdfs:subClassOf myont:Process ; rdfs:label "Manufacturing Process"@en .
+myont:ReflowProcess rdfs:subClassOf myont:ManufacturingProcess ; rdfs:label "Reflow Process"@en .
+myont:InspectionProcess rdfs:subClassOf myont:Process ; rdfs:label "Inspection Process"@en .
+myont:SPIProcess rdfs:subClassOf myont:InspectionProcess ; rdfs:label "SPI Process"@en .
+myont:XRayInspectionProcess rdfs:subClassOf myont:InspectionProcess ; rdfs:label "X-Ray Inspection Process"@en .
+
+# --- Object Properties ---
+cco:designates rdf:type owl:ObjectProperty ; rdfs:domain myont:DesignativeInformationContentEntity ; rdfs:range owl:Thing ; rdfs:label "designates"@en .
+cco:describes rdf:type owl:ObjectProperty ; rdfs:domain myont:DescriptiveInformationContentEntity ; rdfs:range owl:Thing ; rdfs:label "describes"@en .
+cco:generically_depends_on rdf:type owl:ObjectProperty ; rdfs:domain myont:InformationContentEntity ; rdfs:range myont:InformationBearingEntity ; rdfs:label "generically depends on"@en .
+cco:uses_measurement_unit rdf:type owl:ObjectProperty ; rdfs:domain myont:InformationBearingEntity ; rdfs:range myont:MeasurementUnit ; rdfs:label "uses measurement unit"@en .
+
+myont:atSite rdf:type owl:ObjectProperty ; rdfs:label "at site"@en ; rdfs:domain bfo:0000030 ; rdfs:range myont:ComponentPin .
+myont:specifiesNonConformanceType rdf:type owl:ObjectProperty ; rdfs:label "specifies non conformance type"@en ; rdfs:domain myont:FindingDatum ; rdfs:range myont:NonConformanceType .
+myont:specifiesMeasurementType rdf:type owl:ObjectProperty ; rdfs:label "specifies measurement type"@en ; rdfs:domain myont:MeasurementInformationContentEntity ; rdfs:range myont:MeasurementType .
+
+# --- Data Properties ---
+cco:has_text_value rdf:type owl:DatatypeProperty ; rdfs:label "has text value"@en ; rdfs:domain myont:InformationBearingEntity ; rdfs:range xsd:string .
+cco:has_decimal_value rdf:type owl:DatatypeProperty ; rdfs:label "has decimal value"@en ; rdfs:domain myont:InformationBearingEntity ; rdfs:range xsd:decimal .
+
+# --- Sample Instance Data (ABox) ---
+
+# CCA Instance and its Serial Number
+myont:cca_XYZ123 rdf:type myont:CircuitCardAssembly ; rdfs:label "CCA XYZ123" .
+myont:sn_XYZ123_ice rdf:type myont:SerialNumberValue ;
+    rdfs:label "Serial Number Value for XYZ123" ;
+    cco:designates myont:cca_XYZ123 ;
+    cco:generically_depends_on myont:sn_XYZ123_ibe .
+myont:sn_XYZ123_ibe rdf:type myont:InformationBearingEntity ;
+    cco:has_text_value "XYZ123" .
+
+# Component U1 and its Pin 3 on CCA XYZ123
+myont:component_U1_on_XYZ123 rdf:type myont:ElectronicComponent ;
+    rdfs:label "Component U1 on CCA XYZ123" ;
+    bfo:0000050 myont:cca_XYZ123 . # part of
+myont:refdes_U1_ice rdf:type myont:ReferenceDesignatorValue ;
+    rdfs:label "Reference Designator Value U1" ;
+    cco:designates myont:component_U1_on_XYZ123 ;
+    cco:generically_depends_on myont:refdes_U1_ibe .
+myont:refdes_U1_ibe rdf:type myont:InformationBearingEntity ;
+    cco:has_text_value "U1" .
+
+myont:pin_3_of_U1_on_XYZ123 rdf:type myont:ComponentPin ;
+    rdfs:label "Pin 3 of U1 on CCA XYZ123" ;
+    bfo:0000050 myont:component_U1_on_XYZ123 . # part of
+myont:pinID_3_ice rdf:type myont:PinIdentifierValue ;
+    rdfs:label "Pin Identifier Value 3" ;
+    cco:designates myont:pin_3_of_U1_on_XYZ123 ;
+    cco:generically_depends_on myont:pinID_3_ibe .
+myont:pinID_3_ibe rdf:type myont:InformationBearingEntity ;
+    cco:has_text_value "3" .
+
+# Solder Joint at U1-pin3
+myont:sj_U1_pin3_on_XYZ123 rdf:type myont:SolderJoint ;
+    rdfs:label "Solder Joint at U1-Pin3 on CCA XYZ123" ;
+    myont:atSite myont:pin_3_of_U1_on_XYZ123 .
+
+# NonConformance Type: Voiding > 25%
+myont:ncType_VoidingOver25Percent rdf:type myont:NonConformanceType ;
+    rdfs:label "Voiding > 25% NC Type"@en .
+myont:ncTypeName_Voiding_ice rdf:type myont:NonConformanceTypeNameValue ;
+    rdfs:label "Name for Voiding > 25% NC Type" ;
+    cco:designates myont:ncType_VoidingOver25Percent ;
+    cco:generically_depends_on myont:ncTypeName_Voiding_ibe .
+myont:ncTypeName_Voiding_ibe rdf:type myont:InformationBearingEntity ;
+    cco:has_text_value "Voiding > 25%" .
+
+# X-Ray Finding for that Solder Joint
+myont:xrayFinding_001 rdf:type myont:XRayFindingDatum ;
+    rdfs:label "XRay Finding for SJ U1-Pin3 on CCA XYZ123" ;
+    cco:describes myont:sj_U1_pin3_on_XYZ123 ;
+    myont:specifiesNonConformanceType myont:ncType_VoidingOver25Percent .
+
+# Processes
+myont:xrayProcess_001 rdf:type myont:XRayInspectionProcess ;
+    rdfs:label "XRay Process for CCA XYZ123" ;
+    ro:0000056 myont:cca_XYZ123 ; # participates in
+    ro:0002234 myont:xrayFinding_001 . # has_output
+
+myont:reflowProcess_001 rdf:type myont:ReflowProcess ;
+    rdfs:label "Reflow Process for CCA XYZ123" ;
+    ro:0000056 myont:cca_XYZ123 ; # participates in
+    ro:0002234 myont:sj_U1_pin3_on_XYZ123 ;  # has_output
+    bfo:0000063 myont:xrayProcess_001 . # precedes
+
+myont:spd_U1_pin3_on_XYZ123 rdf:type myont:SolderPasteDeposit ;
+    rdfs:label "Solder Paste Deposit at U1-Pin3 on CCA XYZ123" ;
+    myont:atSite myont:pin_3_of_U1_on_XYZ123 .
+myont:reflowProcess_001 ro:0002233 myont:spd_U1_pin3_on_XYZ123 . # has_input
+
+myont:spiProcess_001 rdf:type myont:SPIProcess ;
+    rdfs:label "SPI Process for CCA XYZ123" ;
+    ro:0000056 myont:cca_XYZ123 ; # participates in
+    bfo:0000063 myont:reflowProcess_001 . # precedes
+
+# SPI Measurement Types
+myont:measurementType_Volume rdf:type myont:VolumeMeasurementType ; rdfs:label "Volume"@en .
+myont:measurementType_Height rdf:type myont:HeightMeasurementType ; rdfs:label "Height"@en .
+myont:measurementType_Offset rdf:type myont:OffsetMeasurementType ; rdfs:label "Positional Offset"@en .
+
+# SPI Measurement Unit
+myont:unit_um3 rdf:type myont:MeasurementUnit ; rdfs:label "Cubic Micrometers"@en .
+myont:unitName_um3_ice rdf:type myont:MeasurementUnitNameValue ;
+    cco:designates myont:unit_um3 ;
+    cco:generically_depends_on myont:unitName_um3_ibe .
+myont:unitName_um3_ibe rdf:type myont:InformationBearingEntity ; cco:has_text_value "µm³" .
+
+myont:unit_um rdf:type myont:MeasurementUnit ; rdfs:label "Micrometers"@en .
+myont:unitName_um_ice rdf:type myont:MeasurementUnitNameValue ;
+    cco:designates myont:unit_um ;
+    cco:generically_depends_on myont:unitName_um_ibe .
+myont:unitName_um_ibe rdf:type myont:InformationBearingEntity ; cco:has_text_value "µm" .
+
+# SPI Volume Measurement
+myont:spiVolume_U1_pin3_Quality rdf:type myont:VolumeQuality ;
+    bfo:0000197 myont:spd_U1_pin3_on_XYZ123 . # inheres in
+myont:spiVolume_U1_pin3_Datum rdf:type myont:SPIMeasurementDatum ;
+    rdfs:label "SPI Volume for U1-Pin3 on XYZ123" ;
+    ro:0002234 myont:spiProcess_001 ; # output_of
+    myont:specifiesMeasurementType myont:measurementType_Volume ;
+    cco:describes myont:spiVolume_U1_pin3_Quality ;
+    cco:generically_depends_on myont:spiVolume_U1_pin3_IBE .
+myont:spiVolume_U1_pin3_IBE rdf:type myont:InformationBearingEntity ;
+    cco:has_decimal_value "750000.0"^^xsd:decimal ;
+    cco:uses_measurement_unit myont:unit_um3 .
+
+# SPI Height Measurement
+myont:spiHeight_U1_pin3_Quality rdf:type myont:HeightQuality ;
+    bfo:0000197 myont:spd_U1_pin3_on_XYZ123 . # inheres in
+myont:spiHeight_U1_pin3_Datum rdf:type myont:SPIMeasurementDatum ;
+    rdfs:label "SPI Height for U1-Pin3 on XYZ123" ;
+    ro:0002234 myont:spiProcess_001 ;
+    myont:specifiesMeasurementType myont:measurementType_Height ;
+    cco:describes myont:spiHeight_U1_pin3_Quality ;
+    cco:generically_depends_on myont:spiHeight_U1_pin3_IBE .
+myont:spiHeight_U1_pin3_IBE rdf:type myont:InformationBearingEntity ;
+    cco:has_decimal_value "150.5"^^xsd:decimal ;
+    cco:uses_measurement_unit myont:unit_um .
+
+# SPI Offset Measurement
+myont:spiOffset_U1_pin3_Quality rdf:type myont:OffsetQuality ;
+    bfo:0000197 myont:spd_U1_pin3_on_XYZ123 . # inheres in
+myont:spiOffset_U1_pin3_Datum rdf:type myont:SPIMeasurementDatum ;
+    rdfs:label "SPI Offset for U1-Pin3 on XYZ123" ;
+    ro:0002234 myont:spiProcess_001 ;
+    myont:specifiesMeasurementType myont:measurementType_Offset ;
+    cco:describes myont:spiOffset_U1_pin3_Quality ;
+    cco:generically_depends_on myont:spiOffset_U1_pin3_IBE .
+myont:spiOffset_U1_pin3_IBE rdf:type myont:InformationBearingEntity ;
+    cco:has_decimal_value "10.2"^^xsd:decimal ; # Example offset value
+    cco:uses_measurement_unit myont:unit_um .
+
+=======
+
+
+
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
+PREFIX myont: <http://example.org/cca-dsq-ontology#>
+
+SELECT ?cca ?sNumText
+WHERE {
+  VALUES ?targetSNum_text { "XYZ123" }
+  ?ccaSN_ICE rdf:type myont:SerialNumberValue ;
+             cco:designates ?cca ;
+             cco:generically_depends_on ?ccaSN_IBE .
+  ?ccaSN_IBE cco:has_text_value ?targetSNum_text .
+  ?cca rdf:type myont:CircuitCardAssembly .
+  BIND(?targetSNum_text AS ?sNumText) .
+}
+
+
+=======================
+
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
+PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
+PREFIX myont: <http://example.org/cca-dsq-ontology#>
+
+SELECT ?cca ?component ?pin ?refDesText ?pinIdText
+WHERE {
+  VALUES ?targetSNum_text { "XYZ123" }
+  VALUES ?targetRefDes_text { "U1" }
+  VALUES ?targetPinId_text { "3" }
+
+  ?ccaSN_ICE rdf:type myont:SerialNumberValue ; cco:designates ?cca ; cco:generically_depends_on ?ccaSN_IBE .
+  ?ccaSN_IBE cco:has_text_value ?targetSNum_text .
+  ?cca rdf:type myont:CircuitCardAssembly .
+
+  ?refDes_ICE rdf:type myont:ReferenceDesignatorValue ; cco:designates ?component ; cco:generically_depends_on ?refDes_IBE .
+  ?refDes_IBE cco:has_text_value ?targetRefDes_text .
+  ?component rdf:type myont:ElectronicComponent ; bfo:0000050 ?cca .
+  BIND(?targetRefDes_text AS ?refDesText) .
+
+  ?pinID_ICE rdf:type myont:PinIdentifierValue ; cco:designates ?pin ; cco:generically_depends_on ?pinID_IBE .
+  ?pinID_IBE cco:has_text_value ?targetPinId_text .
+  ?pin rdf:type myont:ComponentPin ; bfo:0000050 ?component .
+  BIND(?targetPinId_text AS ?pinIdText) .
+}
+
+
+============
+
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
+PREFIX cco: <http://www.ontologyrepository.com/CommonCoreOntologies/>
+PREFIX myont: <http://example.org/cca-dsq-ontology#>
+
+SELECT ?xrayFinding ?solderJoint ?ncType ?ncTypeNameText
+WHERE {
+  VALUES ?targetSNum_text { "XYZ123" }
+  VALUES ?targetRefDes_text { "U1" }
+  VALUES ?targetPinId_text { "3" }
+  VALUES ?targetNcTypeName_text { "Voiding > 25%" }
+
+  ?ccaSN_ICE rdf:type myont:SerialNumberValue ; cco:designates ?cca ; cco:generically_depends_on ?ccaSN_IBE .
+  ?ccaSN_IBE cco:has_text_value ?targetSNum_text .
+  ?cca rdf:type myont:CircuitCardAssembly .
+  ?refDes_ICE rdf:type myont:ReferenceDesignatorValue ; cco:designates ?component ; cco:generically_depends_on ?refDes_IBE .
+  ?refDes_IBE cco:has_text_value ?targetRefDes_text .
+  ?component rdf:type myont:ElectronicComponent ; bfo:0000050 ?cca .
+  ?pinID_ICE rdf:type myont:PinIdentifierValue ; cco:designates ?pin ; cco:generically_depends_on ?pinID_IBE .
+  ?pinID_IBE cco:has_text_value ?targetPinId_text .
+  ?pin rdf:type myont:ComponentPin ; bfo:0000050 ?component .
+
+  ?xrayFinding rdf:type myont:XRayFindingDatum ;
+                 cco:describes ?solderJoint ;
+                 myont:specifiesNonConformanceType ?ncType .
+  ?solderJoint rdf:type myont:SolderJoint ;
+               myont:atSite ?pin .
+  ?ncTypeName_ICE rdf:type myont:NonConformanceTypeNameValue ;
+                  cco:designates ?ncType ;
+                  cco:generically_depends_on ?ncType_IBE .
+  ?ncType_IBE cco:has_text_value ?targetNcTypeName_text .
+  ?ncType rdf:type myont:NonConformanceType .
+  BIND(?targetNcTypeName_text AS ?ncTypeNameText).
+}
