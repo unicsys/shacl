@@ -1,9 +1,25 @@
-PillarID,Strategic_Pillar,Key_H2_Deliverables,Success_Metrics_by_2025-12-31,Cross_Team_Dependencies
-1,Neuro-Symbolic AI Pilot,"Stand-up PyG+Anzo pipeline; Fault-root-cause demo; Explainability report & code hand-off","≥85% top-3 recall; ≤5 s latency; Demo approved by VP Eng (Q4)","Data Science CoE; MRO Data Lake"
-2,DiD-to-Ontology Mapping,"Model MIL-STD-963 hierarchy in REO pattern library; Automated XML→OWL transform; Publish tutorial & pattern docs","90% priority DiDs converted; Patterns merged into REO v1.4; 2 brown-bag sessions","Tech Pubs; PLM team"
-3,GTF Engine Ontology (PW),"Define core classes; Ingest 5 yrs fleet health & build data; Enable unified query for part usage vs life-remaining","Single-click trace in AMM portal; >30 h analyst time saved /month","PW Digital Thread; Engine Health"
-4,PW AI Accelerators,"Deploy anomaly-detection model on GTF sensor graph; Feasibility study: AI-assisted work-scope recommendations","Pilot accuracy ≥20% lift vs baseline; Scope-rec PoC by Q4","PW Analytics; GPU Ops"
-5,Collins Support & Enablement,"Coach Collins DPLC team on REO; Starter KG template; Quarterly design reviews","First Collins KG live (Q3); ≥3 patterns upstreamed to REO","Collins Anzo team; REO board"
-6,Ontology Hub Site + REO Governance,"Launch SharePoint hub; Monthly REO steering call & merge-queue hygiene","Site live with ≥50 assets; Avg merge lead-time <10 days","KM team; IT"
-7,University Research Engagement,"Finalize MoU with USC ISI; Co-author AAAI ’26 whitepaper","MoU executed by 2025-09-30; Whitepaper draft by 2025-12-15","Legal; RTX University Relations"
-8,CRAD Pipeline (US Army / USAF),"Identify BAA/SBIR topics; Submit whitepapers: Army CBLE, USAF AFWERX","2 whitepapers submitted; ≥1 invited full proposal","Capture; Contracts; Legal"
+Subject: Request – SWISS Ontology & API Assets for Possible KG Link-up
+Hi [Colleague’s name],
+I spent some time reviewing Exiger/XSB material on SWISS and wanted to share two quick findings and a request. I believe there's an opportunity to connect the SWISS knowledge graphs with our BFO based knowledge graphs.
+
+I’m confident SWISS has a formal ontology
+•	XSB states that all of its applications run on an “efficient, scalable Ontology Management System” and that SWISS reasoning is implemented in rule-based logic for full explainability. https://xsb.com/ai-semantics/
+•	This article mentions that SWISS builds a linked-data model, where every concept knows its meaning, status, and relationship to other data.
+That language only makes sense if SWISS is backed by a rigorously defined OWL/RDF schema rather than an ad-hoc property set.
+
+What we would need next
+1.	Preferred – the OWL/RDF (or at least a class / property reference) for the SWISS ontology so we can map their ontology to to our BFO/CCO based ontology and make the knowledge graph interoperable.
+2.	If the ontology can’t be shared, the next-best artefacts:
+o	OpenAPI / Swagger JSON or GraphQL SDL file for the SWISS API
+o	Example payloads that include JSON-LD @context headers
+o	Read-only sandbox credentials 
+These let us auto-discover the SWISS schema in a way 
+Once we have either the ontology or the exposed API schema we can:
+•	Draft an interface ontology 
+•	Use SPARQL CONSTRUCT or a light ETL job to rename predicates and attach provenance 
+•	Validate with SHACL and iterate.
+
+Let me know Whether you already have access to the SWISS ontology or API developer kit, 
+Best,
+Shatad Purohit
+
