@@ -1,1 +1,32 @@
+2. Project Overview & Purpose (draft – 3–4 sentences)
+The GTF Aftermarket Knowledge Graph is a powerful, data-rich asset that currently answers critical operational questions specific to the domain. This project will develop the semantic framework required to connect this graph to the wider enterprise data ecosystem. By aligning the existing domain ontology with the enterprise ontology (based on BFO, ISO standard), we will create a standards-based, interoperable semantic layer. This will make the valuable engine data discoverable, queryable, and reusable by other business units and analytics platforms, unlocking its full potential and maximizing return on investment.
+
+3. High Level Deliverables
+•	GTF Domain Binding Ontology aligned to enterprise ontology based on BFO (OWL/Turtle format).
+•	Mapping specification linking current Kobai classes/properties to new ontology (OWL/Turtle + CSV)
+•	SPARQL query library answering decision support questions 
+•	A recommended Federation Architecture document
+•	Pilot knowledge graph instance loaded with sample data and ontology for validation
+
+4. Support Needed from GTF Team
+•	Domain SMEs for terminology validation, semantic mappings validation and business logic.
+•	Read access to the existing production ontology and saved queries. Export of the current production ontology in a standard format (OWL, RDF or Turtle)
+•	SME to facilitate decisions on terminology conflicts 
+•	Feedback on the performance and correctness of validation tests
+
+
+5. Work Breakdown by Phase
+Phase 1 – Ontology Baseline & Gap Analysis 
+•	Review the exported domain ontology, source data models, and the list of key business questions to fully understand the current semantic model.
+•	Create a mapping document that formally links each relevant class and property from the current ontology to its corresponding concept in REO/BFO. 
+•	Validated with the SME.
+Phase 2 – Mapping, Query Design
+•	Translate the validated Alignment Matrix into a formal, machine-readable Bridging Ontology. This artifact will contain the axioms required for semantic inference.
+•	Provide the Bridging Ontology file along with a set of test SPARQL queries. These queries will be written using REO/BFO terms and serve as an acceptance test to prove the bridge is working correctly.
+Phase 3 – Architecture Proposal & Knowledge Transfer 
+•	Design and document a high-level architectural showing how the GTF Knowledge Graph can federate with other enterprise data sources (other knowledge graphs, data warehouses). 
+•	For high-priority business questions, specify the precise transformation logic required to create analytical views. This will be delivered as SPARQL CONSTRUCT or pseudo-SQL CREATE VIEW statements.
+•	Define a lightweight process for maintaining and extending the semantic alignment over time
+•	Consolidate all project artifacts into a final documentation package
+•	Conduct review sessions with stakeholders to walk through the deliverables and answer questions
 
