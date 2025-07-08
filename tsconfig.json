@@ -1,1 +1,88 @@
+# First, ensure you have pyvis installed:
+# pip install pyvis
 
+from pyvis.network import Network
+import webbrowser
+
+print("Generating the formally correct Knowledge Graph...")
+
+# --- 1. Define Colors and Styles ---
+FOUNDATION_CLASS_COLOR = "#FDD4A0"  # Light Orange: For foundational, abstract classes
+DOMAIN_CLASS_COLOR = "#FFA500"     # Standard Orange: For the main domain classes
+INDIVIDUAL_COLOR = "#8A2BE2"       # BlueViolet: For all data individuals
+FACT_RELATION_COLOR = "#DC143C"     # Crimson: For factual relationships between individuals
+TYPE_RELATION_COLOR = "#808080"      # Grey: For all 'type' and 'subclass' relationships
+
+# --- 2. Create the Network Graph ---
+net = Network(
+    height="800px",
+    width="100%",
+    bgcolor="#ffffff",
+    font_color="black",
+    notebook=False,
+    directed=True
+)
+
+# --- 3. Define the Ontology (The Blueprint) ---
+print("Step 1: Defining the Ontology (the orange boxes)...")
+
+# Foundational Classes
+net.add_node("Entity", label="Entity", shape="box", color=FOUNDATION_CLASS_COLOR, size=30)
+net.add_node("Continuant", label="Continuant", shape="box", color=FOUNDATION_CLASS_COLOR, size=25)
+net.add_node("Occurrent", label="Occurrent", shape="box", color=FOUNDATION_CLASS_COLOR, size=25)
+
+# Domain Classes
+net.add_node("Aircraft", label="Aircraft", shape="box", color=DOMAIN_CLASS_COLOR, size=20)
+net.add_node("Person", label="Person", shape="box", color=DOMAIN_CLASS_COLOR, size=20)
+net.add_node("RepairProcess", label="RepairProcess", shape="box", color=DOMAIN_CLASS_COLOR, size=20)
+
+# --- 4. Define the Individuals (The Data) ---
+print("Step 2: Defining the Individuals (the violet circles)...")
+
+# Set 1 of Individuals
+net.add_node("N737AA", label="Aircraft N737AA", shape="dot", color=INDIVIDUAL_COLOR, size=25)
+net.add_node("JohnDoe", label="John Doe", shape="dot", color=INDIVIDUAL_COLOR, size=20)
+net.add_node("Repair-01", label="Repair-01", shape="dot", color=INDIVIDUAL_COLOR, size=20)
+
+# Set 2 of Individuals
+net.add_node("N905FR", label="Aircraft N905FR", shape="dot", color=INDIVIDUAL_COLOR, size=25)
+net.add_node("JaneSmith", label="Jane Smith", shape="dot", color=INDIVIDUAL_COLOR, size=20)
+net.add_node("Repair-02", label="Repair-02", shape="dot", color=INDIVIDUAL_COLOR, size=20)
+
+# --- 5. Add All Edges (The Relationships) ---
+print("Step 3: Weaving the graph with formal RDF/RDFS relationships...")
+
+# Part A: Connect classes with rdfs:subClassOf to form the ontology hierarchy
+net.add_edge("Continuant", "Entity", label="rdfs:subClassOf", color=TYPE_RELATION_COLOR, dashes=True)
+net.add_edge("Occurrent", "Entity", label="rdfs:subClassOf", color=TYPE_RELATION_COLOR, dashes=True)
+net.add_edge("Aircraft", "Continuant", label="rdfs:subClassOf", color=TYPE_RELATION_COLOR, dashes=True)
+net.add_edge("Person", "Continuant", label="rdfs:subClassOf", color=TYPE_RELATION_COLOR, dashes=True)
+net.add_edge("RepairProcess", "Occurrent", label="rdfs:subClassOf", color=TYPE_RELATION_COLOR, dashes=True)
+
+# Part B: Connect Individuals to their Class with rdf:type
+net.add_edge("N737AA", "Aircraft", label="rdf:type", color=TYPE_RELATION_COLOR, dashes=True)
+net.add_edge("JohnDoe", "Person", label="rdf:type", color=TYPE_RELATION_COLOR, dashes=True)
+net.add_edge("Repair-01", "RepairProcess", label="rdf:type", color=TYPE_RELATION_COLOR, dashes=True)
+net.add_edge("N905FR", "Aircraft", label="rdf:type", color=TYPE_RELATION_COLOR, dashes=True)
+net.add_edge("JaneSmith", "Person", label="rdf:type", color=TYPE_RELATION_COLOR, dashes=True)
+net.add_edge("Repair-02", "RepairProcess", label="rdf:type", color=TYPE_RELATION_COLOR, dashes=True)
+
+# Part C: Connect Individuals with Facts (This forms the Knowledge Graph)
+# Relationships for Scenario 1
+net.add_edge("Repair-01", "N737AA", label="has_participant", color=FACT_RELATION_COLOR, width=2)
+net.add_edge("Repair-01", "JohnDoe", label="has_participant", color=FACT_RELATION_COLOR, width=2)
+# Relationships for Scenario 2
+net.add_edge("Repair-02", "N905FR", label="has_participant", color=FACT_RELATION_COLOR, width=2)
+net.add_edge("Repair-02", "JaneSmith", label="has_participant", color=FACT_RELATION_COLOR, width=2)
+
+# --- 6. Finalize and Generate the HTML file ---
+net.show_buttons(filter_=['physics'])
+file_path = "ontology_to_kg_rdf_terms.html"
+net.save_graph(file_path)
+
+print(f"\nSUCCESS: Graph has been saved to '{file_path}'")
+try:
+    webbrowser.open(file_path)
+    print(f"Opening '{file_path}' in your web browser...")
+except Exception as e:
+    print(f"Could not automatically open file. Please open '{file_path}' manually. Error: {e}")
