@@ -1,102 +1,46 @@
-@prefix : <http://example.org/university#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+Step 1: Achieve Total Visibility (What is my fleet's true configuration?)
 
-# Ontology declaration
-<http://example.org/university> rdf:type owl:Ontology ;
-    rdfs:label "University Ontology" ;
-    rdfs:comment "A simple ontology for testing purposes" .
+These questions establish the factual baseline. They create the single source of truth by linking our siloed data.
 
-# Classes
-:Person rdf:type owl:Class ;
-    rdfs:label "Person" ;
-    rdfs:comment "A human being" .
+    What parts were on the engine at a given time?
 
-:Student rdf:type owl:Class ;
-    rdfs:label "Student" ;
-    rdfs:comment "A person who studies at a university" ;
-    rdfs:subClassOf :Person .
+    When did parts get removed or swapped?
 
-:Professor rdf:type owl:Class ;
-    rdfs:label "Professor" ;
-    rdfs:comment "A person who teaches at a university" ;
-    rdfs:subClassOf :Person .
+    What inspection data (from ESAS) was available at a given time?
 
-:Course rdf:type owl:Class ;
-    rdfs:label "Course" ;
-    rdfs:comment "An academic course" .
+    When and how frequently does coating loss get captured in the ESAS system?
 
-:Department rdf:type owl:Class ;
-    rdfs:label "Department" ;
-    rdfs:comment "An academic department" .
+Step 2: Discover the "Why" (Why are parts failing and degrading?)
 
-# Object Properties (Relations)
-:enrolledIn rdf:type owl:ObjectProperty ;
-    rdfs:label "enrolled in" ;
-    rdfs:comment "Relates a student to a course" ;
-    rdfs:domain :Student ;
-    rdfs:range :Course .
+These questions help us perform root cause analysis. We move from knowing what happened to understanding why it happened by finding correlations in the data.
 
-:teaches rdf:type owl:ObjectProperty ;
-    rdfs:label "teaches" ;
-    rdfs:comment "Relates a professor to a course" ;
-    rdfs:domain :Professor ;
-    rdfs:range :Course .
+    Why did parts get removed? (from maintenance records)
 
-:belongsTo rdf:type owl:ObjectProperty ;
-    rdfs:label "belongs to" ;
-    rdfs:comment "Relates a course to a department" ;
-    rdfs:domain :Course ;
-    rdfs:range :Department .
+    What parts were on the engine during a step change in coating loss?
 
-:workAt rdf:type owl:ObjectProperty ;
-    rdfs:label "works at" ;
-    rdfs:comment "Relates a professor to a department" ;
-    rdfs:domain :Professor ;
-    rdfs:range :Department .
+    Do specific parts exhibit higher/lower coating loss compared to other parts?
 
-# Data Properties
-:hasName rdf:type owl:DatatypeProperty ;
-    rdfs:label "has name" ;
-    rdfs:comment "The name of a person" ;
-    rdfs:domain :Person ;
-    rdfs:range xsd:string .
+    What flight conditions or events (or mission types) correlate with changes in coating loss?
 
-:hasAge rdf:type owl:DatatypeProperty ;
-    rdfs:label "has age" ;
-    rdfs:comment "The age of a person" ;
-    rdfs:domain :Person ;
-    rdfs:range xsd:int .
+    Are there any other health data that correlate with coating loss? (e.g., high vibrations, temperatures)
 
-:hasCredits rdf:type owl:DatatypeProperty ;
-    rdfs:label "has credits" ;
-    rdfs:comment "Number of credits for a course" ;
-    rdfs:domain :Course ;
-    rdfs:range xsd:int .
+    What types of transient operations are correlated with changes in coating loss?
 
-# Axioms and Constraints
-:Student owl:disjointWith :Professor .
+    What base locations or weather conditions correlate with changes in coating loss?
 
-:enrolledIn rdf:type owl:FunctionalProperty .
+Step 3: Predict the Future (What will fail next?)
 
-# Sample instances
-:john rdf:type :Student ;
-    :hasName "John Smith" ;
-    :hasAge 20 ;
-    :enrolledIn :math101 .
+Using the patterns discovered in Step 2, these questions allow us to build predictive models and forecast future events, moving us from a reactive to a proactive stance.
 
-:jane rdf:type :Professor ;
-    :hasName "Jane Doe" ;
-    :hasAge 45 ;
-    :teaches :math101 ;
-    :workAt :mathDept .
+    When will an engine, assembly, or part be predicted to exceed the limit of acceptable coating loss?
 
-:math101 rdf:type :Course ;
-    :hasName "Introduction to Mathematics" ;
-    :hasCredits 3 ;
-    :belongsTo :mathDept .
+Step 4: Prescribe the Smartest Action (What is the best decision right now?)
 
-:mathDept rdf:type :Department ;
-    :hasName "Mathematics Department" .
+This is the ultimate goal. The system uses the predictions from Step 3 to recommend optimal actions that balance cost, risk, and readiness.
+
+    When should I replace a part to recover coating loss?
+
+    Which part(s) should I replace?
+
+    Which flight conditions could we potentially modify to minimize expected coating loss?
+
