@@ -1,46 +1,48 @@
-Step 1: Achieve Total Visibility (What is my fleet's true configuration?)
+This project builds a living digital model of our engine fleet, allowing us to answer progressively more valuable questions. We are moving from basic reporting to predictive and prescriptive analytics, turning our data into a strategic asset for readiness.
+Step 1: Total Visibility
 
-These questions establish the factual baseline. They create the single source of truth by linking our siloed data.
+The goal is to establish a single source of truth for 100% configuration control and auditability.
 
-    What parts were on the engine at a given time?
+We answer:
 
-    When did parts get removed or swapped?
+    What is the exact configuration of any engine, at any time?
 
-    What inspection data (from ESAS) was available at a given time?
+    What is the complete service history of a specific part?
 
-    When and how frequently does coating loss get captured in the ESAS system?
+    Show all historical inspection data for any asset.
 
-Step 2: Discover the "Why" (Why are parts failing and degrading?)
+Step 2: Discover the “Why”
 
-These questions help us perform root cause analysis. We move from knowing what happened to understanding why it happened by finding correlations in the data.
+The goal is to perform rapid root cause analysis to understand the drivers of degradation and failure.
 
-    Why did parts get removed? (from maintenance records)
+We answer:
 
-    What parts were on the engine during a step change in coating loss?
+    Why was a specific part actually removed from service?
 
-    Do specific parts exhibit higher/lower coating loss compared to other parts?
+    How do mission types or flight conditions impact part life?
 
-    What flight conditions or events (or mission types) correlate with changes in coating loss?
+    Does higher engine vibration correlate to faster coating loss?
 
-    Are there any other health data that correlate with coating loss? (e.g., high vibrations, temperatures)
+    Do parts degrade faster at coastal vs. desert bases?
 
-    What types of transient operations are correlated with changes in coating loss?
+Step 3: Predict the Future
 
-    What base locations or weather conditions correlate with changes in coating loss?
+The goal is to forecast failures and risks before they can impact operations, enabling proactive maintenance.
 
-Step 3: Predict the Future (What will fail next?)
+We answer:
 
-Using the patterns discovered in Step 2, these questions allow us to build predictive models and forecast future events, moving us from a reactive to a proactive stance.
+    What is the remaining useful life of this specific component?
 
-    When will an engine, assembly, or part be predicted to exceed the limit of acceptable coating loss?
+    Which 10 engines across the fleet are at the highest risk of failure this month?
 
-Step 4: Prescribe the Smartest Action (What is the best decision right now?)
+Step 4: Prescribe the Smartest Action
 
-This is the ultimate goal. The system uses the predictions from Step 3 to recommend optimal actions that balance cost, risk, and readiness.
+The goal is to use our predictions to recommend optimal decisions that balance cost, risk, and readiness.
 
-    When should I replace a part to recover coating loss?
+We answer:
 
-    Which part(s) should I replace?
+    What is the optimal time to replace a part?
 
-    Which flight conditions could we potentially modify to minimize expected coating loss?
+    Which operational changes would best extend the life of our fleet?
 
+    What is the most cost-effective strategy to maintain mission readiness?
