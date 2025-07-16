@@ -1,26 +1,374 @@
+CREATE DATABASE university_db;
+
+-- Create schemas to organize tables
+CREATE SCHEMA "uni1";
+CREATE SCHEMA "uni2";
+
+--- === University 1 === ---
+
+-- uni1.student Table
+CREATE TABLE "uni1"."student" (
+    s_id INT PRIMARY KEY,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100)
+);
+INSERT INTO "uni1"."student" (s_id, first_name, last_name) VALUES
+(1, 'Mary', 'Smith'),
+(2, 'John', 'Doe');
+
+-- uni1.academic Table
+CREATE TABLE "uni1"."academic" (
+    a_id INT PRIMARY KEY,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    "position" INT
+);
+INSERT INTO "uni1"."academic" (a_id, first_name, last_name, "position") VALUES
+(1, 'Anna', 'Chambers', 1),
+(2, 'Edward', 'May', 9),
+(3, 'Rachel', 'Ward', 8);
+
+-- uni1.course Table
+CREATE TABLE "uni1"."course" (
+    c_id INT PRIMARY KEY,
+    title VARCHAR(100)
+);
+INSERT INTO "uni1"."course" (c_id, title) VALUES
+(1234, 'Linear Algebra');
+
+-- uni1.teaching Table
+CREATE TABLE "uni1"."teaching" (
+    c_id INT,
+    a_id INT
+);
+INSERT INTO "uni1"."teaching" (c_id, a_id) VALUES
+(1234, 1),
+(1234, 2);
+
+-- uni1.course-registration Table
+CREATE TABLE "uni1"."course-registration" (
+    c_id INT,
+    s_id INT
+);
+INSERT INTO "uni1"."course-registration" (c_id, s_id) VALUES
+(1234, 1),
+(1234, 2);
+
+
+--- === University 2 === ---
+
+-- uni2.person Table
+CREATE TABLE "uni2"."person" (
+    pid INT PRIMARY KEY,
+    fname VARCHAR(100),
+    lname VARCHAR(100),
+    status INT
+);
+INSERT INTO "uni2"."person" (pid, fname, lname, status) VALUES
+(1, 'Zak', 'Lane', 8),
+(2, 'Mattie', 'Moses', 1),
+(3, 'Céline', 'Mendez', 2);
+
+-- uni2.course Table
+CREATE TABLE "uni2"."course" (
+    cid INT PRIMARY KEY,
+    lecturer INT,
+    lab_teacher INT,
+    topic VARCHAR(100)
+);
+INSERT INTO "uni2"."course" (cid, lecturer, lab_teacher, topic) VALUES
+(1, 1, 3, 'Information security');
+
+-- uni2.registration Table
+CREATE TABLE "uni2"."registration" (
+    pid INT,
+    cid INT
+);
+INSERT INTO "uni2"."registration" (pid, cid) VALUES
+(2, 1);
+
+
+==================
+university.properties
+
+
+jdbc.driver=org.postgresql.Driver
+jdbc.url=jdbc:postgresql://localhost:5432/university_db
+jdbc.user=postgres
+jdbc.password=postgres
+
+ontop.mapping.format=obda
+
+
+======================
+
+
+university.ttl
+
+@prefix : <http://example.org/voc#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix obda: <https://w3id.org/obda/vocabulary#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <http://example.org/voc#> .
+
+<http://example.org/voc#> rdf:type owl:Ontology .
+
+#################################################################
+#    Object Properties
+#################################################################
+
+###  http://example.org/voc#attends
+:attends rdf:type owl:ObjectProperty ;
+         rdfs:domain foaf:Person ;
+         rdfs:range :Course .
+
+
+###  http://example.org/voc#givesLab
+:givesLab rdf:type owl:ObjectProperty ;
+          rdfs:subPropertyOf :teaches .
+
+
+###  http://example.org/voc#givesLecture
+:givesLecture rdf:type owl:ObjectProperty ;
+              rdfs:subPropertyOf :teaches .
+
+
+###  http://example.org/voc#isGivenAt
+:isGivenAt rdf:type owl:ObjectProperty ;
+           rdfs:domain :Course ;
+           rdfs:range :EducationalInstitution .
+
+
+###  http://example.org/voc#isSupervisedBy
+:isSupervisedBy rdf:type owl:ObjectProperty .
+
+
+###  http://example.org/voc#isTaughtBy
+:isTaughtBy rdf:type owl:ObjectProperty ;
+            owl:inverseOf :teaches .
+
+
+###  http://example.org/voc#teaches
+:teaches rdf:type owl:ObjectProperty ;
+         rdfs:domain :Teacher ;
+         rdfs:range :Course .
+
+
+#################################################################
+#    Data properties
+#################################################################
+
+###  http://example.org/voc#title
+:title rdf:type owl:DatatypeProperty ;
+       rdfs:range xsd:string .
+
+
+###  http://xmlns.com/foaf/0.1/firstName
+foaf:firstName rdf:type owl:DatatypeProperty ;
+               rdfs:domain foaf:Person ;
+               rdfs:range rdfs:Literal .
+
+
+###  http://xmlns.com/foaf/0.1/lastName
+foaf:lastName rdf:type owl:DatatypeProperty ;
+              rdfs:domain foaf:Person ;
+              rdfs:range rdfs:Literal .
+
+
+#################################################################
+#    Classes
+#################################################################
+
+###  http://example.org/voc#AssistantProfessor
+:AssistantProfessor rdf:type owl:Class ;
+                    rdfs:subClassOf :Professor .
+
+
+###  http://example.org/voc#AssociateProfessor
+:AssociateProfessor rdf:type owl:Class ;
+                    rdfs:subClassOf :Professor .
+
+
+###  http://example.org/voc#Course
+:Course rdf:type owl:Class ;
+        owl:disjointWith :EducationalInstitution ,
+                         foaf:Person .
+
+
+###  http://example.org/voc#EducationalInstitution
+:EducationalInstitution rdf:type owl:Class ;
+                        owl:disjointWith foaf:Person .
+
+
+###  http://example.org/voc#ExternalTeacher
+:ExternalTeacher rdf:type owl:Class ;
+                 rdfs:subClassOf :Teacher .
+
+
+###  http://example.org/voc#FacultyMember
+:FacultyMember rdf:type owl:Class ;
+               rdfs:subClassOf foaf:Person .
+
+
+###  http://example.org/voc#FullProfessor
+:FullProfessor rdf:type owl:Class ;
+               rdfs:subClassOf :Professor .
+
+
+###  http://example.org/voc#GraduateStudent
+:GraduateStudent rdf:type owl:Class ;
+                 rdfs:subClassOf :Student ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty :isSupervisedBy ;
+                                   owl:someValuesFrom :Professor
+                                 ] .
+
+
+###  http://example.org/voc#PhDStudent
+:PhDStudent rdf:type owl:Class ;
+            rdfs:subClassOf :GraduateStudent ,
+                            :Researcher .
+
+
+###  http://example.org/voc#PostDoc
+:PostDoc rdf:type owl:Class ;
+         rdfs:subClassOf :Researcher .
+
+
+###  http://example.org/voc#Professor
+:Professor rdf:type owl:Class ;
+           rdfs:subClassOf :Researcher ,
+                           :Teacher .
+
+
+###  http://example.org/voc#Researcher
+:Researcher rdf:type owl:Class ;
+            rdfs:subClassOf :FacultyMember .
+
+
+###  http://example.org/voc#Student
+:Student rdf:type owl:Class ;
+         rdfs:subClassOf foaf:Person .
+
+
+###  http://example.org/voc#Teacher
+:Teacher rdf:type owl:Class ;
+         rdfs:subClassOf :FacultyMember .
+
+
+###  http://example.org/voc#UndergraduateStudent
+:UndergraduateStudent rdf:type owl:Class ;
+                      rdfs:subClassOf :Student .
+
+
+###  http://xmlns.com/foaf/0.1/Person
+foaf:Person rdf:type owl:Class .
+
+
+======================================
+
+
+university.obda
+
+[PrefixDeclaration]
+:		http://example.org/voc#
+owl:		http://www.w3.org/2002/07/owl#
+rdf:		http://www.w3.org/1999/02/22-rdf-syntax-ns#
+xml:		http://www.w3.org/XML/1998/namespace
+xsd:		http://www.w3.org/2001/XMLSchema#
+foaf:		http://xmlns.com/foaf/0.1/
+obda:		https://w3id.org/obda/vocabulary#
+rdfs:		http://www.w3.org/2000/01/rdf-schema#
+
 [MappingDeclaration] @collection [[
-# Rule to create Employee instances with their details
-mappingId    EmployeeMapping
-target       :emp/{emp_id} a :Employee ; :firstName {first_name} ; :lastName {last_name} ; :email {email} ; :hireDate {hire_date} ; :jobTitle {job_title} .
-source       select emp_id, first_name, last_name, email, hire_date, job_title from employees
+mappingId	uni1-student
+target		:uni1/student/{s_id} a :Student ; foaf:firstName {first_name}^^xsd:string ; foaf:lastName {last_name}^^xsd:string . 
+source		SELECT s_id, first_name, last_name FROM "uni1"."student"
 
-# Rule to create Department instances
-mappingId    DepartmentMapping
-target       :dept/{dept_id} a :Department ; :departmentName {dept_name} .
-source       select dept_id, dept_name from departments
+mappingId	uni1-academic
+target		:uni1/academic/{a_id} a :FacultyMember ; foaf:firstName {first_name}^^xsd:string ; foaf:lastName {last_name}^^xsd:string . 
+source		SELECT a_id, first_name, last_name FROM "uni1"."academic"
 
-# Rule to create Project instances
-mappingId    ProjectMapping
-target       :proj/{proj_id} a :Project .
-source       select proj_id from projects
+mappingId	uni1-course
+target		:uni1/course/{c_id} a :Course ; :title {title} ; :isGivenAt :uni1/university . 
+source		SELECT c_id, title FROM "uni1"."course"
 
-# Rule to connect an Employee to their Department
-mappingId    WorksInMapping
-target       :emp/{emp_id} :worksIn :dept/{department_id} .
-source       select emp_id, department_id from employees where department_id is not null
+mappingId	uni1-teaching
+target		:uni1/academic/{a_id} :teaches :uni1/course/{c_id} . 
+source		SELECT c_id, a_id FROM "uni1"."teaching"
 
-# Rule to connect a Project Leader to their Project
-mappingId    LeadsProjectMapping
-target       :emp/{lead_emp_id} :leadsProject :proj/{proj_id} .
-source       select lead_emp_id, proj_id from projects where lead_emp_id is not null
+mappingId	uni1-registration
+target		:uni1/student/{s_id} :attends :uni1/course/{c_id} . 
+source		SELECT c_id, s_id FROM "uni1"."course-registration"
+
+mappingId	uni1-fullProfessor
+target		:uni1/academic/{a_id} a :FullProfessor . 
+source		SELECT a_id FROM "uni1"."academic" WHERE "position" = 1
+
+mappingId	uni1-postdoc
+target		:uni1/academic/{a_id} a :PostDoc .
+source		SELECT a_id FROM "uni1"."academic" WHERE "position" = 9
+
+mappingId	uni1-external
+target		:uni1/academic/{a_id} a :ExternalTeacher .
+source		SELECT a_id FROM "uni1"."academic" WHERE "position" = 8
+
+mappingId	uni2-person
+target		:uni2/person/{pid} a foaf:Person ; foaf:firstName {fname}^^xsd:string ; foaf:lastName {lname}^^xsd:string .
+source		SELECT pid, fname, lname FROM "uni2"."person"
+
+mappingId	uni2-course
+target		:uni2/course/{cid} a :Course ; :title {topic}^^xsd:string ; :isGivenAt :uni2/university .
+source		SELECT cid, topic FROM "uni2"."course"
+
+mappingId	uni2-lecturer
+target		:uni2/person/{lecturer} :givesLecture :uni2/course/{cid} .
+source		SELECT cid, lecturer FROM "uni2"."course"
+
+mappingId	uni2-lab-teacher
+target		:uni2/person/{lab_teacher} :givesLab :uni2/course/{cid} .
+source		SELECT cid, lab_teacher FROM "uni2"."course"
+
+mappingId	uni2-registration
+target		:uni2/person/{pid} :attends :uni2/course/{cid} .
+source		SELECT pid, cid FROM "uni2"."registration"
+
+mappingId	uni2-undergraduate
+target		:uni2/person/{pid} a :UndergraduateStudent .
+source		SELECT pid FROM "uni2"."person" WHERE "status" = 1
+
+mappingId	uni2-graduate
+target		:uni2/person/{pid} a :GraduateStudent .
+source		SELECT pid FROM "uni2"."person" WHERE "status" = 2
+
+mappingId	uni2-postdoc
+target		:uni2/person/{pid} a :PostDoc .
+source		SELECT pid FROM "uni2"."person" WHERE "status" = 3
+
+mappingId	uni2-fullprofessor
+target		:uni2/person/{pid} a :FullProfessor .
+source		SELECT pid FROM "uni2"."person" WHERE "status" = 7
+
+mappingId	uni2-associate
+target		:uni2/person/{pid} a :AssociateProfessor .
+source		SELECT pid FROM "uni2"."person" WHERE "status" = 8
+
+mappingId	uni2-assistant
+target		:uni2/person/{pid} a :AssistantProfessor .
+source		SELECT pid FROM "uni2"."person" WHERE "status" = 9
 ]]
+
+
+
+
+==============
+
+
+
+ontop.bat endpoint --ontology=university.ttl --mapping=university.obda --properties=university.properties
+
+
