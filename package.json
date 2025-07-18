@@ -1,301 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>University Database Tables</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background: #f5f5f5;
-            color: #333;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-        }
-        
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-        }
-        
-        .schema-section {
-            margin-bottom: 50px;
-        }
-        
-        h2 {
-            color: #2c5282;
-            border-bottom: 2px solid #2c5282;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .table-container {
-            margin-bottom: 30px;
-        }
-        
-        h3 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-        }
-        
-        table {
-            border-collapse: collapse;
-            width: auto;
-            background: white;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-        
-        th {
-            background: #e2e8f0;
-            border: 1px solid #cbd5e0;
-            padding: 8px 12px;
-            text-align: left;
-            font-weight: bold;
-        }
-        
-        td {
-            border: 1px solid #cbd5e0;
-            padding: 8px 12px;
-        }
-        
-        tr:nth-child(even) {
-            background: #f7fafc;
-        }
-        
-        .pk {
-            background: #fef3c7;
-        }
-        
-        .fk {
-            background: #d1fae5;
-        }
-        
-        .tables-row {
-            display: flex;
-            gap: 40px;
-            flex-wrap: wrap;
-            margin-bottom: 30px;
-        }
-        
-        .code-note {
-            background: #f7fafc;
-            padding: 10px;
-            border-left: 3px solid #4299e1;
-            margin: 10px 0;
-            font-size: 13px;
-        }
-        
-        .key-legend {
-            margin-top: 40px;
-            padding: 15px;
-            background: #f7fafc;
-            border-radius: 5px;
-            text-align: center;
-            font-size: 14px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>University Database Tables with Data</h1>
-        
-        <!-- University 1 Schema -->
-        <div class="schema-section">
-            <h2>University 1 (uni1)</h2>
-            
-            <div class="tables-row">
-                <div class="table-container">
-                    <h3>uni1.student</h3>
-                    <table>
-                        <tr>
-                            <th class="pk">s_id (PK)</th>
-                            <th>first_name</th>
-                            <th>last_name</th>
-                        </tr>
-                        <tr>
-                            <td class="pk">1</td>
-                            <td>Mary</td>
-                            <td>Smith</td>
-                        </tr>
-                        <tr>
-                            <td class="pk">2</td>
-                            <td>John</td>
-                            <td>Doe</td>
-                        </tr>
-                    </table>
-                </div>
-                
-                <div class="table-container">
-                    <h3>uni1.academic</h3>
-                    <table>
-                        <tr>
-                            <th class="pk">a_id (PK)</th>
-                            <th>first_name</th>
-                            <th>last_name</th>
-                            <th>position</th>
-                        </tr>
-                        <tr>
-                            <td class="pk">1</td>
-                            <td>Anna</td>
-                            <td>Chambers</td>
-                            <td>1</td>
-                        </tr>
-                        <tr>
-                            <td class="pk">2</td>
-                            <td>Edward</td>
-                            <td>May</td>
-                            <td>9</td>
-                        </tr>
-                        <tr>
-                            <td class="pk">3</td>
-                            <td>Rachel</td>
-                            <td>Ward</td>
-                            <td>8</td>
-                        </tr>
-                    </table>
-                    <div class="code-note">
-                        Position codes: 1 = Full Professor, 8 = External, 9 = PostDoc
-                    </div>
-                </div>
-                
-                <div class="table-container">
-                    <h3>uni1.course</h3>
-                    <table>
-                        <tr>
-                            <th class="pk">c_id (PK)</th>
-                            <th>title</th>
-                        </tr>
-                        <tr>
-                            <td class="pk">1234</td>
-                            <td>Linear Algebra</td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-            
-            <div class="tables-row">
-                <div class="table-container">
-                    <h3>uni1.teaching</h3>
-                    <table>
-                        <tr>
-                            <th class="fk">c_id (FK)</th>
-                            <th class="fk">a_id (FK)</th>
-                        </tr>
-                        <tr>
-                            <td class="fk">1234</td>
-                            <td class="fk">1</td>
-                        </tr>
-                        <tr>
-                            <td class="fk">1234</td>
-                            <td class="fk">2</td>
-                        </tr>
-                    </table>
-                </div>
-                
-                <div class="table-container">
-                    <h3>uni1.course-registration</h3>
-                    <table>
-                        <tr>
-                            <th class="fk">c_id (FK)</th>
-                            <th class="fk">s_id (FK)</th>
-                        </tr>
-                        <tr>
-                            <td class="fk">1234</td>
-                            <td class="fk">1</td>
-                        </tr>
-                        <tr>
-                            <td class="fk">1234</td>
-                            <td class="fk">2</td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </div>
-        
-        <!-- University 2 Schema -->
-        <div class="schema-section">
-            <h2>University 2 (uni2)</h2>
-            
-            <div class="tables-row">
-                <div class="table-container">
-                    <h3>uni2.person</h3>
-                    <table>
-                        <tr>
-                            <th class="pk">pid (PK)</th>
-                            <th>fname</th>
-                            <th>lname</th>
-                            <th>status</th>
-                        </tr>
-                        <tr>
-                            <td class="pk">1</td>
-                            <td>Zak</td>
-                            <td>Lane</td>
-                            <td>8</td>
-                        </tr>
-                        <tr>
-                            <td class="pk">2</td>
-                            <td>Mattie</td>
-                            <td>Moses</td>
-                            <td>1</td>
-                        </tr>
-                        <tr>
-                            <td class="pk">3</td>
-                            <td>Céline</td>
-                            <td>Mendez</td>
-                            <td>2</td>
-                        </tr>
-                    </table>
-                    <div class="code-note">
-                        Status codes: 1 = Undergrad, 2 = Grad Student, 3 = PostDoc, 7 = Full Professor, 8 = Associate Prof, 9 = Assistant Prof
-                    </div>
-                </div>
-                
-                <div class="table-container">
-                    <h3>uni2.course</h3>
-                    <table>
-                        <tr>
-                            <th class="pk">cid (PK)</th>
-                            <th class="fk">lecturer (FK)</th>
-                            <th class="fk">lab_teacher (FK)</th>
-                            <th>topic</th>
-                        </tr>
-                        <tr>
-                            <td class="pk">1</td>
-                            <td class="fk">1</td>
-                            <td class="fk">3</td>
-                            <td>Information security</td>
-                        </tr>
-                    </table>
-                </div>
-                
-                <div class="table-container">
-                    <h3>uni2.registration</h3>
-                    <table>
-                        <tr>
-                            <th class="fk">pid (FK)</th>
-                            <th class="fk">cid (FK)</th>
-                        </tr>
-                        <tr>
-                            <td class="fk">2</td>
-                            <td class="fk">1</td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </div>
-        
-        <div class="key-legend">
-            <strong>Legend:</strong> Yellow cells = Primary Key (PK) | Green cells = Foreign Key (FK)
-        </div>
-    </div>
-</body>
-</html>
+Data Population Plan (Straightforward Version)
+1. Engine Instance
+
+    Instance Name: eng:PW0E730123
+
+    Source Table: EHMLINK_ENGINE
+
+    Logic: Create one Engine node for each unique ENG_SN.
+
+        Populate myont:hasSerialNumber from the ENG_SN column.
+
+2. EngineComponent Instance
+
+    Instance Name: comp:1A-BLADE_SN-BLADE-001
+
+    Source Tables: ENG_INST_ITEM, ITEM_PN_LIST, ENG_PART_LOAD
+
+    Logic: Create one EngineComponent node for each unique ENG_ITEM_PN + ENG_ITEM_SN combination.
+
+        Populate myont:hasPartNumber from ENG_INST_ITEM.ENG_ITEM_PN.
+
+        Populate myont:hasSerialNumber from ENG_INST_ITEM.ENG_ITEM_SN.
+
+        Enrich with myont:hasDescription by looking up the PN in ITEM_PN_LIST.
+
+3. InstalledState Instance (The Key to Simplicity)
+
+    Instance Name: state:Blade_001_Installed_On_Eng_123_20230115
+
+    Source Tables: ENG_INST_ITEM (for the start) and ON_EQUIP_ENG_WO/COMPLETE_TASK (to infer the end).
+
+    Logic: This is the core of the ETL.
+
+        For every row in ENG_INST_ITEM, create a new InstalledState instance. This row gives us the part, the engine, and the start time.
+
+        The hasFirstInstant is directly populated from ENG_INST_ITEM.ITEM_INST_DTG. This is straightforward.
+
+        The hasLastInstant is populated by finding the next major maintenance event for that same part that implies removal (like an action code for "Replaced"). This still requires some inference, but it's the most direct path available in your data. If no such event is found, the hasLastInstant remains null (meaning "currently installed").
