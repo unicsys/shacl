@@ -1,195 +1,316 @@
 <html>
-    <head>
-        <meta charset="utf-8">
-        
-            <script src="lib/bindings/utils.js"></script>
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-            
-        
-<center>
-<h1></h1>
-</center>
+<head>
+    <meta charset="utf-8">
+    <title>Interactive SPARQL Visualization</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js"></script>
 
-<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
-<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
-        <link
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
-          crossorigin="anonymous"
-        />
-        <script
-          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
-          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
-          crossorigin="anonymous"
-        ></script>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        #mynetwork {
+            width: 100%;
+            height: 95vh;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            border-radius: 5px;
+        }
+        .sparql-query-container {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .sparql-query-container .sparql-line {
+            display: block;
+            padding: 1px 5px;
+            margin: 0 -5px;
+            border-radius: 3px;
+            transition: background-color 0.3s ease;
+        }
+        .sparql-query-container .highlight-line {
+            /* FIX: Changed to a more visible light yellow */
+            background-color: #fff1a8;
+        }
+        .sparql-comment { color: #8B4513; }
+        .sparql-keyword { color: #800080; font-weight: bold; }
+        .sparql-variable { color: #333; }
+        .sparql-uri { color: #008080; }
+        .sparql-class-type { color: #D2691E; }
+        .sparql-property { color: #00008B; }
+        .sparql-identifier { color: #4169E1; }
+        #explanation-box {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            border: 1px solid #ced4da;
+            min-height: 70px;
+        }
+        #results-container {
+             margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid pt-3">
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-lg-5">
+                <div class="sparql-query-container">
+                    <span class="sparql-line sparql-comment"># Find the person involved in repairing Aircraft N737AA</span>
+                    <span class="sparql-line"><span class="sparql-keyword">PREFIX</span> ex: <<span class="sparql-uri">http://example.com/ontology#</span>></span>
+                    <span class="sparql-line"><span class="sparql-keyword">PREFIX</span> rdfs: <<span class="sparql-uri">http://www.w3.org/2000/01/rdf-schema#</span>></span>
+                    <br>
+                    <span class="sparql-line" id="step4-line"><span class="sparql-keyword">SELECT</span> <span class="sparql-variable">?person</span> <span class="sparql-variable">?personLabel</span></span>
+                    <span class="sparql-line"><span class="sparql-keyword">WHERE</span> {</span>
+                    <div style="padding-left: 20px;">
+                        <span class="sparql-line sparql-comment"># 1. Start with the specific aircraft instance.</span>
+                        <span class="sparql-line" id="step0-line"><span class="sparql-keyword">VALUES</span> <span class="sparql-variable">?aircraft</span> { <span class="sparql-identifier">ex:N737AA</span> }</span>
+                        <span class="sparql-line sparql-comment"># 2. Find the repair process it participated in.</span>
+                        <span class="sparql-line" id="step1-line"><span class="sparql-variable">?repair</span> <span class="sparql-property">ex:has_participant</span> <span class="sparql-variable">?aircraft</span> .</span>
+                        <span class="sparql-line sparql-comment"># 3. Find the person who was also a participant.</span>
+                        <span class="sparql-line" id="step2-line"><span class="sparql-variable">?repair</span> <span class="sparql-property">ex:has_participant</span> <span class="sparql-variable">?person</span> .</span>
+                        <span class="sparql-line sparql-comment"># 4. Ensure this participant is a Person.</span>
+                        <span class="sparql-line" id="step3-line"><span class="sparql-variable">?person</span> <span class="sparql-keyword">a</span> <span class="sparql-class-type">ex:Person</span> .</span>
+                        <span class="sparql-line sparql-comment"># 5. Get the person's name for display.</span>
+                        <span class="sparql-line" id="step5-line"><span class="sparql-variable">?person</span> <span class="sparql-property">rdfs:label</span> <span class="sparql-variable">?personLabel</span> .</span>
+                    </div>
+                    <span class="sparql-line">}</span>
+                </div>
 
+                <div class="mt-2">
+                    <button class="btn btn-primary" onclick="nextStep();">Next Step</button>
+                    <button class="btn btn-secondary" onclick="resetAll();">Reset</button>
+                </div>
+                
+                <div id="explanation-box">
+                    <strong>Explanation:</strong>
+                    <p id="explanation-text" class="mb-0">Click "Next Step" to begin the query execution.</p>
+                </div>
 
-        <center>
-          <h1></h1>
-        </center>
-        <style type="text/css">
+                <div id="results-container">
+                    <h6>Query Results:</h6>
+                    <table class="table table-sm table-bordered table-striped">
+                        <thead><tr><th>?person</th><th>?personLabel</th></tr></thead>
+                        <tbody id="results-body"></tbody>
+                    </table>
+                </div>
+            </div>
 
-             #mynetwork {
-                 width: 100%;
-                 height: 800px;
-                 background-color: #ffffff;
-                 border: 1px solid lightgray;
-                 position: relative;
-                 float: left;
-             }
-
-             
-             #config {
-                 float: left;
-                 width: 400px;
-                 height: 600px;
-             }
-             
-
-             
-        </style>
-    </head>
-
-
-    <body>
-        <div class="card" style="width: 100%">
-            
-            
-            <div id="mynetwork" class="card-body"></div>
+            <!-- Right Column -->
+            <div class="col-lg-7">
+                <div id="mynetwork"></div>
+            </div>
         </div>
+    </div>
 
+    <script>
+        var network;
+        var nodes, edges;
+        var originalNodeStyles = {};
+        var originalEdgeStyles = {};
+        var currentStep = -1;
+
+        const highlightOptions = {
+            node: { 
+                color: { background: '#ff5722', border: '#d44a1c' }, 
+                font: { color: 'black' } 
+            },
+            edge: { 
+                color: '#ff5722', 
+                width: 3.5,
+                arrows: 'to'
+            }
+        };
+
+        const querySteps = [
+             {
+                lineId: 'step0-line',
+                explanation: 'Start by binding the ?aircraft variable to the specific individual, ex:N737AA.',
+                nodesToHighlight: ['Aircraft-Inst-1'],
+                edgesToHighlight: []
+            },
+            {
+                lineId: 'step1-line',
+                explanation: 'Find the repair process where this aircraft was a participant. The query engine finds Repair-01.',
+                nodesToHighlight: ['Aircraft-Inst-1', 'Repair-Inst-1'],
+                edgesToHighlight: ['e13']
+            },
+            {
+                lineId: 'step2-line',
+                explanation: 'From that repair process, find the other participant. This binds the ?person variable to John Doe.',
+                nodesToHighlight: ['Aircraft-Inst-1', 'Repair-Inst-1', 'Person-Inst-1'],
+                edgesToHighlight: ['e13', 'e14']
+            },
+            {
+                lineId: 'step3-line',
+                explanation: 'This step verifies that the found participant is indeed of type ex:Person. The condition is met.',
+                nodesToHighlight: ['Person-Inst-1', 'Person'],
+                edgesToHighlight: ['e9']
+            },
+             {
+                lineId: 'step4-line',
+                explanation: 'The SELECT clause specifies we want the person\'s URI and their label.',
+                nodesToHighlight: ['Person-Inst-1'],
+                edgesToHighlight: []
+            },
+            {
+                lineId: 'step5-line',
+                explanation: 'Retrieve the rdfs:label for the final ?person node. The query is now complete and the results are projected into the table.',
+                nodesToHighlight: ['Person-Inst-1'],
+                edgesToHighlight: [],
+                isFinal: true
+            }
+        ];
+
+        function resetAll() {
+            currentStep = -1;
+            document.querySelectorAll('.sparql-line').forEach(el => el.classList.remove('highlight-line'));
+            document.getElementById('explanation-text').textContent = 'Click "Next Step" to begin the query execution.';
+            document.getElementById('results-body').innerHTML = '';
+            resetGraphStyles();
+        }
+
+        function nextStep() {
+            currentStep++;
+            if (currentStep >= querySteps.length) {
+                currentStep = 0;
+            }
+            resetAllButKeepState();
+            
+            const step = querySteps[currentStep];
+            document.getElementById(step.lineId).classList.add('highlight-line');
+            document.getElementById('explanation-text').textContent = step.explanation;
+
+            const nodesToUpdate = step.nodesToHighlight.map(id => ({id: id, ...highlightOptions.node}));
+            if(nodesToUpdate.length > 0) nodes.update(nodesToUpdate);
+
+            const edgesToUpdate = step.edgesToHighlight.map(id => ({id: id, ...highlightOptions.edge}));
+            if(edgesToUpdate.length > 0) edges.update(edgesToUpdate);
+            
+            if (step.isFinal) {
+                populateResults();
+            }
+        }
+
+        function resetAllButKeepState() {
+            resetGraphStyles();
+            document.querySelectorAll('.sparql-line').forEach(el => el.classList.remove('highlight-line'));
+            document.getElementById('results-body').innerHTML = '';
+        }
+
+        function resetGraphStyles() {
+            const nodesToUpdate = Object.keys(originalNodeStyles).map(id => ({ id: id, ...originalNodeStyles[id] }));
+            if (nodesToUpdate.length) nodes.update(nodesToUpdate);
+            
+            // DEFINITIVE FIX: Restore all original edge styles explicitly.
+            const edgesToUpdate = Object.keys(originalEdgeStyles).map(id => ({ id: id, ...originalEdgeStyles[id] }));
+            if (edgesToUpdate.length) edges.update(edgesToUpdate);
+        }
         
-        
-            <div id="config"></div>
-        
+        function populateResults() {
+             const resultsBody = document.getElementById('results-body');
+             const results = [
+                 {uri: 'ex:JohnDoe', label: 'John Doe'}
+             ];
+             results.forEach(res => {
+                 let row = resultsBody.insertRow();
+                 row.insertCell(0).textContent = res.uri;
+                 row.insertCell(1).textContent = res.label;
+             });
+        }
 
-        <script type="text/javascript">
+        function drawGraph() {
+            const container = document.getElementById('mynetwork');
+            const allNodesData = [
+                {"id": "Entity", "label": "Entity", "shape": "box", color: {background:'#FDD4A0', border: '#c7a87e'}},
+                {"id": "Continuant", "label": "Continuant", "shape": "box", color: {background:'#FDD4A0', border: '#c7a87e'}},
+                {"id": "Occurrent", "label": "Occurrent", "shape": "box", color: {background:'#FDD4A0', border: '#c7a87e'}},
+                {"id": "Aircraft", "label": "Aircraft", "shape": "box", color: {background:'#FFA500', border: '#c78100'}},
+                {"id": "Person", "label": "Person", "shape": "box", color: {background:'#FFA500', border: '#c78100'}},
+                {"id": "RepairProcess", "label": "RepairProcess", "shape": "box", color: {background:'#FFA500', border: '#c78100'}},
+                {"id": "Aircraft-Inst-1", "label": "Aircraft N737AA", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}},
+                {"id": "Person-Inst-1", "label": "John Doe", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}},
+                {"id": "Repair-Inst-1", "label": "Repair-01", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}},
+                {"id": "Aircraft-Inst-2", "label": "Aircraft N905FR", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}},
+                {"id": "Person-Inst-2", "label": "Jane Smith", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}},
+                {"id": "Repair-Inst-2", "label": "Repair-02", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}},
+                {"id": "Repair-Inst-3", "label": "Repair-03", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}}
+            ];
+             const allEdgesData = [
+                {"id": "e1", "from": "Continuant", "to": "Entity", "label": "rdfs:subClassOf", "dashes": true, "arrows": "to"},
+                {"id": "e2", "from": "Occurrent", "to": "Entity", "label": "rdfs:subClassOf", "dashes": true, "arrows": "to"},
+                {"id": "e3", "from": "Aircraft", "to": "Continuant", "label": "rdfs:subClassOf", "dashes": true, "arrows": "to"},
+                {"id": "e4", "from": "Person", "to": "Continuant", "label": "rdfs:subClassOf", "dashes": true, "arrows": "to"},
+                {"id": "e5", "from": "RepairProcess", "to": "Occurrent", "label": "rdfs:subClassOf", "dashes": true, "arrows": "to"},
+                {"id": "e6", "from": "RepairProcess", "to": "Aircraft", "label": "has_participant", "arrows": "to"},
+                {"id": "e7", "from": "RepairProcess", "to": "Person", "label": "has_participant", "arrows": "to"},
+                {"id": "e8", "from": "Aircraft-Inst-1", "to": "Aircraft", "label": "rdf:type", "dashes": true, "arrows": "to"},
+                {"id": "e9", "from": "Person-Inst-1", "to": "Person", "label": "rdf:type", "dashes": true, "arrows": "to"},
+                {"id": "e10", "from": "Repair-Inst-1", "to": "RepairProcess", "label": "rdf:type", "dashes": true, "arrows": "to"},
+                {"id": "e11", "from": "Aircraft-Inst-2", "to": "Aircraft", "label": "rdf:type", "dashes": true, "arrows": "to"},
+                {"id": "e12", "from": "Person-Inst-2", "to": "Person", "label": "rdf:type", "dashes": true, "arrows": "to"},
+                {"id": "e13", "from": "Repair-Inst-1", "to": "Aircraft-Inst-1", "label": "has_participant", "arrows": "to"},
+                {"id": "e14", "from": "Repair-Inst-1", "to": "Person-Inst-1", "label": "has_participant", "arrows": "to"},
+                {"id": "e15", "from": "Repair-Inst-2", "to": "RepairProcess", "label": "rdf:type", "dashes": true, "arrows": "to"},
+                {"id": "e16", "from": "Repair-Inst-2", "to": "Aircraft-Inst-2", "label": "has_participant", "arrows": "to"},
+                {"id": "e17", "from": "Repair-Inst-2", "to": "Person-Inst-2", "label": "has_participant", "arrows": "to"},
+                {"id": "e18", "from": "Repair-Inst-3", "to": "Person-Inst-1", "label": "has_participant", "arrows": "to"},
+                {"id": "e19", "from": "Repair-Inst-3", "to": "Aircraft-Inst-2", "label": "has_participant", "arrows": "to"}
+            ];
+            
+            nodes = new vis.DataSet(allNodesData);
+            edges = new vis.DataSet(allEdgesData);
 
-              // initialize global variables.
-              var edges;
-              var nodes;
-              var allNodes;
-              var allEdges;
-              var nodeColors;
-              var originalNodes;
-              var network;
-              var container;
-              var options, data;
-              var filter = {
-                  item : '',
-                  property : '',
-                  value : []
-              };
+            // Save original styles for nodes and edges
+            nodes.forEach(node => {
+                originalNodeStyles[node.id] = { color: node.color, font: node.font };
+            });
+            edges.forEach(edge => {
+                // DEFINITIVE FIX: Save the complete, effective style for each edge
+                originalEdgeStyles[edge.id] = { 
+                    color: edge.color || '#848484', // Use default from options if not present
+                    width: edge.width || 1.5,
+                    dashes: edge.dashes || false,
+                    arrows: edge.arrows || 'to' // This is the key part
+                };
+            });
 
-              
+            const data = { nodes, edges };
+            const options = {
+                nodes: {
+                    font: { color: '#343434' },
+                    borderWidth: 2,
+                    size: 20
+                },
+                edges: {
+                    color: '#848484',
+                    font: { align: 'top', size: 12, color: '#333' },
+                    smooth: { type: 'continuous' },
+                    width: 1.5
+                },
+                physics: {
+                    solver: 'barnesHut',
+                    barnesHut: { gravitationalConstant: -25000 }
+                },
+                interaction: {
+                    tooltipDelay: 200,
+                    hideEdgesOnDrag: true
+                }
+            };
+            network = new vis.Network(container, data, options);
+        }
 
-              
-
-              // This method is responsible for drawing the graph, returns the drawn network
-              function drawGraph() {
-                  var container = document.getElementById('mynetwork');
-
-                  
-
-                  // All nodes for ontology and instances
-                  nodes = new vis.DataSet([
-                      {"color": "#FDD4A0", "font": {"color": "black"}, "id": "Entity", "label": "Entity", "shape": "box", "size": 30, "title": "The most general category of thing."},
-                      {"color": "#FDD4A0", "font": {"color": "black"}, "id": "Continuant", "label": "Continuant", "shape": "box", "size": 25, "title": "Something that exists in full at any time (e.g., an object)."},
-                      {"color": "#FDD4A0", "font": {"color": "black"}, "id": "Occurrent", "label": "Occurrent", "shape": "box", "size": 25, "title": "Something that happens over time (e.g., a process)."},
-                      {"color": "#FFA500", "font": {"color": "black"}, "id": "Aircraft", "label": "Aircraft", "shape": "box", "size": 20, "title": "Our Class for aircraft."},
-                      {"color": "#FFA500", "font": {"color": "black"}, "id": "Person", "label": "Person", "shape": "box", "size": 20, "title": "Our Class for people."},
-                      {"color": "#FFA500", "font": {"color": "black"}, "id": "RepairProcess", "label": "RepairProcess", "shape": "box", "size": 20, "title": "Our Class for repair events."},
-                      {"color": "#8A2BE2", "font": {"color": "black"}, "id": "N737AA", "label": "Aircraft N737AA", "shape": "dot", "size": 25},
-                      {"color": "#8A2BE2", "font": {"color": "black"}, "id": "JohnDoe", "label": "John Doe", "shape": "dot", "size": 20},
-                      {"color": "#8A2BE2", "font": {"color": "black"}, "id": "Repair-01", "label": "Repair-01", "shape": "dot", "size": 20},
-                      {"color": "#8A2BE2", "font": {"color": "black"}, "id": "N905FR", "label": "Aircraft N905FR", "shape": "dot", "size": 25},
-                      {"color": "#8A2BE2", "font": {"color": "black"}, "id": "JaneSmith", "label": "Jane Smith", "shape": "dot", "size": 20},
-                      {"color": "#8A2BE2", "font": {"color": "black"}, "id": "Repair-02", "label": "Repair-02", "shape": "dot", "size": 20}
-                  ]);
-
-                  // All edges for ontology and instances
-                  edges = new vis.DataSet([
-                      // Ontology subclass relationships
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "Continuant", "label": "rdfs:subClassOf", "to": "Entity"},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "Occurrent", "label": "rdfs:subClassOf", "to": "Entity"},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "Aircraft", "label": "rdfs:subClassOf", "to": "Continuant"},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "Person", "label": "rdfs:subClassOf", "to": "Continuant"},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "RepairProcess", "label": "rdfs:subClassOf", "to": "Occurrent"},
-                      
-                      // Instance type relationships
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "N737AA", "label": "rdf:type", "to": "Aircraft"},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "JohnDoe", "label": "rdf:type", "to": "Person"},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "Repair-01", "label": "rdf:type", "to": "RepairProcess"},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "N905FR", "label": "rdf:type", "to": "Aircraft"},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "JaneSmith", "label": "rdf:type", "to": "Person"},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "Repair-02", "label": "rdf:type", "to": "RepairProcess"},
-                      
-                      // Instance-to-instance relationships
-                      {"arrows": "to", "color": "#DC143C", "from": "Repair-01", "label": "has_participant", "to": "N737AA", "width": 2},
-                      {"arrows": "to", "color": "#DC143C", "from": "Repair-01", "label": "has_participant", "to": "JohnDoe", "width": 2},
-                      {"arrows": "to", "color": "#DC143C", "from": "Repair-02", "label": "has_participant", "to": "N905FR", "width": 2},
-                      {"arrows": "to", "color": "#DC143C", "from": "Repair-02", "label": "has_participant", "to": "JaneSmith", "width": 2}
-                  ]);
-
-                  nodeColors = {};
-                  allNodes = nodes.get({ returnType: "Object" });
-                  for (nodeId in allNodes) {
-                    nodeColors[nodeId] = allNodes[nodeId].color;
-                  }
-                  allEdges = edges.get({ returnType: "Object" });
-                  // adding nodes and edges to the graph
-                  data = {nodes: nodes, edges: edges};
-
-                  var options = {
-                      "configure": {
-                          "enabled": true,
-                          "filter": [
-                              "physics"
-                          ]
-                      },
-                      "edges": {
-                          "color": {
-                              "inherit": true
-                          },
-                          "smooth": {
-                              "enabled": true,
-                              "type": "dynamic"
-                          }
-                      },
-                      "interaction": {
-                          "dragNodes": true,
-                          "hideEdgesOnDrag": false,
-                          "hideNodesOnDrag": false
-                      },
-                      "physics": {
-                          "enabled": true,
-                          "stabilization": {
-                              "enabled": true,
-                              "fit": true,
-                              "iterations": 1000,
-                              "onlyDynamicEdges": false,
-                              "updateInterval": 50
-                          }
-                      }
-                  };
-
-                  
-
-
-                  
-                  // if this network requires displaying the configure window,
-                  // put it in its div
-                  options.configure["container"] = document.getElementById("config");
-                  
-
-                  network = new vis.Network(container, data, options);
-
-                  return network;
-
-              }
-              drawGraph();
-        </script>
-    </body>
+        drawGraph();
+    </script>
+</body>
 </html>
