@@ -1,1 +1,42 @@
+import os
 
+print("--- Searching for conflicting hadoop.dll files in your system PATH ---")
+
+# Get the official path where the DLL should be
+try:
+    correct_path = os.path.join(os.environ['HADOOP_HOME'], 'bin').lower()
+except KeyError:
+    print("FATAL: HADOOP_HOME is not set. Please fix this first.")
+    correct_path = ''
+
+# Get all paths from the PATH environment variable
+path_list = os.environ.get('PATH', '').split(';')
+
+found_conflict = False
+for p in path_list:
+    # Ignore empty paths that can result from a trailing semicolon
+    if not p:
+        continue
+    
+    dll_path = os.path.join(p, 'hadoop.dll')
+    
+    # Check if a hadoop.dll exists in this path
+    if os.path.exists(dll_path):
+        # Check if it's the CORRECT one or a conflict
+        if p.lower() == correct_path:
+            print(f"✅ FOUND (Correct): {dll_path}")
+        else:
+            print(f"❌ CONFLICT FOUND: {dll_path}")
+            found_conflict = True
+
+if not found_conflict:
+    print("\n--- RESULT ---")
+    print("✅ No conflicting hadoop.dll files were found in your PATH.")
+else:
+    print("\n--- RESULT ---")
+    print("❌ A conflicting hadoop.dll was found. This is likely the cause of your error.")
+    print("To fix this, you must either remove the conflicting file or edit your 'User variables' for 'Path' to ensure the correct Hadoop path is listed FIRST.")
+
+```2.  **Analyze the Output:**
+*   If you see a line that says `❌ CONFLICT FOUND`, you have found the problem. The solution is to either delete that conflicting DLL or edit your User `Path` variable to move `%HADOOP_HOME%\bin` to the very top of the list.
+*   If it only finds the "Correct" one, the problem lies elsewhere.
