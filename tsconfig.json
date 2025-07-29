@@ -1,1 +1,117 @@
+# Cell 1: Check Environment
+import sys
+import os
 
+print("=== ENVIRONMENT CHECK ===")
+print(f"Python Version: {sys.version}")
+print(f"Python Location: {sys.executable}")
+print(f"\nVirtual Environment Active: {'venv' in sys.executable}")
+print(f"Current Directory: {os.getcwd()}")
+
+# Cell 2: Install Required Packages
+print("\n=== INSTALLING PACKAGES ===")
+import subprocess
+
+packages = [
+    'pyspark==3.5.0',
+    'pandas',
+    'pandasql',
+    'jupyter',
+    'ipykernel'
+]
+
+for package in packages:
+    print(f"Installing {package}...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+    
+print("\n✓ All packages installed!")
+
+# Cell 3: Check Java
+print("\n=== JAVA CHECK ===")
+try:
+    result = subprocess.run(['java', '-version'], capture_output=True, text=True)
+    print("✓ Java is installed:")
+    print(result.stderr)
+    java_available = True
+except FileNotFoundError:
+    print("❌ Java not found")
+    print("We'll use the pandas-based approach instead")
+    java_available = False
+
+# Cell 4: Setup Spark (with fallback)
+print("\n=== SETTING UP SPARK ===")
+
+if java_available:
+    try:
+        from pyspark.sql import SparkSession
+        
+        spark = SparkSession.builder \
+            .appName("LocalDatabricksDev") \
+            .master("local[*]") \
+            .config("spark.sql.warehouse.dir", "./spark-warehouse") \
+            .getOrCreate()
+        
+        print(f"✓ Spark {spark.version} is running!")
+        spark_mode = "full"
+        
+    except Exception as e:
+        print(f"❌ Spark setup failed: {e}")
+        spark_mode = "pandas"
+else:
+    spark_mode = "pandas"
+
+if spark_mode == "pandas":
+    print("✓ Using Pandas SQL mode (no Java required)")
+    import pandas as pd
+    from pandasql import sqldf
+
+# Cell 5: Create Test Table
+print("\n=== CREATING TEST TABLE ===")
+
+if spark_mode == "full":
+    # Spark approach
+    data = [(1, "John", 25), (2, "Jane", 30), (3, "Bob", 35)]
+    columns = ["id", "name", "age"]
+    df = spark.createDataFrame(data, columns)
+    df.createOrReplaceTempView("test_table")
+    print("✓ Created 'test_table' in Spark")
+    df.show()
+    
+else:
+    # Pandas approach
+    test_table = pd.DataFrame({
+        'id': [1, 2, 3],
+        'name': ['John', 'Jane', 'Bob'],
+        'age': [25, 30, 35]
+    })
+    print("✓ Created 'test_table' in Pandas")
+    print(test_table)
+
+# Cell 6: Run Test Query
+print("\n=== RUNNING TEST QUERY ===")
+
+query = "SELECT name, age FROM test_table WHERE age >= 30"
+print(f"Query: {query}")
+
+if spark_mode == "full":
+    result = spark.sql(query)
+    result.show()
+else:
+    result = sqldf(query, locals())
+    print(result)
+
+print("\n✅ SUCCESS! Your environment is ready for SQL development!")
+
+# Cell 7: Save Configuration
+config = {
+    'mode': spark_mode,
+    'java_available': java_available,
+    'python_version': sys.version,
+    'venv_path': sys.executable
+}
+
+import json
+with open('environment_config.json', 'w') as f:
+    json.dump(config, f, indent=2)
+    
+print("\n📄 Configuration saved to environment_config.json")
