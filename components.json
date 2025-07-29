@@ -1,17 +1,189 @@
-# Run this in a Jupyter cell to check your environment
-import sys
+# Cell 1: Import and Configure for Corporate Environment
 import os
+import sys
+import warnings
+warnings.filterwarnings('ignore')
 
-print("Python Version:", sys.version)
-print("Python Location:", sys.executable)
-print("\nCurrent Working Directory:", os.getcwd())
-print("\nUser Home Directory:", os.path.expanduser("~"))
+# Set environment variables to work around corporate firewall
+os.environ['PYSPARK_PYTHON'] = sys.executable
+os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 
-# Check if Java is available
-import subprocess
+# Disable Python worker reuse (helps with connection issues)
+os.environ['PYSPARK_PYTHON_WORKER_REUSE'] = 'false'
+
+print("✓ Environment configured for corporate network")
+
+# Cell 2: Create Spark Session with Special Configuration
+from pyspark.sql import SparkSession
+
+# Create Spark with configurations that work in restricted environments
+spark = SparkSession.builder \
+    .appName("LocalDatabricksDev") \
+    .master("local[1]") \
+    .config("spark.driver.host", "localhost") \
+    .config("spark.driver.bindAddress", "127.0.0.1") \
+    .config("spark.ui.enabled", "false") \
+    .config("spark.sql.warehouse.dir", "./spark-warehouse") \
+    .config("spark.sql.shuffle.partitions", "1") \
+    .config("spark.default.parallelism", "1") \
+    .config("spark.executor.instances", "1") \
+    .getOrCreate()
+
+# Reduce logging
+spark.sparkContext.setLogLevel("ERROR")
+
+print(f"✓ Spark {spark.version} configured for restricted environment")
+
+# Cell 3: Test with Simple Operations First
+# Let's test with the simplest possible operation
 try:
-    result = subprocess.run(['java', '-version'], capture_output=True, text=True)
-    print("\n✓ Java is installed:")
-    print(result.stderr)  # Java prints version to stderr
-except FileNotFoundError:
-    print("\n❌ Java not found - we'll need to work around this")
+    # Create RDD instead of DataFrame first
+    test_rdd = spark.sparkContext.parallelize([1, 2, 3, 4, 5])
+    result = test_rdd.collect()
+    print("✓ Basic Spark operations working:", result)
+except Exception as e:
+    print(f"❌ Basic operations failed: {e}")
+
+# Cell 4: Alternative - Use Spark SQL with Pandas Backend
+try:
+    # Enable Arrow optimization
+    spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
+    
+    # Create a simple DataFrame using pandas
+    import pandas as pd
+    pandas_df = pd.DataFrame({
+        'id': [1, 2, 3],
+        'name': ['John', 'Jane', 'Bob'],
+        'age': [25, 30, 35]
+    })
+    
+    # Convert to Spark DataFrame
+    df = spark.createDataFrame(pandas_df)
+    print("\n✓ Created Spark DataFrame from Pandas")
+    
+    # Register as SQL table
+    df.createOrReplaceTempView("test_table")
+    print("✓ Registered as SQL table")
+    
+    # Try to display using toPandas() instead of show()
+    print("\nTable contents:")
+    print(df.toPandas())
+    
+except Exception as e:
+    print(f"❌ Pandas approach failed: {e}")
+
+# Cell 5: Pure SQL Operations (Most Reliable)
+try:
+    # Create table using pure SQL
+    spark.sql("""
+        CREATE OR REPLACE TEMPORARY VIEW employees AS
+        SELECT * FROM VALUES
+        (1, 'John Doe', 25, 'Engineering'),
+        (2, 'Jane Smith', 30, 'Marketing'),
+        (3, 'Bob Johnson', 35, 'Sales'),
+        (4, 'Alice Brown', 28, 'Engineering'),
+        (5, 'Charlie Wilson', 45, 'Management')
+        AS t(id, name, age, department)
+    """)
+    
+    print("\n✓ Created employees table using SQL")
+    
+    # Query the table
+    result = spark.sql("SELECT * FROM employees WHERE age > 30")
+    
+    # Convert to pandas for display (more reliable than show())
+    result_df = result.toPandas()
+    print("\nEmployees over 30:")
+    print(result_df)
+    
+except Exception as e:
+    print(f"❌ SQL approach failed: {e}")
+
+# Cell 6: Fallback to Pure Pandas + SQL
+print("\n=== FALLBACK: Pure Pandas SQL Mode ===")
+import pandas as pd
+from pandasql import sqldf
+
+# Create tables
+employees = pd.DataFrame({
+    'id': [1, 2, 3, 4, 5],
+    'name': ['John Doe', 'Jane Smith', 'Bob Johnson', 'Alice Brown', 'Charlie Wilson'],
+    'age': [25, 30, 35, 28, 45],
+    'department': ['Engineering', 'Marketing', 'Sales', 'Engineering', 'Management']
+})
+
+orders = pd.DataFrame({
+    'order_id': [101, 102, 103, 104, 105],
+    'employee_id': [1, 2, 1, 3, 4],
+    'amount': [1000, 2500, 1500, 3000, 2000],
+    'order_date': ['2024-01-15', '2024-01-16', '2024-01-17', '2024-01-18', '2024-01-19']
+})
+
+print("✓ Created tables using pandas")
+print("\nEmployees table:")
+print(employees.head())
+
+# Run SQL query
+query = """
+SELECT 
+    e.name,
+    e.department,
+    COUNT(o.order_id) as total_orders,
+    SUM(o.amount) as total_sales
+FROM employees e
+LEFT JOIN orders o ON e.id = o.employee_id
+GROUP BY e.name, e.department
+ORDER BY total_sales DESC
+"""
+
+result = sqldf(query, locals())
+print("\nQuery result:")
+print(result)
+
+print("\n✅ Pandas SQL mode working perfectly!")
+
+# Cell 7: Create Helper Functions for Your Workflow
+def create_table_from_dict(table_name, data_dict):
+    """Create a table from a dictionary"""
+    globals()[table_name] = pd.DataFrame(data_dict)
+    print(f"✓ Created table '{table_name}'")
+    return globals()[table_name]
+
+def run_query(sql):
+    """Run a SQL query and return results"""
+    try:
+        # Try Spark first
+        if 'spark' in globals() and spark:
+            return spark.sql(sql).toPandas()
+    except:
+        pass
+    
+    # Fallback to pandas SQL
+    return sqldf(sql, globals())
+
+def save_query(query_name, sql):
+    """Save a validated query to file"""
+    os.makedirs("../validated_queries", exist_ok=True)
+    
+    with open(f"../validated_queries/{query_name}.sql", 'w') as f:
+        f.write(f"-- Query: {query_name}\n")
+        f.write(f"-- Validated on: {pd.Timestamp.now()}\n")
+        f.write("-" * 60 + "\n\n")
+        f.write(sql)
+    
+    print(f"✓ Saved query to: validated_queries/{query_name}.sql")
+
+# Test the helper functions
+test_customers = create_table_from_dict('customers', {
+    'id': [1, 2, 3],
+    'name': ['Customer A', 'Customer B', 'Customer C'],
+    'city': ['New York', 'Los Angeles', 'Chicago']
+})
+
+result = run_query("SELECT * FROM customers WHERE id > 1")
+print("\nHelper function test:")
+print(result)
+
+# Save a sample query
+sample_query = "SELECT * FROM customers WHERE city = 'Chicago'"
+save_query("find_chicago_customers", sample_query)
