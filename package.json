@@ -1,1 +1,15 @@
-https://www.azul.com/downloads/?version=java-17-lts&os=windows&architecture=x86-64-bit&package=jdk
+https://spark.apache.org/downloads.html
+- Spark release: 3.5.3
+- Package: Pre-built for Apache Hadoop 3.3 and later
+For Spark 4.0.0 (requires Java 17+):
+
+
+https://dlcdn.apache.org/hadoop/common/hadoop-3.4.0/hadoop-3.4.0.tar.gz
+
+
+https://archive.apache.org/dist/spark/spark-4.0.0/
+- Download: spark-4.0.0-bin-hadoop3.tgz
+
+https://spark.apache.org/downloads.html
+- Spark release: 3.5.3
+- Package: Pre-built for Apache Hadoop 3.3 and later
