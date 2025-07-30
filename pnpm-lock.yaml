@@ -1,13 +1,1 @@
-import pandas as pd
 
-# Set pandas display options to show more data
-print("Setting pandas display options to show all rows and columns.")
-
-# 'None' means 'show all'. You can also set it to a specific number like 200.
-pd.set_option('display.max_rows', None)
-
-# Also useful for seeing all columns if your tables are very wide
-pd.set_option('display.max_columns', None)
-
-# Also useful for seeing the full text in a column, like your 'constraint_text'
-pd.set_option('display.max_colwidth', None)
