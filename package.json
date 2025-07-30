@@ -1,1 +1,72 @@
+# --- Find all PRIMARY KEY constraints ---
+
+pk_query = """
+SELECT
+    table_name,
+    constraint_text
+FROM
+    duckdb_constraints
+WHERE
+    constraint_type = 'PRIMARY KEY'
+ORDER BY
+    table_name;
+"""
+
+print("--- Finding all Primary Key constraints ---")
+primary_key_df = analyzer.analyze(pk_query)
+
+print("\nThese are the official 'unique identifiers' for each table:")
+display(primary_key_df)
+
+================
+
+# --- Find all FOREIGN KEY constraints ---
+
+fk_query = """
+SELECT
+    table_name,
+    constraint_text
+FROM
+    duckdb_constraints
+WHERE
+    constraint_type = 'FOREIGN KEY'
+ORDER BY
+    table_name;
+"""
+
+print("--- Finding all Foreign Key constraints (explicitly defined relationships) ---")
+foreign_key_df = analyzer.analyze(fk_query)
+
+if foreign_key_df is not None and not foreign_key_df.empty:
+    print("\nFound the following documented relationships between tables:")
+    display(foreign_key_df)
+else:
+    print("\nNo FOREIGN KEY constraints were found in this DDL.")
+
+
+====================
+
+# --- Find all other constraints (CHECK, UNIQUE) ---
+
+other_constraints_query = """
+SELECT
+    table_name,
+    constraint_type,
+    constraint_text
+FROM
+    duckdb_constraints
+WHERE
+    constraint_type NOT IN ('PRIMARY KEY', 'FOREIGN KEY')
+ORDER BY
+    table_name, constraint_type;
+"""
+
+print("--- Finding all other data validation rules (CHECK, UNIQUE, etc.) ---")
+other_constraints_df = analyzer.analyze(other_constraints_query)
+
+print("\nThese are the other business rules enforced by the database structure:")
+display(other_constraints_df)
+
+=======================
+
 
