@@ -1,50 +1,13 @@
-# --- Find the most frequently occurring columns across all tables ---
+import pandas as pd
 
-# This query does three things:
-# 1. Groups by column_name to analyze each column.
-# 2. Counts the number of tables each column appears in (table_count).
-# 3. Aggregates the names of those tables into a list (tables).
-# 4. Orders the results to show the most common columns first.
+# Set pandas display options to show more data
+print("Setting pandas display options to show all rows and columns.")
 
-common_columns_query = """
-SELECT
-    column_name,
-    COUNT(DISTINCT table_name) AS table_count,
-    LIST(DISTINCT table_name) AS tables
-FROM
-    information_schema.columns
-WHERE
-    table_schema = 'HAMR'
-GROUP BY
-    column_name
-ORDER BY
-    table_count DESC;
-"""
+# 'None' means 'show all'. You can also set it to a specific number like 200.
+pd.set_option('display.max_rows', None)
 
-print("--- Finding the most common columns across all tables ---")
-common_columns_df = analyzer.analyze(common_columns_query)
+# Also useful for seeing all columns if your tables are very wide
+pd.set_option('display.max_columns', None)
 
-
-# --- Now, process and display the top results ---
-
-if common_columns_df is not None and not common_columns_df.empty:
-
-    # Determine how many top results to show (e.g., top 2)
-    top_n = 2
-    
-    print(f"\n--- Top {top_n} Most Common Columns ---")
-
-    # Loop through the top N rows of the result DataFrame
-    for index, row in common_columns_df.head(top_n).iterrows():
-        rank = index + 1
-        column = row['column_name']
-        count = row['table_count']
-        table_list = row['tables']
-
-        print(f"\n#{rank}: Column '{column}' (Found in {count} tables)")
-        print("   • Tables:")
-        for table in table_list:
-            print(f"     - {table}")
-
-else:
-    print("\nCould not analyze column frequency.")
+# Also useful for seeing the full text in a column, like your 'constraint_text'
+pd.set_option('display.max_colwidth', None)
