@@ -1,176 +1,50 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/27.0.9 Chrome/134.0.6998.205 Electron/35.4.0 Safari/537.36" version="27.0.9">
-  <diagram name="Page-1" id="pQSptGxbeRcgt-rJit42">
-    <mxGraphModel dx="1453" dy="862" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
-      <root>
-        <mxCell id="0" />
-        <mxCell id="1" parent="0" />
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-1" value="engine" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="1095" y="441" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-2" value="located_in_at_some_time" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-4" target="Jmo-7H_AYFo5Qut4Oh_R-22">
-          <mxGeometry x="-0.0409" relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-3" value="componentPartOfAtSomeTime" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-4" target="Jmo-7H_AYFo5Qut4Oh_R-1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-4" value="engine component" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="1095" y="607" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-5" value="has_participant_at_some_time" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-9" target="Jmo-7H_AYFo5Qut4Oh_R-1">
-          <mxGeometry x="-0.3886" y="1" relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-6" value="&lt;span class=&quot;router-outlet-wrapper ng-tns-c2462920339-0&quot;&gt;&lt;pre&gt;&lt;br&gt;&lt;/pre&gt;&lt;/span&gt;" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-9" target="Jmo-7H_AYFo5Qut4Oh_R-4">
-          <mxGeometry x="0.0016" relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-7" value="has_participant_at_some_time" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="Jmo-7H_AYFo5Qut4Oh_R-6">
-          <mxGeometry x="0.3203" y="3" relative="1" as="geometry">
-            <mxPoint x="-23" y="59" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-8" value="occupies_temporal_region" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-9" target="Jmo-7H_AYFo5Qut4Oh_R-26">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-9" value="&lt;span class=&quot;router-outlet-wrapper ng-tns-c2462920339-0&quot;&gt;InstalledState&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="883" y="813" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-10" value="occurrent_part_of" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-14" target="Jmo-7H_AYFo5Qut4Oh_R-31">
-          <mxGeometry x="-0.7766" relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-11" value="has_participant_at_some_time" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-14" target="Jmo-7H_AYFo5Qut4Oh_R-1">
-          <mxGeometry x="-0.5954" relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-12" value="has_participant_at_some_time" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-14" target="Jmo-7H_AYFo5Qut4Oh_R-4">
-          <mxGeometry x="-0.4776" relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-13" value="temporallyStartsAt" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-14" target="Jmo-7H_AYFo5Qut4Oh_R-20">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-14" value="&lt;span class=&quot;router-outlet-wrapper ng-tns-c2462920339-0&quot;&gt;InstallationProcess&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="581" y="617" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-15" value="occurrent_part_of" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-19" target="Jmo-7H_AYFo5Qut4Oh_R-31">
-          <mxGeometry x="-0.6452" y="-2" relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-16" value="has_participant_at_some_time" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-19" target="Jmo-7H_AYFo5Qut4Oh_R-1">
-          <mxGeometry x="-0.4701" relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-17" value="has_participant_at_some_time" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-19" target="Jmo-7H_AYFo5Qut4Oh_R-4">
-          <mxGeometry x="-0.4492" y="1" relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-18" value="temporallyFinishesAt" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-19" target="Jmo-7H_AYFo5Qut4Oh_R-38">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="436" y="542" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-19" value="&lt;span class=&quot;router-outlet-wrapper ng-tns-c2462920339-0&quot;&gt;RemovalProcess&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="522" y="512" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-20" value="&lt;span class=&quot;router-outlet-wrapper ng-tns-c2462920339-0&quot;&gt;FirstTemporalInstant&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="611" y="927" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-21" value="continuant_part_of_at_all_times" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-22" target="Jmo-7H_AYFo5Qut4Oh_R-1">
-          <mxGeometry x="0.0031" relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-22" value="&lt;span class=&quot;router-outlet-wrapper ng-tns-c2462920339-0&quot;&gt;ComponentSite&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="1367" y="753" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-23" value="&lt;span class=&quot;router-outlet-wrapper ng-tns-c2462920339-0&quot;&gt;TechnicalOrder&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="340" y="378" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-24" value="has_first_instant" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-26" target="Jmo-7H_AYFo5Qut4Oh_R-20">
-          <mxGeometry x="0.5932" y="31" relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-25" value="has_last_instant" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-26" target="Jmo-7H_AYFo5Qut4Oh_R-38">
-          <mxGeometry x="0.808" y="21" relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-26" value="&lt;span class=&quot;router-outlet-wrapper ng-tns-c2462920339-0&quot;&gt;TemporalInterval&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="709" y="817" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-27" value="achievesAtSomeTime" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-31" target="Jmo-7H_AYFo5Qut4Oh_R-23">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-28" value="&lt;span class=&quot;router-outlet-wrapper ng-tns-c2462920339-0&quot;&gt;&lt;pre&gt;&lt;br&gt;&lt;/pre&gt;&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="Jmo-7H_AYFo5Qut4Oh_R-27">
-          <mxGeometry x="0.0814" y="2" relative="1" as="geometry">
-            <mxPoint x="15" y="-2" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-29" value="has_participant_at_some_time" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-31" target="Jmo-7H_AYFo5Qut4Oh_R-1">
-          <mxGeometry x="-0.3956" relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-30" value="has_participant_at_some_time" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-31" target="Jmo-7H_AYFo5Qut4Oh_R-4">
-          <mxGeometry x="-0.5898" y="-1" relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-31" value="MaintenanceProcess" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="611" y="378" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-32" value="&lt;span class=&quot;router-outlet-wrapper ng-tns-c2462920339-0&quot;&gt;MaintenanceProcess Identifier JCN&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="611" y="290" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-33" value="deotes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-34" target="Jmo-7H_AYFo5Qut4Oh_R-22">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-34" value="ComponentSite Identifier LCN" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="1367" y="852" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-35" value="denotes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-36" target="Jmo-7H_AYFo5Qut4Oh_R-23">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-36" value="&lt;span class=&quot;router-outlet-wrapper ng-tns-c2462920339-0&quot;&gt;TechnicalOrder Identifier TCTO Number&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="342" y="290" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-37" value="denotes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-32" target="Jmo-7H_AYFo5Qut4Oh_R-31">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-38" value="&lt;span class=&quot;router-outlet-wrapper ng-tns-c2462920339-0&quot;&gt;LastTemporalInstant&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="406" y="927" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-39" value="denotes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-40" target="Jmo-7H_AYFo5Qut4Oh_R-1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-40" value="Engine Serial Number" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="1095" y="353" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-41" value="denotes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="Jmo-7H_AYFo5Qut4Oh_R-42" target="Jmo-7H_AYFo5Qut4Oh_R-4">
-          <mxGeometry x="-0.2239" relative="1" as="geometry">
-            <mxPoint as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="Jmo-7H_AYFo5Qut4Oh_R-42" value="Engine Component Serial Number" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="1270" y="607" width="120" height="60" as="geometry" />
-        </mxCell>
-      </root>
-    </mxGraphModel>
-  </diagram>
-</mxfile>
+# --- Find the most frequently occurring columns across all tables ---
+
+# This query does three things:
+# 1. Groups by column_name to analyze each column.
+# 2. Counts the number of tables each column appears in (table_count).
+# 3. Aggregates the names of those tables into a list (tables).
+# 4. Orders the results to show the most common columns first.
+
+common_columns_query = """
+SELECT
+    column_name,
+    COUNT(DISTINCT table_name) AS table_count,
+    LIST(DISTINCT table_name) AS tables
+FROM
+    information_schema.columns
+WHERE
+    table_schema = 'HAMR'
+GROUP BY
+    column_name
+ORDER BY
+    table_count DESC;
+"""
+
+print("--- Finding the most common columns across all tables ---")
+common_columns_df = analyzer.analyze(common_columns_query)
+
+
+# --- Now, process and display the top results ---
+
+if common_columns_df is not None and not common_columns_df.empty:
+
+    # Determine how many top results to show (e.g., top 2)
+    top_n = 2
+    
+    print(f"\n--- Top {top_n} Most Common Columns ---")
+
+    # Loop through the top N rows of the result DataFrame
+    for index, row in common_columns_df.head(top_n).iterrows():
+        rank = index + 1
+        column = row['column_name']
+        count = row['table_count']
+        table_list = row['tables']
+
+        print(f"\n#{rank}: Column '{column}' (Found in {count} tables)")
+        print("   • Tables:")
+        for table in table_list:
+            print(f"     - {table}")
+
+else:
+    print("\nCould not analyze column frequency.")
