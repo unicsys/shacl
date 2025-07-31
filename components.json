@@ -1,1 +1,6 @@
+# --- DIAGNOSTIC QUERY ---
+# Let's see all tables in all schemas to find out where they really are.
 
+print("--- Listing all tables in all schemas in the database ---")
+all_tables_and_schemas = analyzer.analyze("SELECT schema_name, table_name FROM duckdb_tables() ORDER BY schema_name, table_name;")
+display(all_tables_and_schemas)
