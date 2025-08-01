@@ -1,1 +1,1 @@
-If a specific 'golden part' from a particular supplier is found to be counterfeit or non-compliant, what is the total downstream impact? Show me all the finished products affected, the customers who have received them, and the current inventory levels of those products across all our warehouses.
+
