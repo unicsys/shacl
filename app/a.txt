@@ -1,11 +1,5 @@
-    A. Vertical Space Between Sections: This is your most important change. Create a clear break between each major section (e.g., between "Featured Ontologies" and "Modeling Patterns").
-
-        Recommendation: 96px to 120px of margin between sections.
-
-    B. Padding Within Sections: Add more "air" around the content inside each section.
-
-        Recommendation: 64px of padding at the top and bottom of each section.
-
-    C. Space Between Card Elements: Increase the gap between individual cards to make them distinct.
-
-        Recommendation: 32px of space between cards in a row.
+Recommendation	Corresponding Material Design Token	Material's Size & Weight
+Section Title (H2):<br>36px, Bold (700)	Headline Medium	36px, Regular (400)
+Card Title (H3):<br>22px, Semi-Bold (600)	Title Large	22px, Regular (400)
+Body Text:<br>16px, Regular (400)	Body Large	16px, Regular (400)
+Button/Link Text:<br>16px, Medium (500)	Label Large	14px, Medium (500)
