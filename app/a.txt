@@ -1,6 +1,1 @@
-SWISS positions the API as the supported integration path, including to “your own corporate knowledge graph.” — and the API exposes >200 calls.
 
-https://xsb.com/aerospace-defense/
-https://xsb.com/api-point-of-need/
-
-we can take shadow-ontology approach
