@@ -1,1 +1,32 @@
+Approach:
+
+Call SWISS API → get JSON.
+
+Map JSON → RDF (Python and RML/YARRRML). - we need to do this semantic ETL step
+
+Load RDF into Jena/Anzo.
+
+
+
+What we’ll get from them
+
+    API access (SWISS REST API, creds).
+
+    API docs (OpenAPI/Swagger), JSON schemas, sample payloads.
+
+    Change feed (delta endpoint/webhook) or confirm polling.
+
+    Rate limits/auth details.
+
+    License okay to store data in our private triple store.
+
+we want to request them following 
+Request the “minimum viable” technical artefacts
+OpenAPI / Swagger spec of the SWISS REST API
+JSON (or XML) Schema for each resource type
+Enumeration tables / code lists
+Change-log / delta endpoint description
+Rate-limit & auth details
+Sample payloads for at least 3 representative documents
+
 
