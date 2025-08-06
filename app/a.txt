@@ -1,1 +1,59 @@
+Project Proposal: A Scalable Ontology Framework for the Engine Digital Twin
+1.0 Overview & Strategic Purpose
 
+This project will deliver the intelligent data foundation for the Aircraft Engine Digital Twin. Our mission is to move beyond slow, siloed data analysis and create a unified, scalable framework that enables proactive and predictive maintenance. We will achieve this by developing a library of reusable Ontology Modeling Patterns and pioneering a Semantic ETL Framework to intelligently map our disparate data sources (HAMR, FST) into a central, meaningful model. This approach ensures our work is not a one-off solution, but a scalable blueprint for all future Digital Twin and enterprise analytics programs.
+Phase 1: Foundational Patterns & Framework Prototype (Now – End of August)
+
+Objective: To prove the value of our pattern-based approach by modeling the core of the engine lifecycle and demonstrating a significant new analytical capability. We will show that we can connect previously disconnected data to answer critical questions faster and more effectively than ever before.
+Key Deliverables by End of August:
+
+    A Library of Three Foundational Ontology Modeling Patterns:
+    We will create and document generic, reusable models for:
+
+        a. The Component Assembly Pattern: Defining how parts are related to each other and to parent assets (e.g., parenthood, installation, position).
+
+        b. The Operational Event Pattern: Defining how real-world events (e.g., flights, sensor readings, fault codes) are linked to specific components.
+
+        c. The Maintenance & Inspection Pattern: Defining how service actions (e.g., work orders, inspections, findings like coating loss) are recorded against a component.
+
+    A Semantic ETL Framework (V1.0):
+    We will develop and document a framework of tools and processes for mapping data to our ontology. This includes:
+
+        Data Quality Profiling Tool: Scripts to automatically scan source tables for completeness, consistency, and validity against our target model.
+
+        Data Transformation & Cleaning Engine: A set of reusable functions to normalize and cleanse raw source data (e.g., standardizing date formats, resolving conflicting codes).
+
+        Semantic Mapping Tool: A documented process and set of mappings that connect columns from key HAMR and FST tables to the classes and properties in our ontology patterns.
+
+    Live Knowledge Graph Demonstration:
+    We will populate a pilot Knowledge Graph with integrated data and conduct a live demo that answers four foundational, high-value questions that are currently difficult to address:
+
+        "What is the complete installation history of a specific part serial number across all engines?"
+
+        "Show all recorded maintenance actions performed on that part."
+
+        "Display all ESAS coating loss measurements for that part."
+
+        "Correlate the part's flight hours with its inspection results on a single timeline."
+
+Phase 2: Full Automation & Advanced Analytics (September – End of December)
+
+Objective: To transition our successful prototype into a robust, automated, and high-performance Minimum Viable Product (MVP). We will expand our pattern library to cover the entire component lifecycle and demonstrate the system's ability to answer complex, predictive questions.
+Key Deliverables by End of December:
+
+    A Complete Library of Engine Lifecycle Modeling Patterns:
+    We will expand our ontology to include patterns for Failure Analysis, Supply Chain & Logistics, and Financial Costing, creating a true 360-degree model.
+
+    A Fully Automated Semantic ETL Framework:
+    The V1.0 framework will be matured into a production-ready system within the enterprise Databricks environment. This includes:
+
+        Automated Pipelines: All data transformations and mappings will be part of scheduled, monitored, and high-performance data pipelines.
+
+        Automated Data Quality Alerts: The data quality profiler will be integrated into the pipelines to automatically flag and quarantine bad data, ensuring the Knowledge Graph remains trustworthy.
+
+    Advanced DSQ Demonstration with a Rich Knowledge Graph:
+    We will use the fully populated MVP Knowledge Graph to showcase its unique analytical power by answering advanced, system-level questions. The demo will focus on:
+
+        The "Component Health Score": Demonstrating a predictive score for a part based on the synthesis of its entire operational and maintenance history.
+
+        The "Geographical Wear & Tear" Analysis: Showing how the graph can effortlessly correlate deployment history at different bases with maintenance frequency and inspection results to identify "harsh" operating environments.
