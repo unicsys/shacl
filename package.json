@@ -1,14 +1,23 @@
-XSB, Inc.’s knowledge graphs – such as the SWISS Knowledge Graph – are designed to be accessed through XSB’s proprietary API rather than a public SPARQL endpoint. In other words, if you do not have the ontology or direct Prolog access, you would use their API to query the graph. XSB explicitly mentions that the SWISS Knowledge Graph “can be queried from other applications via the SWISS API.”
-prnewswire.com
-This API is a robust interface with over 200 available calls, enabling users to query, extract, analyze, and compare data from the knowledge graph
-xsb.com
-.
+Documents (ICE):
 
-Key points regarding access:
+    QualityNote, NCRRecord, MeasurementInformationContentEntity, RequirementSpecification, PlanSpecification, Identifier (subtypes: PartIdentifier, SerialIdentifier, WorkOrderIdentifier, NCRIdentifier, LotIdentifier), DescriptiveInformationContentEntity (for general text), DesignSpecification (drawings/WIs if you prefer)
 
-    SWISS API: XSB provides the SWISS API for integration. It allows enterprise applications (e.g. PLM systems like Siemens Teamcenter or PTC Windchill, MS Office, etc.) to retrieve data from the SWISS Knowledge Graph
-    xsb.com
-    xsb.com
-    . Through these API calls, you can programmatically query the graph for relevant information (such as fetching linked document data, parts information, or other knowledge stored in the graph).
+Physical/Agents:
 
+    MaterialArtifact (Assembly, PieceOfEquipment, MaterialComponent), Person, Organization (Supplier, Manufacturer)
 
+Qualities (defects & states):
+
+    Defect (as subclasses of quality), DefectSeverity, FailureCause (both as quality subclasses)
+
+Places/Time:
+
+    site, spatial region, temporal instant/interval
+
+Processes/Events:
+
+    MeasurementProcess, ManufacturingProcess/AssemblyProcess, PlannedProcess (for CorrectiveAction execution), Event (LineStop, SafetyEvent)
+
+Realizable entities:
+
+    disposition
