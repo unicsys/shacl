@@ -1,1 +1,37 @@
+itle of the impediment:
+Blocked Databricks access for ontology/knowledge graph mappings
 
+Brief description:
+Customer-style data is ready, but our teammate still doesn’t have Databricks workspace permissions. This blocks building the ontology→data mappings and the initial KG load for the engine digital twin demo.
+
+Actions already taken:
+
+    Access request submitted: Jul 28
+
+    Follow-ups sent: Jul 31 and Aug 5
+
+    Awaiting admin action as of Aug 13
+
+Actions expected from leadership team:
+
+    Escalate to the Databricks admin to grant workspace access (user + service account)
+
+    If the queue is slow, provision a temporary Databricks workspace/cluster with DBFS access
+
+    Provide a clear ETA and a named owner
+
+Time until it risks missing the current PI commitment:
+
+    If access isn’t granted within 5 business days (by Aug 20), we’ll miss the PI deliverables for: ontology→table mappings, initial graph load, and the DSQ-1 demo.
+
+Likely negative outcomes for the demo if delayed:
+
+    We can’t deliver the scalable modeling roadmap (ontology + KG)
+
+    The demo loses the semantic layer (no ontology-driven queries; DSQ-1 won’t run on a graph)
+
+    The comprehensive model won’t be ready—only ad-hoc SQL/flat files
+
+    Harder to show future-ready (prediction/scalability) aspects
+
+    Lower demo quality and confidence during evaluation
