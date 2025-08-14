@@ -1,1 +1,14 @@
+ConfigItem,SerialNo,PartNo,BASE,INSTALL_DATE,LastRemoval_DATE,LastOverhaul_DATE,LastDepot_DATE,NHA_SN
+,7001,,,,,,,7100
+,7002,,,,,,,7100
+,7003,,,,,,,7100
+,7100,,,,,,,9000
+,8100,,,,,,,9000
+,8001,,,,,,,8100
+,8002,,,,,,,8100
+,8003,,,,,,,8100
+,7011,,,,,,,7003
+,7012,,,,,,,7003
+
+
 
