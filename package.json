@@ -1,1 +1,103 @@
 
+Manufacturing — parts flowing through machines & workstations
+Core classes
+
+Part / Subassembly / Assembly / Product → MaintainableMaterialItem / MaterialComponent / Assembly
+
+Machine / Workstation → PieceOfEquipment (located at a site)
+
+Routing / Work instruction → PlanSpecification
+
+Processing step → ManufacturingProcess ⊂ PlannedProcess
+
+Part-at-Station state → MaterialState (the part being “at” a station during an interval)
+
+Pattern
+
+Part has participant at some time in ProcessingStep
+
+ProcessingStep occurs in WorkstationSite (or located in at some time)
+
+ProcessingStep hasInput Part (pre-state), hasSpecifiedOutput Part (post-state; same individual, new qualities)
+
+PartAtStationState temporallyStartedBy check-in event; temporallyFinishedBy check-out event
+
+ProcessingStep A precedes ProcessingStep B (routing order)
+
+WorkInstruction prescribes ProcessingStep; ProcessingStep realizes WorkInstruction
+
+Useful extras
+
+Equipment capability: Machine hasFunction/hasCapability (e.g., weld, braze, coat)
+
+Quality/measurement: MeasurementProcess on output; result is an InformationContentEntity linked via hasMeasuredValueAtSomeTime
+
+Nonconformance: Event that isOutputOf a process; CorrectiveAction as a PlannedProcess that precedes rework step
+
+Supply chain — Supplier ↔ Port ↔ Warehouse ↔ Plant
+Core classes
+
+Physical good / Lot / Container / Pallet → MaterialProduct / MaterialAggregate
+
+Location nodes: Supplier site, Port, Warehouse, Plant → site (and/or Facility as a MaterialArtifact located in a site)
+
+Shipment / Transport leg → MaterialLocationChangeProcess
+
+Shipment order / BOL → Directive / DescriptiveInformationContentEntity
+
+Item-in-Location state → MaterialState (good at a site during an interval)
+
+Carrier / Supplier / Consignee → Organization with AgentRoles (SupplierRole, CarrierRole, CustomerRole)
+
+Pattern
+
+ShipmentLeg hasInput GoodOrContainer at OriginSite; hasOutput same GoodOrContainer at DestinationSite
+
+ShipmentLeg occurs in SpatiotemporalRegion (captures transit)
+
+ItemInLocationState for the good located in at some time Site with [from, to) derived from arrival/departure events
+
+TransportPlan (route) prescribes the sequence of ShipmentLeg; legs meet or before/after each other via meets / precedes
+
+BillOfLading / ASN describes ShipmentLeg and GoodOrContainer (quantities, identifiers)
+
+Useful extras
+
+Containerization: Good has continuant part at some time Container (or containedIn as a domain property)
+
+Incoterms / handoff: Agreement prescribes risk transfer point; model as a process boundary where actsOnBehalfOfAtSomeTime switches from Supplier to Customer/Carrier
+
+Delays & dwell: explicit Events between legs; keep ItemInLocationState for dwell analytics
+
+Maintenance — Fault → Diagnostic test → Repair → Verification test
+Core classes
+
+Asset under maintenance: Engine / Assembly / Part
+
+Fault / Symptom: Event or Disposition (quality) that inheres in the asset; often first recorded as an InformationContentEntity (fault report)
+
+Diagnostic test: MeasurementProcess (e.g., borescope, ESAS measure, AEFR run)
+
+Repair / Replacement / Adjustment: PlannedProcess (MaintenanceProcess)
+
+Verification test: MeasurementProcess after repair
+
+Work order: PlanSpecification; WorkCard/Task as sub-plans
+
+Membership state (you already use): ComponentMembershipState for (Part↔Engine) with [start,end)
+
+Pattern
+
+FaultReport describes FaultEvent; FaultEvent isAbout Asset
+
+DiagnosticTest recognizesAtSomeTime/measuresAtSomeTime the Fault on the Asset; may produce DiagnosticResult
+
+RepairProcess has participant Asset (and possibly ReplacementPart as input/output)
+
+For replacement: old Part isOutputOf removal; new Part isOutputOf installation; both processes temporallyStart/Finish corresponding ComponentMembershipStates
+
+VerificationTest precedes return-to-service and recognizesAtSomeTime the absence or acceptable level of the original fault
+
+WorkOrder prescribes DiagnosticTest, RepairProcess, VerificationTest; those processes realize the work order tasks
+
+Causality & order: FaultEvent precedes DiagnosticTest precedes RepairProcess precedes VerificationTest
