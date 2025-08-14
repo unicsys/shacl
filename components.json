@@ -1,1 +1,48 @@
+3. Key Difference
+Feature	Relational DB	Semantic KG
+Hierarchical traversal	Recursive CTEs, manual joins	Property paths (:hasComponent+)
+Reuse of rules	Must code per query	Once in ontology, reused everywhere
+Temporal reasoning	Possible but coded in SQL	Modeled via temporal ontology + rules
+Implicit inference	No (must be explicit query)	Yes (via reasoning engine)
+Schema flexibility	Rigid, schema changes costly	Extensible with new classes/relations
 
+
+When a graph DB helps (vs. pure SQL)
+
+1) Variable-depth hierarchy without pain
+
+Questions like “all descendants of 7100” or “full chain from 7012 up to the top” are single traversals (*.. in Cypher / SPARQL property paths) instead of iterative self-joins or CTE recursion.
+
+Performance usually scales with the number of edges visited rather than exploding join plans.
+
+2) “Where-used” and impact analysis
+
+“If 7003 changes, which top assemblies are impacted?” = reverse traversal.
+
+“Which parts are common between 7100 and 8100?” = intersection of descendant sets—straightforward graph ops.
+
+3) Multi-parent and cross-domain links
+
+Real BOMs have: reuse across products, alternates, supersedures, effectivity, vendor equivalents, service bulletins, quality findings, etc. These create lateral edges that are awkward in strict trees and become join forests in SQL; they’re trivial as edges.
+
+4) Time & configuration reasoning
+
+Model instances (serialised items) and config states over time as edges with validity intervals.
+
+“What was installed on 9000 on 2024-08-01?” = time-bounded traversal over :INSTALLED_AT {from,to} edges. SQL can do it but becomes complex quickly.
+
+5) Provenance & versioning
+
+Attach provenance to edges (source, rule, confidence). Graphs let the relationship itself carry properties—first-class citizens for audits.
+
+6) Graph algorithms out-of-the-box
+
+Cycle detection (data hygiene), path finding, community/overlap analysis of subassemblies, “most reused subassembly” (centrality) without bespoke SQL.
+
+7) Schema agility
+
+New relationship types (e.g., :ALTERNATE_OF, :AFFECTED_BY_AD) are additive; you don’t need schema migrations, join tables, ETL rewrites.
+
+8) Integration surface
+
+It’s easy to connect BOM nodes to PLM/ERP/SCM/maintenance/quality data via edges rather than proliferating foreign keys and bridge tables.
