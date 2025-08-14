@@ -1,1 +1,13 @@
+• Proposes 3-layer ontology architecture: top-level, mid-level, domain-level ontologies.  Guidance on using BFO as the upper-level structure for interoperability across aerospace domains and extending with CCO for mid-level modeling. It provides guidance on how to integrating BFO, CCO, and domain ontologies while avoiding redundancy. 
+It positions ontologies as a key enabler for DE by providing a formal way to represent linked data and relationships
+It distinguishes ontologies from simpler schemas and tool-specific metamodels. There is emphasis on formal ontologies’ ability to express sophisticated logical relationships in a tool-agnostic manner
+• Provides step-by-step guidance on domain ontology creation, graph patterns, and modeling conventions.
+• It has Steps for creating decision-support dashboards and trade space analysis dashboards
+• There are sections on Ontology modeling related to principle of realism, reuse, open word assumptions (BFO, CCO, IOF philosophy)
+• It has segments on digital thread and how ontologies fit in it. It describes Digital Engineering Framework for Integration and Interoperability (DEFII)
+• It also has sections with examples on connecting ontologies to MBSE, discipline models, SysML models, CAD models, and simulations. 
+• Handbook has sections on How to import, edit, annotate, reason over ontologies. Examples given with Protégé ontology editor
+• It has sections on how to utilize RDF triple stores (semantic knowledge graphs) for storage, querying, and integration with engineering workflows. Examples given with Stardog. 
+• It gives directions on how the semantic knowledge graph should support reasoning based on OWL, RDFS, etc.
+There is also section on Semantic System Verification Layer (SSVL). Using SHACL for verification.
 
