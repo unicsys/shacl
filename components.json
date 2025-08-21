@@ -1,10 +1,14 @@
--- Search for columns containing 'coating' or 'loss' in their names
-SELECT 
-    table_catalog as catalog,
-    table_schema as database,
-    table_name,
-    column_name
-FROM information_schema.columns
-WHERE LOWER(column_name) LIKE '%coating%' 
-   OR LOWER(column_name) LIKE '%loss%'
-ORDER BY table_catalog, table_schema, table_name, column_name;
+# For each table, convert everything to string and search
+for table in ["table1", "table2", "table3"]:  # Replace with your table names
+    try:
+        count = spark.sql(f"""
+        SELECT COUNT(*) as matches
+        FROM {table}
+        WHERE lower(concat_ws('|', *)) LIKE '%coating%' 
+           OR lower(concat_ws('|', *)) LIKE '%loss%'
+        """).collect()[0]['matches']
+        
+        if count > 0:
+            print(f"Found {count} matches in {table}")
+    except:
+        pass
