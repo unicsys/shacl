@@ -1,5 +1,8 @@
-# For each table, convert everything to string and search
-for table in ["table1", "table2", "table3"]:  # Replace with your table names
+spark.sql("USE fst")
+
+tables = [row.tableName for row in spark.sql("SHOW TABLES").collect()]
+
+for table in tables:
     try:
         count = spark.sql(f"""
         SELECT COUNT(*) as matches
@@ -11,4 +14,4 @@ for table in ["table1", "table2", "table3"]:  # Replace with your table names
         if count > 0:
             print(f"Found {count} matches in {table}")
     except:
-        pass
+        print(f"Issue {table}")
