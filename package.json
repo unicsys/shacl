@@ -1,1 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Class: Assembly Process</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      line-height: 1.6;
+    }
+    h1, h2 {
+      color: #2a4d8f;
+    }
+    .section {
+      margin-bottom: 25px;
+    }
+    .code {
+      background: #f4f4f4;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>Class: Assembly Process</h1>
+
+  <div class="section">
+    <strong>Label:</strong> Assembly Process
+  </div>
+
+  <div class="section">
+    <strong>Definition:</strong>  
+    <p>
+      Manufacturing process in which a number of material components are physically connected to each other to form an assembly.
+    </p>
+  </div>
+
+  <div class="section">
+    <strong>Subclass of:</strong>  
+    <span class="code">ManufacturingProcess</span>
+  </div>
+
+  <div class="section">
+    <strong>Rationale:</strong>  
+    <p>
+      More conditions (differentia) need to be agreed upon by the domain experts as processes like 3D printing can also produce an assembly.
+    </p>
+  </div>
+
+  <div class="section">
+    <strong>SKOS Example:</strong>
+    <ul>
+      <li>Driving a lug nut to hold the wheel of a car in place</li>
+      <li>Welding two metal parts into a single object</li>
+      <li>Automated drilling and riveting of a skin panel operation during fuselage assembly</li>
+    </ul>
+  </div>
+
+</body>
+</html>
 
