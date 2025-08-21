@@ -1,1 +1,10 @@
-
+-- Search for columns containing 'coating' or 'loss' in their names
+SELECT 
+    table_catalog as catalog,
+    table_schema as database,
+    table_name,
+    column_name
+FROM information_schema.columns
+WHERE LOWER(column_name) LIKE '%coating%' 
+   OR LOWER(column_name) LIKE '%loss%'
+ORDER BY table_catalog, table_schema, table_name, column_name;
