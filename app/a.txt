@@ -1,1 +1,14 @@
+db = "annual_inspection_silver"
 
+table_names = [t.tableName for t in spark.sql(f"SHOW TABLES IN {db}").collect()]
+
+reference_columns = spark.table(f"{db}.{table_names[0]}").columns
+print(f"ref columns from '{table_names[0]}': {reference_columns}\n")
+
+for table_name in table_names[1:]:
+  current_columns = spark.table(f"{db}.{table_name}").columns
+  if current_columns != reference_columns:
+    print(f"mismatch in table: '{table_name}'")
+    print(f"Columns are: {current_columns}\n")
+  else:
+    print(f"Table '{table_name}' match.")
