@@ -1,1 +1,15 @@
+# Create the table using SQL within Python
+spark.sql("""
+    CREATE TABLE IF NOT EXISTS annual_inspection_silver.unique_esn_list AS
+    SELECT DISTINCT ESN 
+    FROM annual_inspection_silver.annual_inspection_silver_combined_table 
+    WHERE ESN IS NOT NULL
+""")
 
+# Verify the table was created
+result = spark.sql("SELECT * FROM annual_inspection_silver.unique_esn_list")
+result.show()
+
+# Get count
+count = spark.sql("SELECT COUNT(*) as total_esns FROM annual_inspection_silver.unique_esn_list").collect()[0][0]
+print(f"Created table with {count} unique ESN values")
