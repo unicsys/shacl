@@ -1,17 +1,1 @@
-spark.sql("USE fst")
 
-tables = [row.tableName for row in spark.sql("SHOW TABLES").collect()]
-
-for table in tables:
-    try:
-        count = spark.sql(f"""
-        SELECT COUNT(*) as matches
-        FROM {table}
-        WHERE lower(concat_ws('|', *)) LIKE '%coating%' 
-           OR lower(concat_ws('|', *)) LIKE '%loss%'
-        """).collect()[0]['matches']
-        
-        if count > 0:
-            print(f"Found {count} matches in {table}")
-    except:
-        print(f"Issue {table}")
