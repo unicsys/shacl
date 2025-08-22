@@ -1,17 +1,1 @@
-# Super quick check - one database at a time
-def quick_db_size(db_name):
-    spark.sql(f"USE {db_name}")
-    total = sum([
-        spark.sql(f"DESCRIBE DETAIL {t.tableName}").collect()[0]['sizeInBytes'] 
-        for t in spark.sql("SHOW TABLES").collect() 
-        if not t.isTemporary
-    ])
-    return total / (1024**3)
 
-# Check each
-for db in ['annual_inspection_bronze', 'fst', 'hamr']:
-    try:
-        size_gb = quick_db_size(db)
-        print(f"{db}: {size_gb:.2f} GB")
-    except:
-        print(f"{db}: Error calculating size")
