@@ -1,9 +1,15 @@
-spark.sql("USE annual_inspection_silver")
+def print_db_schemas(database: str):
+    spark.sql(f"USE {database}")
+    tables = [row.tableName for row in spark.sql("SHOW TABLES").collect()]
 
-tables = [row.tableName for row in spark.sql("SHOW TABLES").collect()]
+    for t in tables:
+        print(f"Schema for table: {database}.{t}")
+        try:
+            df = spark.table(f"{database}.{t}")
+            df.printSchema()
+        except Exception as e:
+            print(f"issue with table {database}.{t} — {e}")
+        print("-" * 40)
 
-for t in tables:
-    print(f"Schema for table: {t}")
-    df = spark.table(f"annual_inspection_silver.{t}")
-    df.printSchema()
-    print("-" * 40)
+# call
+print_db_schemas("annual_inspection_silver")
