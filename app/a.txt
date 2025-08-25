@@ -1,9 +1,9 @@
-# Switch to the database
 spark.sql("USE annual_inspection_silver")
 
-# Get all table names
 tables = [row.tableName for row in spark.sql("SHOW TABLES").collect()]
 
-print("Tables in database annual_inspection_silver:")
 for t in tables:
-    print(t)
+    print(f"Schema for table: {t}")
+    df = spark.table(f"annual_inspection_silver.{t}")
+    df.printSchema()
+    print("-" * 40)
