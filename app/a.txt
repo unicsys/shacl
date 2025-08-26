@@ -1,21 +1,65 @@
-.top-band {
-    background-color: #B7A99A;
-    height: 40px; /* Adjust height as needed for text visibility */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 10px;
-    color: black; /* Text color for the band */
-    font-size: 12px;
-}
-.top-band-text {
-    white-space: nowrap; /* Prevent text from wrapping */
-}
+import csv
+from rdflib import Graph, Namespace, Literal, RDF, RDFS
+from rdflib.namespace import XSD
 
---------------
+# Define namespaces
+BASE = Namespace("https://ontologyhub.rtx.com/RTXEnterpriseOntologies/AircraftEngineDigitalTwinOntology/")
+CCO = Namespace("http://www.ontologyrepository.com/CommonCoreOntologies/")
+DC = Namespace("http://purl.org/dc/elements/1.1/")
+FOAF = Namespace("http://xmlns.com/foaf/0.1/")
+IOF_AV = Namespace("https://spec.industrialontologies.org/ontology/core/meta/AnnotationVocabulary/")
+IOF_CORE = Namespace("https://spec.industrialontologies.org/ontology/core/Core/")
+IOF_MAINT = Namespace("https://spec.industrialontologies.org/ontology/maintenance/Maintenance/")
+OBO = Namespace("http://purl.obolibrary.org/obo/")
+OBO_IN_OWL = Namespace("http://www.geneontology.org/formats/oboInOwl#")
+ONT_TEMPLATE = Namespace("https://ontologyhub.rtx.com/OntologyTemplate#")
+REO = Namespace("https://ontologyhub.rtx.com/RTXEnterpriseOntologies/RTXEnterpriseOntology/")
+SKOS = Namespace("http://www.w3.org/2004/02/skos/core#")
+TERMS = Namespace("http://purl.org/dc/terms/")
 
-<div class="top-band">
-    <span class="top-band-text">US and Non-US Persons</span>
-    <span class="top-band-text"><b>Technical Data/Information STRICTLY PROHIBITED</b></span>
-    <span class="top-band-text">US and Non-US Persons</span>
-</div>
+# Create graph and bind namespaces
+g = Graph()
+g.bind("", BASE)
+g.bind("cco", CCO)
+g.bind("dc", DC)
+g.bind("foaf", FOAF)
+g.bind("iof-av", IOF_AV)
+g.bind("iof-core", IOF_CORE)
+g.bind("iof-maint", IOF_MAINT)
+g.bind("obo", OBO)
+g.bind("oboInOwl", OBO_IN_OWL)
+g.bind("ont-template", ONT_TEMPLATE)
+g.bind("reo", REO)
+g.bind("skos", SKOS)
+g.bind("terms", TERMS)
+
+# Read CSV and create triples
+with open('engine_data.csv', 'r') as file:
+    reader = csv.DictReader(file)
+    for row in reader:
+        esn = row['ESN'].strip()
+        assy = row['assy'].strip()
+        base = row['Base'].strip()
+        
+        # Create URIs
+        engine_uri = BASE[f"Engine_{esn}"]
+        identifier_uri = BASE[f"Identifier_{esn}"]
+        assembly_uri = BASE[f"Assembly_{assy}"]
+        facility_uri = BASE[f"Facility_{base}"]
+        
+        # Add triples
+        g.add((engine_uri, RDF.type, BASE.Engine))
+        g.add((identifier_uri, RDF.type, BASE.AircraftEngineIdentifier))
+        g.add((assembly_uri, RDF.type, BASE.EngineAssemblyType))
+        g.add((facility_uri, RDF.type, BASE.MaintenanceFacility))
+        
+        g.add((engine_uri, BASE.hasIdentifier, identifier_uri))
+        g.add((engine_uri, BASE.hasAssemblyType, assembly_uri))
+        g.add((engine_uri, BASE.maintainedAt, facility_uri))
+        
+        g.add((identifier_uri, RDFS.label, Literal(esn)))
+        g.add((assembly_uri, RDFS.label, Literal(assy)))
+        g.add((facility_uri, RDFS.label, Literal(base)))
+
+# Save as Turtle file
+g.serialize(destination='engine_data.ttl', format='turtle')
