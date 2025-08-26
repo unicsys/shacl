@@ -1,1 +1,21 @@
+.top-band {
+    background-color: #B7A99A;
+    height: 40px; /* Adjust height as needed for text visibility */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+    color: black; /* Text color for the band */
+    font-size: 12px;
+}
+.top-band-text {
+    white-space: nowrap; /* Prevent text from wrapping */
+}
 
+--------------
+
+<div class="top-band">
+    <span class="top-band-text">US and Non-US Persons</span>
+    <span class="top-band-text"><b>Technical Data/Information STRICTLY PROHIBITED</b></span>
+    <span class="top-band-text">US and Non-US Persons</span>
+</div>
