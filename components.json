@@ -1,1 +1,20 @@
-
+bronze_idx,assy,position,sub_position,adhesive,partial,wear,total,date,esn,tacs,base,origin_sheet_name,origin_fn,ingest_stage,ingest_dt
+101,TEC,1,Concave FwD Panel,0.05,0.10,0.00,0.15,2025-06-01,E1234,12450,BaseA,TEC_Sheet1,FN001,silver,2025-06-05
+102,TEC,1,Concave Mid Panel,0.00,0.20,0.05,0.25,2025-06-01,E1234,12450,BaseA,TEC_Sheet1,FN001,silver,2025-06-05
+103,TEC,1,Convex Fwd Panel,0.00,0.00,0.10,0.10,2025-06-01,E1234,12450,BaseA,TEC_Sheet1,FN001,silver,2025-06-05
+104,TEC,1,Convex Mid Panel,0.00,0.15,0.05,0.20,2025-06-01,E1234,12450,BaseA,TEC_Sheet1,FN001,silver,2025-06-05
+105,TEC,1,Convex TE Box,0.00,0.00,0.00,0.00,2025-06-01,E1234,12450,BaseA,TEC_Sheet1,FN001,silver,2025-06-05
+106,TEC,2,Tec ID,0.10,0.05,0.00,0.15,2025-06-01,E1234,12450,BaseA,TEC_Sheet1,FN001,silver,2025-06-05
+107,TEC,2,Tec OD,0.00,0.10,0.10,0.20,2025-06-01,E1234,12450,BaseA,TEC_Sheet1,FN001,silver,2025-06-05
+201,Flameholder,1,Primary Vane,0.00,0.15,0.05,0.20,2025-06-10,E5678,9800,BaseB,FH_Sheet2,FN045,gold,2025-06-11
+202,Flameholder,1,Secondary Vane,0.10,0.05,0.00,0.15,2025-06-10,E5678,9800,BaseB,FH_Sheet2,FN045,gold,2025-06-11
+203,Flameholder,1,Stiffener Ring,0.00,0.00,0.10,0.10,2025-06-10,E5678,9800,BaseB,FH_Sheet2,FN045,gold,2025-06-11
+204,Flameholder,2,Support Lug,0.05,0.05,0.05,0.15,2025-06-10,E5678,9800,BaseB,FH_Sheet2,FN045,gold,2025-06-11
+301,TEC,1,Concave FwD Panel,0.00,0.20,0.10,0.30,2025-06-15,E9101,15500,BaseC,TEC_Sheet3,FN078,bronze,2025-06-16
+302,TEC,1,Concave Mid Panel,0.00,0.05,0.00,0.05,2025-06-15,E9101,15500,BaseC,TEC_Sheet3,FN078,bronze,2025-06-16
+303,TEC,2,Tec ID,0.00,0.15,0.15,0.30,2025-06-15,E9101,15500,BaseC,TEC_Sheet3,FN078,bronze,2025-06-16
+304,TEC,2,Tec OD,0.05,0.10,0.05,0.20,2025-06-15,E9101,15500,BaseC,TEC_Sheet3,FN078,bronze,2025-06-16
+305,Flameholder,1,Primary Vane,0.00,0.00,0.10,0.10,2025-06-15,E9101,15500,BaseC,FH_Sheet3,FN079,bronze,2025-06-16
+306,Flameholder,1,Secondary Vane,0.10,0.20,0.00,0.30,2025-06-15,E9101,15500,BaseC,FH_Sheet3,FN079,bronze,2025-06-16
+307,Flameholder,2,Support Lug,0.00,0.05,0.05,0.10,2025-06-15,E9101,15500,BaseC,FH_Sheet3,FN079,bronze,2025-06-16
+308,Flameholder,2,Stiffener Ring,0.00,0.10,0.10,0.20,2025-06-15,E9101,15500,BaseC,FH_Sheet3,FN079,bronze,2025-06-16
