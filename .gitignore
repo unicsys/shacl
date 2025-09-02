@@ -1,1 +1,20 @@
 
+Project Overview
+This project will establish a data-driven feedback loop between product design and manufacturing quality inspection. We will develop an ontology and knowledge graph to ingest, harmonize, and compare "as-designed" part data with "as-inspected" data from various suppliers.
+Task Plan
+Phase 1: Foundation & Proof of Concept 
+•	Design and formalize a core ontology that defines key entities, their attributes, and their relationships.
+•	Develop and test Python scripts to parse the provided QIF files, extract design and inspection data, and transform it into RDF triplets according to the ontology.
+•	Instantiate a graph database, load the generated triplets for the target part, and verify data.
+•	Develop and execute foundational SPARQL queries to compare design vs. inspection data.
+Phase 2: Expansion & Insight Generation
+•	Enhance the ETL pipeline to ingest and harmonize QIF inspection data from extended set of QIF standard, validating the ontology.
+•	Develop SPARQL queries to identify patterns, such as the most frequently failed characteristics, and correlations between deviations and specific suppliers.
+•	Work on a technical approach and roadmap to automate the data extraction process from Siemens Teamcenter.
+Deliverables
+1.	QIF Design & Inspection Ontology File (in OWL/TTL format).
+2.	ETL Source Code with documentation.
+3.	A populated Proof-of-Concept Knowledge Graph instance.
+4.	baseline SPARQL queries to compare design and inspection information.
+1.	Knowledge Graph REST API & Teamcenter integration approach 
+
