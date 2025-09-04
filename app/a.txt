@@ -1,1 +1,7 @@
+i want to make a point why this canvas is useful. i want to say that central information thing column is where all the data that we have resides. 
 
+we use rest of the 2 columns on left and 2 columns on right - to give context , to give meaning , to give semantics , to give context to computers, to algorithms , to AI. and to build a common mental model across human team and computer algorithms and AI.
+
+--
+
+i want to convery this in direct, clear, tight manner.
