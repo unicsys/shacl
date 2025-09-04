@@ -1,12 +1,18 @@
-Why This Canvas Matters:
-The central column (Information Things) is where all your data lives - measurements, reports, identifiers, descriptions. But data without context is meaningless.
-The surrounding columns transform data into knowledge:
-•	Left columns (Material Things, Qualities/Functions/Roles): Define WHAT exists in your domain - the real-world entities, their properties, and the roles they play
-•	Right columns (Processes, Time Periods): Capture HOW and WHEN things happen - the dynamics and temporal aspects of your domain
-This structure creates a shared semantic framework - a common language that bridges three critical gaps:
-1.	Human-to-Human: Different teams (engineering, operations, maintenance) share the same mental model
-2.	Human-to-Machine: Domain experts' knowledge becomes computationally accessible
-3.	Machine-to-Machine: Different systems and AI algorithms interpret data consistently
-Without this semantic context, your data is just numbers and text. With this ontology structure, every piece of data carries its full business meaning - what it describes, how it relates to other entities, and why it matters for decisions.
-The result: When a domain expert asks a question, when an algorithm processes data, and when AI generates insights, they all operate with the exact same understanding. This isn't just about organizing data - it's about encoding institutional knowledge in a form that scales across people, systems, and time.
-The canvas is the blueprint for turning isolated data points into connected, contextual, actionable intelligence.
+Subject: Inquiry About Starting PERM Process
+
+Dear [Attorney’s/HR’s Name],
+
+I hope you are doing well. As my H-1B status will take effect on October 1, I wanted to check regarding the next steps in the green card process.
+
+In particular, I would like to understand when the company typically initiates the PERM (Labor Certification) process for employees. Since my wife will be in H-4 status, her eligibility for work authorization (EAD) depends on the I-140 stage, so knowing the company’s general timeline and policies on PERM sponsorship would be very helpful for our planning.
+
+Could you please let me know:
+
+When the company usually starts PERM filings for H-1B employees
+
+If there are any internal requirements or timelines I should be aware of
+
+Thank you for your guidance and support.
+
+Best regards,
+[Your Full Name]
