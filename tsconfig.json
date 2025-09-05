@@ -1,1 +1,9 @@
+Hi [Name],
 
+As mentioned earlier, many executives and project leads are looking at the Ontology Hub site right now, so having a clear user experience is important. For the project registry, each project should show its title, summary, status, and values directly on the page. Unlike the articles, where it makes sense to click into a box to explore more details, projects have only a small amount of information—so requiring clicks adds friction. Having all projects visible in one view also gives stakeholders the complete picture quickly, which is key at this stage.
+
+We don’t need variable sizing for each project; we just want boxes that span two columns on the page, with enough height to cover all the provided details. This will make the project boxes different from the article boxes, which is what we want.
+
+If implementing static text boxes is difficult at this stage, I can provide same-size images (with consistent color, font, and layout) that we can use for each project box for now. Currently, we have only 9 projects through the end of the year, so this will remain manageable. We can revisit scalability in the next release.
+
+Thanks,
