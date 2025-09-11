@@ -1,1 +1,104 @@
+Material Things (Physical entities that exist in the real world)
+Core Physical Assets:
 
+Aircraft - The physical aircraft
+Engine - Physical engine type/model
+EngineInstance - Specific physical engine (with serial number)
+EnginePart - Physical part types
+partInstance - Specific physical part (with serial number)
+CriticalParts - Physical critical components
+LifeLimitedPart - Physical parts with life limits
+
+Infrastructure:
+
+Warehouse - Physical facility
+StorageLocation - Physical location within warehouse
+
+Organizations (Physical entities):
+
+Carrier - Airline/operator organization
+Supplier - Supplier organization
+DesignatedServiceProvider - Service provider organization
+
+Qualities, Functions, Roles
+Qualities/States:
+
+AOG (Aircraft on Ground) - Critical state/condition
+timeUsed - Usage quality of a part
+
+Functions:
+
+ATA - Functional classification system
+
+Roles:
+
+PoCustomer - Customer role in purchasing
+Region - Geographic role/classification
+Country - Geographic classification
+State - Geographic subdivision
+
+Information Things (Data that describes, prescribes, or identifies)
+Identifiers:
+
+serialNumber - Identifies specific instances
+materialDocNumber - Document identifier
+lineItemNumber - Line item identifier
+
+Descriptive Data:
+
+quantity - Amount in movement
+date - Temporal data
+type - Classification data
+debitCreditIndicator - Transaction type indicator
+
+Prescriptive Data:
+
+ServiceBulletin - Maintenance requirements
+PartServiceBulletin - Part-specific requirements
+WorkScope - Prescribed work to be done
+WorkscopeDetail - Detailed work specifications
+
+Transactional Records:
+
+PurchaseOrder - Purchase transaction record
+POLineItem - Purchase order details
+SalesOrder - Sales transaction record
+VbakPOs - SAP purchase order records
+MsegPOs - SAP material document records
+
+Inventory Records:
+
+Inventory - General inventory data
+SpareInventory - Spare parts inventory
+CSAInventory - Customer service agreement inventory
+OptimalPartAllocation - Allocation planning data
+PartMRP - Material requirements planning data
+Commits - Commitment records
+SparesTransferOfAssets - Transfer records
+LID - Location identification data
+
+Processes (Things that happen)
+Maintenance Processes:
+
+ShopVisit - Maintenance event
+ShopVisitGate - Shop visit milestone/phase
+disassemblyAndTest - D&T process
+EnginePartRepair - Repair process
+
+Movement Processes:
+
+PartMovement - Physical movement of parts
+
+Ticket/Workflow Processes:
+
+OpenEnginePartRepairTicket - Active repair workflow
+ClosedEnginePartRepairTicket - Completed repair workflow
+EnginePartRepairTickets - General repair tickets
+EnginePartRepairSourced - Sourcing process for repairs
+
+Time Periods
+
+date properties on various objects capture when things happen
+Shop visit dates
+Part movement dates
+Ticket open/close dates
