@@ -1,5 +1,1 @@
-Data Governance & Semantic Integration Initiative
-Partnered with Data Governance to transform our data catalog into an intelligent, semantically-aware system through formal ontology integration. Using GTF Aftermarket as our pilot, we engaged stakeholders across existing catalog tools (Informatica, Axon) and assessed current enterprise data coverage. Leveraging RTX's Ontology-hub and Enterprise Ontology Suite, we're addressing semantic ambiguity, limited relationship mapping, and inconsistent classification that creates "metadata debt." The solution establishes machine-readable relationships and automated entity resolution, eliminating tribal knowledge dependencies while creating a scalable semantic governance framework that reduces time-to-insight and improves enterprise-wide data utilization.
 
-R Clone Engine Digital Twin
-We developed an ontology for initial decision support questions in the R Clone Engine Digital Twin project, establishing a scalable ontology framework and canvas tool that enables business users to rapidly build ontologies while providing reusable components for other engine development teams working on different digital twin modules.
