@@ -1,1 +1,84 @@
+# The Ontology Canvas: Bridging Data and Meaning
 
+## Introduction: From Data to Intelligence
+
+In today's data-driven world, organizations struggle with a fundamental challenge: data without context is meaningless. The Ontology Canvas offers a structured approach to transform isolated data points into connected, contextual, and actionable intelligence by creating a shared semantic framework that bridges critical communication gaps across people, systems, and time.
+
+## The Five-Column Architecture
+
+The Ontology Canvas organizes domain knowledge into five interconnected columns, each serving a distinct purpose:
+
+### 1. Material Things (Far Left)
+This column captures the physical entities in your domain—the tangible objects that exist in the real world. In an aircraft maintenance scenario, this includes aircraft engines and turbine blades. These are the concrete things your organization works with daily.
+
+### 2. Qualities, Functions, and Roles (Left-Center)
+Here we define the properties and purposes of material things. This includes:
+- **Qualities**: Inherent characteristics like mass, temperature, or defects
+- **Functions**: What things do, such as generating thrust
+- **Roles**: The parts things play in larger systems, like being a primary pump or supplier
+
+### 3. Information Things (Center)
+The heart of the canvas contains all your data—the measurements, reports, identifiers, and descriptions that document your domain. This central positioning is deliberate: data sits at the intersection of what exists and what happens, requiring context from both sides to become meaningful. Information is divided into:
+- **Descriptive Data**: Measurements, reports, and observations
+- **Prescriptive Data**: Designs, requirements, and plans
+- **Identifiers**: Names, serial numbers, and unique designators
+
+### 4. Processes (Right-Center)
+This column captures the dynamics of your domain—the activities, inspections, and workflows that transform and interact with material things over time. These are the "how" of your operations.
+
+### 5. Time Periods (Far Right)
+The temporal dimension captures when things happen—work shifts, maintenance windows, and operational periods that provide crucial temporal context to your data.
+
+## The Power of Relationships
+
+What makes the Ontology Canvas truly powerful isn't just the categorization—it's the relationships between elements. These connections create a rich semantic web where:
+- An aircraft engine identifier **designates** a specific aircraft engine
+- An aircraft engine **has component** turbine blades
+- A turbine blade is **bearer of** thermal barrier coating
+- A defect measurement **describes** the thermal barrier coating's condition
+- All of this occurs within specific processes and time periods
+
+These relationships transform static data into a living knowledge graph that preserves institutional understanding.
+
+## Three Critical Bridges
+
+The Ontology Canvas creates a shared semantic framework that bridges three fundamental gaps:
+
+1. **Human-to-Human**: Different teams—engineering, operations, maintenance—share the same mental model, eliminating miscommunication and siloed thinking.
+
+2. **Human-to-Machine**: Domain experts' tacit knowledge becomes computationally accessible, allowing systems to understand not just data values but their business meaning.
+
+3. **Machine-to-Machine**: Different systems and AI algorithms interpret data consistently, enabling true interoperability beyond simple data exchange.
+
+## From Theory to Practice
+
+Consider a real-world example: tracking defects on aircraft engine components. Without an ontology, you have disconnected data points—serial numbers, coordinates, dates. With the Ontology Canvas, these become a coherent story: Engine E1234 has a turbine blade with a thermal barrier coating that shows a specific defect at coordinates (120, 45), identified during a particular maintenance process.
+
+This semantic richness enables sophisticated queries like "What part serial numbers were on the engine at a given time?"—a question that requires understanding relationships between physical components, their identifiers, temporal aspects, and maintenance history.
+
+## Grounded in Standards, Built for Business
+
+The Ontology Canvas isn't an arbitrary framework—it's carefully aligned with the Basic Formal Ontology (BFO), an ISO/IEC 21838-2 standard that provides a scientifically rigorous foundation for information systems. However, where BFO can be intimidating with its philosophical terminology, the Ontology Canvas translates these concepts into business-friendly language:
+
+### The BFO Connection
+
+The canvas's fundamental division between "Things That Exist" and "Things That Happen" directly maps to BFO's distinction between:
+
+- **Continuants** (things that exist through time): 
+  - *Independent Continuants* → Material Things (aircraft engines) and Immaterial Things (organizational boundaries)
+  - *Specifically Dependent Continuants* → Qualities, Functions, and Roles (temperature, thrust generation, supplier role)
+  - *Generically Dependent Continuants* → Information Things (measurements, reports, identifiers)
+
+- **Occurrents** (things that happen in time):
+  - *Processes* → Processes column (inspection, maintenance)
+  - *Temporal Regions* → Time Periods column (work shifts, operational windows)
+
+This alignment means that while business users work with familiar terms like "equipment," "measurements," and "maintenance processes," they're actually building an ontology that meets international standards for semantic interoperability. It's the best of both worlds: accessibility for domain experts and compatibility with enterprise systems.
+
+## The Bottom Line
+
+The Ontology Canvas isn't just about organizing data—it's about encoding institutional knowledge in a form that scales across people, systems, and time. By providing structure grounded in ISO standards yet expressed in business language, it creates a blueprint for turning isolated data points into connected, contextual, actionable intelligence.
+
+When a domain expert asks a question, when an algorithm processes data, and when AI generates insights, they all operate with the exact same understanding. This shared semantic framework ensures that your data carries its full business meaning—what it describes, how it relates to other entities, and why it matters for decisions.
+
+In an era where data is abundant but understanding is scarce, the Ontology Canvas provides the missing link: a systematic way to preserve and scale the contextual knowledge that gives data its power.
