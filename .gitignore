@@ -1,1 +1,29 @@
+Primary Goal of Research
 
+Our primary goal is to develop and validate robust methodologies for the real-time state estimation and control of a nonlinear aeroelastic system.
+Key Achievements (Summary)
+
+This inaugural quarter has been dedicated to the successful initiation of the project. The team has completed all administrative prerequisites, conducted a formal kickoff meeting to align on a detailed research plan, and commenced the foundational literature review that will guide our technical development. The project is now fully operational and positioned to begin the model implementation phase in Q3.
+Key Achievements (In Detail)
+
+As this reporting period marked the official start of the project, our efforts were concentrated on establishing the necessary strategic and operational foundations.
+
+    Successful Project Initiation: All administrative and procedural requirements for project launch have been completed. A formal kickoff meeting was held to establish a clear charter, define team roles, and ratify the project's scope and timeline.
+
+    Commencement of Foundational Literature Review: The team has initiated a comprehensive review of the core literature in the field. This review has confirmed that the works of Ko et al. (1998) and Lee & Singh (2007) will serve as the primary benchmarks for our initial model verification, ensuring our work is grounded in established, peer-reviewed science.
+
+    Establishment of the Technical Roadmap: A detailed work plan for the upcoming quarters has been developed and approved. This roadmap outlines the key phases of the project, from the initial model implementation and verification to the eventual development of advanced digital twin surrogates.
+
+Challenges
+
+    The primary challenge this quarter was navigating the administrative processes required to officially launch the project and onboard the research team. With these foundational steps now complete, our focus shifts to the technical challenges of model implementation.
+
+Next Quarter (Q3) Plans
+
+With the planning phase complete, the team will transition fully into technical development. Our objectives for Q3 are:
+
+    Implement the Core Aeroelastic Model: Develop the simulation of the aeroelastic system based on the established state-space equations.
+
+    Establish Computational Environment: Configure the JAX high-performance computing environment for model development and future data generation.
+
+    Key Milestone: Model Verification: The primary technical goal for Q3 will be to rigorously verify our model by replicating the open-loop response results presented in the benchmark papers (Ko et al. and Lee & Singh).
