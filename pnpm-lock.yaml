@@ -1,1 +1,146 @@
+I'll help you create an Ontology Canvas for your ECAD/MCAD to manufacturing decision support tool. Based on your specific question about tracking component replacements on Circuit Card Assemblies (CCAs), here's a comprehensive canvas structure:
 
+## Ontology Canvas for CCA Component Replacement Tracking
+
+### **Things That Exist**
+
+#### **Material Things**
+- **Circuit Card Assembly (CCA)** - The physical assembled board
+- **Electronic Component** - Individual components (resistors, capacitors, ICs, etc.)
+- **PCB Substrate** - The bare board
+- **Solder Joint** - Physical connections
+- **Mechanical Hardware** - Screws, standoffs, heat sinks
+- **Manufacturing Equipment** - Pick-and-place machines, reflow ovens
+
+#### **Qualities, Functions, Roles**
+
+**Qualities:**
+- Component Value (resistance, capacitance, inductance)
+- Package Type (0402, SOIC, BGA, etc.)
+- Temperature Rating
+- Tolerance
+- Component Status (original, replaced, upgraded, obsolete)
+- Solder Quality
+- Physical Dimensions
+
+**Functions:**
+- Signal Processing
+- Power Regulation
+- Data Storage
+- Thermal Management
+- EMI Shielding
+
+**Roles:**
+- Primary Component
+- Alternative Component
+- Obsolete Part
+- Form-Fit-Function Replacement
+- Critical Component
+- Long-Lead Item
+
+### **Information Things (Central Column)**
+
+**Descriptive Data:**
+- **ECAD Design Files** (schematic, layout, netlist)
+- **MCAD Models** (3D component models, assembly drawings)
+- **As-Built Configuration** (actual components used)
+- **Component Measurements** (electrical test results)
+- **Inspection Reports** (AOI, X-ray, ICT results)
+- **Bill of Materials (BOM)** snapshots
+- **Approved Vendor List (AVL)**
+- **Component Datasheets**
+
+**Prescriptive Data:**
+- **Design Requirements** (electrical, mechanical, thermal)
+- **Manufacturing Specifications**
+- **IPC Standards** (IPC-A-610, J-STD-001)
+- **Change Control Documents**
+- **Engineering Change Orders (ECOs)**
+- **Approved Substitution Lists**
+
+**Identifiers:**
+- **CCA Serial Number** (unique per assembly)
+- **Component Reference Designator** (R1, C2, U3, etc.)
+- **Component Part Number** (manufacturer P/N)
+- **Design Revision** (Rev A, B, C)
+- **ECO Number**
+- **Work Order Number**
+- **Lot/Date Code**
+- **CAD Model ID** (ECAD/MCAD file versions)
+
+### **Things That Happen**
+
+#### **Processes**
+- **Design Process** (schematic capture, layout, 3D modeling)
+- **Design Review Process**
+- **Component Selection Process**
+- **Manufacturing Process** (SMT placement, reflow, inspection)
+- **Component Replacement Process**
+- **Engineering Change Process**
+- **Obsolescence Management Process**
+- **Quality Inspection Process**
+- **Rework/Repair Process**
+
+#### **Time Periods**
+- **Design Phase Duration**
+- **Production Run**
+- **Manufacturing Date**
+- **Component Replacement Date**
+- **ECO Implementation Period**
+- **Warranty Period**
+- **Product Lifecycle Phase**
+- **Revision Effectivity Date**
+
+## Key Relationships for Your Decision Support Question
+
+To answer "what components were replaced from CCA designs or specific CCA serial numbers over specific time periods," you need these critical relationships:
+
+### Design-to-Physical Mapping:
+- **CCA Serial Number** → *designates* → **Circuit Card Assembly**
+- **Circuit Card Assembly** → *has component* → **Electronic Component**
+- **Component Reference Designator** → *designates* → **Electronic Component**
+- **Component Part Number** → *identifies* → **Electronic Component** (specific type)
+
+### Change Tracking:
+- **ECO Number** → *designates* → **Engineering Change Process**
+- **Engineering Change Process** → *replaces* → **Electronic Component** (old)
+- **Engineering Change Process** → *with* → **Electronic Component** (new)
+- **Component Replacement Date** → *describes* → **Engineering Change Process**
+
+### Configuration Management:
+- **Design Revision** → *describes* → **CCA Design** (at specific point in time)
+- **As-Built Configuration** → *describes* → **Circuit Card Assembly** (actual)
+- **BOM Snapshot** → *prescribes* → **Component Set** (for specific revision)
+
+### Temporal Relationships:
+- **Manufacturing Date** → *describes* → **Circuit Card Assembly**
+- **Revision Effectivity Date** → *describes* → **Design Revision**
+- **Component Replacement Process** → *occurs during* → **Time Period**
+
+## Example Query Implementation
+
+To answer your specific question, the system would traverse:
+
+1. **Input**: CCA Serial Number(s) + Time Period
+2. **Traverse**: 
+   - CCA Serial Number → Circuit Card Assembly
+   - Circuit Card Assembly → Component Reference Designators
+   - Reference Designators → Component Part Numbers (original vs. current)
+   - ECO Numbers → Component Changes within Time Period
+3. **Output**: List of replaced components with:
+   - Original part number
+   - Replacement part number
+   - Reference designator
+   - ECO number
+   - Replacement date
+   - Reason for change
+
+## Benefits of This Structure
+
+1. **Complete Traceability**: Links design intent (ECAD/MCAD) to physical reality (as-built)
+2. **Change Management**: Tracks all component substitutions with full context
+3. **Temporal Awareness**: Maintains history of what was on each board when
+4. **Multi-System Integration**: Bridges ECAD, MCAD, PLM, MES, and ERP systems
+5. **Digital Twin Support**: Enables accurate as-built digital twins for each serial number
+
+This canvas structure ensures that when someone asks about component replacements, the system understands not just the data but the full context—why changes were made, when they became effective, and which specific assemblies were affected.
