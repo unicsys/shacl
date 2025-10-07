@@ -1,1 +1,12 @@
+a) Ontology in final solution?
+Yes - Greg indicated that ontological aspects have importance. The semantic layer is core architecture, not an add-on. Without it, predictive models cannot access integrated data.
+b) Scalability to other parts/engines?
+Yes. We're building generic frameworks and reusable patterns. Current roadmap: 1 part (now) → 10 parts (6 months) → 50+ parts (12 months) → full system (24 months). The methodology applies to any engine type.
+c) Extension to other businesses?
+Yes. Using industry-standard approaches (BFO/IOF ontologies) and business-friendly frameworks. Any business with complex systems and dispersed data can leverage this.
+Bottom line: We're creating scalable semantic infrastructure that transforms manual data integration into automated intelligence. This investment builds capability across all product lines.
+Key impacts:
 
+Query time: Days → Minutes
+Data integration: Manual → Automated
+Analytics: Limited → Advanced
