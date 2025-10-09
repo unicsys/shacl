@@ -1,1 +1,1 @@
-I'm collaborating closely with Ken Dalton (Axon/Informatica team) on this. I've gained access to Axon, assessed the current state and identified improvement areas. Initial steps are underway—building ontology concepts and definitions in Mobi (our cloud ontology hub accessible across RTX), while developing the integration methodology to enable broader team adoption.
+
