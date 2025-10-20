@@ -1,1 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mobi Aerospace Abbreviation Lookup</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 40px; background-color: #f4f7f6; color: #333; }
+        .container { max-width: 960px; margin: auto; background: white; padding: 20px 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #005a9c; }
+        form { margin-bottom: 20px; }
+        input[type="text"], input[type="password"] { width: 95%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+        .error { color: #d9534f; border: 1px solid #d9534f; padding: 10px; border-radius: 4px; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; table-layout: fixed; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; word-wrap: break-word; }
+        th { background-color: #f2f2f2; font-weight: bold; text-transform: capitalize; }
+        tr:hover { background-color: #f5f5f5; }
+        .no-results { color: #777; }
+        summary { cursor: pointer; font-weight: bold; margin-bottom: 10px; color: #333; }
+        .settings-box { padding: 15px; border: 1px solid #eee; border-radius: 4px; margin-bottom: 25px; margin-top: 5px; }
+        label { margin-top: 10px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Aerospace Abbreviation Lookup</h1>
 
+        <form method="POST">
+            <details open>
+                <summary>Connection Settings</summary>
+                <div class="settings-box">
+                    <label for="mobi_host"><b>Mobi Host:</b></label><br>
+                    <input type="text" id="mobi_host" name="mobi_host" value="{{ mobi_host or '' }}" placeholder="e.g., https://localhost:8443" required>
+                    <br><br>
+                    <label for="api_token"><b>API Token:</b></label><br>
+                    <input type="password" id="api_token" name="api_token" value="{{ api_token or '' }}" placeholder="Token is hidden for security" required>
+                </div>
+            </details>
+
+            <label for="abbreviation"><b>Enter Abbreviation:</b></label><br>
+            <input type="text" id="abbreviation" name="abbreviation" value="{{ abbreviation or '' }}" placeholder="e.g., TEC, ESN, JCN" required style="width: 300px; margin-top: 5px;">
+            <button type="submit">Search</button>
+        </form>
+
+        <hr>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+        
+        <!-- --- TEMPLATE FIX IS HERE --- -->
+        <!-- We now check `if results` first, before trying to get its length -->
+        {% if results %}
+            <h2>Results for: "{{ abbreviation }}"</h2>
+            {% if results|length > 0 %}
+                <table>
+                    <thead>
+                        <tr>
+                            {% for header in headers %}
+                                <th>{{ header }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in results %}
+                        <tr>
+                            {% for header in headers %}
+                                <td title="{{ row[header].value if row[header] else '' }}">
+                                    {{ row[header].value if row[header] else '' }}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="no-results">No results found for this abbreviation.</p>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hostInput = document.getElementById('mobi_host');
+            const tokenInput = document.getElementById('api_token');
+            const mainForm = document.querySelector('form');
+
+            if (localStorage.getItem('mobiHost') && !hostInput.value) {
+                hostInput.value = localStorage.getItem('mobiHost');
+            }
+            if (localStorage.getItem('apiToken') && !tokenInput.value) {
+                tokenInput.value = localStorage.getItem('apiToken');
+            }
+
+            mainForm.addEventListener('submit', function() {
+                localStorage.setItem('mobiHost', hostInput.value);
+                localStorage.setItem('apiToken', tokenInput.value);
+            });
+        });
+    </script>
+</body>
+</html>
