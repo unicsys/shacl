@@ -1,1 +1,807 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>SPARQL Query Visualization - Combined Dataset</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js"></script>
 
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        #mynetwork {
+            width: 100%;
+            height: 92vh;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            border-radius: 5px;
+        }
+        .sparql-query-container {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 13px;
+            line-height: 1.5;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .sparql-query-container .sparql-line {
+            display: block;
+            padding: 2px 5px;
+            margin: 0 -5px;
+            border-radius: 3px;
+            transition: background-color 0.3s ease;
+        }
+        .sparql-query-container .highlight-line {
+            background-color: #fff1a8;
+            font-weight: 600;
+        }
+        .sparql-comment { color: #6a737d; font-style: italic; }
+        .sparql-keyword { color: #d73a49; font-weight: bold; }
+        .sparql-variable { color: #005cc5; }
+        .sparql-uri { color: #22863a; }
+        .sparql-class-type { color: #e36209; font-weight: 600; }
+        .sparql-property { color: #6f42c1; }
+        .sparql-identifier { color: #032f62; font-weight: 600; }
+        #explanation-box {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: #e7f3ff;
+            border-radius: 5px;
+            border-left: 4px solid #0366d6;
+            min-height: 80px;
+        }
+        #results-container {
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .btn-control {
+            padding: 8px 20px;
+            font-size: 14px;
+            margin-right: 5px;
+        }
+        .legend {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px 0;
+        }
+        .legend-box {
+            width: 18px;
+            height: 18px;
+            border: 1px solid #666;
+        }
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 1px solid #666;
+        }
+        .step-counter {
+            font-size: 13px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .query-selector {
+            margin-bottom: 15px;
+            padding: 12px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .query-button {
+            margin: 5px;
+            padding: 8px 15px;
+            font-size: 13px;
+        }
+        .info-banner {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 10px 12px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #155724;
+        }
+        .progress-container {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .progress {
+            height: 25px;
+        }
+        .progress-bar {
+            font-size: 12px;
+            line-height: 25px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid pt-3">
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-lg-5">
+                <h5 class="mb-3">SPARQL Query Execution</h5>
+                
+                <div class="info-banner">
+                    <strong>Combined Dataset:</strong> 6 repairs, 5 people, 3 aircraft from 2 integrated sources
+                </div>
+
+                <div class="query-selector">
+                    <strong>Select Query:</strong>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-primary query-button" onclick="loadQuery(0)">Query 1: Find N737AA Repairs</button>
+                        <button class="btn btn-sm btn-outline-primary query-button" onclick="loadQuery(1)">Query 2: Find N905FR Repairs</button>
+                        <button class="btn btn-sm btn-outline-primary query-button" onclick="loadQuery(2)">Query 3: All Repairs in Jan</button>
+                    </div>
+                </div>
+                
+                <div class="sparql-query-container" id="queryContainer">
+                    <!-- Query will be loaded here -->
+                </div>
+
+                <div class="mt-3">
+                    <button class="btn btn-primary btn-control" onclick="nextStep();">▶ Next Step</button>
+                    <button class="btn btn-warning btn-control" onclick="prevStep();">◀ Previous</button>
+                    <button class="btn btn-secondary btn-control" onclick="resetAll();">↺ Reset</button>
+                    <div class="step-counter" id="step-counter">Select a query to begin</div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%" id="progressBar">0%</div>
+                    </div>
+                </div>
+                
+                <div id="explanation-box">
+                    <strong>Explanation:</strong>
+                    <p id="explanation-text" class="mb-0">Select a query above, then click "Next Step" to see how SPARQL traverses the knowledge graph.</p>
+                </div>
+
+                <div id="results-container">
+                    <h6>Query Results:</h6>
+                    <div style="max-height: 250px; overflow-y: auto;">
+                        <table class="table table-sm table-bordered table-striped">
+                            <thead id="results-header"></thead>
+                            <tbody id="results-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="legend">
+                    <strong>Legend:</strong>
+                    <div class="legend-item">
+                        <div class="legend-box" style="background-color: #FDD4A0;"></div>
+                        <span>Upper Ontology Classes</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box" style="background-color: #FFA500;"></div>
+                        <span>Domain Classes</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background-color: #8A2BE2;"></div>
+                        <span>Person/Aircraft/Repair Instances</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background-color: #9370DB;"></div>
+                        <span>Time Intervals</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-lg-7">
+                <h5 class="mb-3">Combined Knowledge Graph (Both Datasets)</h5>
+                <div id="mynetwork"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var network;
+        var nodes, edges;
+        var originalNodeStyles = {};
+        var originalEdgeStyles = {};
+        var currentStep = -1;
+        var currentQueryIndex = -1;
+
+        const highlightOptions = {
+            node: { 
+                color: { background: '#ff5722', border: '#d44a1c' }, 
+                font: { color: 'black', size: 16, face: 'Arial', bold: true },
+                borderWidth: 4
+            },
+            edge: { 
+                color: '#ff5722', 
+                width: 5,
+                arrows: 'to'
+            }
+        };
+
+        // Define three different queries
+        const queries = [
+            {
+                name: "Find N737AA Repairs",
+                queryHtml: `
+                    <span class="sparql-line sparql-comment"># Find all repairs on Aircraft N737AA</span>
+                    <span class="sparql-line"><span class="sparql-keyword">PREFIX</span> ex: <<span class="sparql-uri">http://example.com/ontology#</span>></span>
+                    <span class="sparql-line"><span class="sparql-keyword">PREFIX</span> rdf: <<span class="sparql-uri">http://www.w3.org/1999/02/22-rdf-syntax-ns#</span>></span>
+                    <br>
+                    <span class="sparql-line" id="step7-line"><span class="sparql-keyword">SELECT</span> <span class="sparql-variable">?repair</span> <span class="sparql-variable">?person</span> <span class="sparql-variable">?date</span></span>
+                    <span class="sparql-line"><span class="sparql-keyword">WHERE</span> {</span>
+                    <div style="padding-left: 20px;">
+                        <span class="sparql-line sparql-comment"># 1. Bind specific aircraft</span>
+                        <span class="sparql-line" id="step0-line"><span class="sparql-keyword">VALUES</span> <span class="sparql-variable">?aircraft</span> { <span class="sparql-identifier">ex:N737AA</span> }</span>
+                        <span class="sparql-line sparql-comment"># 2. Find repairs with this aircraft</span>
+                        <span class="sparql-line" id="step1-line"><span class="sparql-variable">?repair</span> <span class="sparql-property">ex:has_participant</span> <span class="sparql-variable">?aircraft</span> .</span>
+                        <span class="sparql-line sparql-comment"># 3. Verify it's a RepairProcess</span>
+                        <span class="sparql-line" id="step2-line"><span class="sparql-variable">?repair</span> <span class="sparql-keyword">rdf:type</span> <span class="sparql-class-type">ex:RepairProcess</span> .</span>
+                        <span class="sparql-line sparql-comment"># 4. Find the person participant</span>
+                        <span class="sparql-line" id="step3-line"><span class="sparql-variable">?repair</span> <span class="sparql-property">ex:has_participant</span> <span class="sparql-variable">?person</span> .</span>
+                        <span class="sparql-line sparql-comment"># 5. Verify person type</span>
+                        <span class="sparql-line" id="step4-line"><span class="sparql-variable">?person</span> <span class="sparql-keyword">rdf:type</span> <span class="sparql-class-type">ex:Person</span> .</span>
+                        <span class="sparql-line sparql-comment"># 6. Find when repair occurred</span>
+                        <span class="sparql-line" id="step5-line"><span class="sparql-variable">?repair</span> <span class="sparql-property">ex:occurs_on</span> <span class="sparql-variable">?date</span> .</span>
+                        <span class="sparql-line sparql-comment"># 7. Verify date type</span>
+                        <span class="sparql-line" id="step6-line"><span class="sparql-variable">?date</span> <span class="sparql-keyword">rdf:type</span> <span class="sparql-class-type">ex:TimeInterval</span> .</span>
+                    </div>
+                    <span class="sparql-line">}</span>
+                `,
+                steps: [
+                    {
+                        lineId: 'step0-line',
+                        explanation: 'Step 1: Bind ?aircraft to N737AA - this aircraft appears in BOTH datasets.',
+                        nodesToHighlight: ['N737AA'],
+                        edgesToHighlight: [],
+                        stepLabel: 'Step 1 of 8'
+                    },
+                    {
+                        lineId: 'step1-line',
+                        explanation: 'Step 2: Find repairs with N737AA as participant. Two matches found: Repair-01 (Dataset 1) and RepairProcess-S001 (Dataset 2).',
+                        nodesToHighlight: ['N737AA', 'Repair-01', 'RepairProcess-S001'],
+                        edgesToHighlight: ['e-repair01-n737aa', 'e-repairs001-n737aa'],
+                        stepLabel: 'Step 2 of 8'
+                    },
+                    {
+                        lineId: 'step2-line',
+                        explanation: 'Step 3: Verify both are RepairProcess instances. Type constraints satisfied.',
+                        nodesToHighlight: ['Repair-01', 'RepairProcess-S001', 'RepairProcess'],
+                        edgesToHighlight: ['e-repair01-type', 'e-repairs001-type'],
+                        stepLabel: 'Step 3 of 8'
+                    },
+                    {
+                        lineId: 'step3-line',
+                        explanation: 'Step 4: Find person participants. Repair-01 → John Doe, RepairProcess-S001 → Mike Thompson.',
+                        nodesToHighlight: ['Repair-01', 'JohnDoe', 'RepairProcess-S001', 'MikeThompson'],
+                        edgesToHighlight: ['e-repair01-johndoe', 'e-repairs001-mike'],
+                        stepLabel: 'Step 4 of 8'
+                    },
+                    {
+                        lineId: 'step4-line',
+                        explanation: 'Step 5: Verify both are Person instances. Constraints satisfied.',
+                        nodesToHighlight: ['JohnDoe', 'MikeThompson', 'Person'],
+                        edgesToHighlight: ['e-johndoe-type', 'e-mike-type'],
+                        stepLabel: 'Step 5 of 8'
+                    },
+                    {
+                        lineId: 'step5-line',
+                        explanation: 'Step 6: Find when repairs occurred. Both on Date-01 (1-Jan-25) - same date, different repairs!',
+                        nodesToHighlight: ['Repair-01', 'RepairProcess-S001', 'Date-01'],
+                        edgesToHighlight: ['e-repair01-date01', 'e-repairs001-date01'],
+                        stepLabel: 'Step 6 of 8'
+                    },
+                    {
+                        lineId: 'step6-line',
+                        explanation: 'Step 7: Verify Date-01 is a TimeInterval. All constraints satisfied.',
+                        nodesToHighlight: ['Date-01', 'TimeInterval'],
+                        edgesToHighlight: ['e-date01-type'],
+                        stepLabel: 'Step 7 of 8'
+                    },
+                    {
+                        lineId: 'step7-line',
+                        explanation: 'Step 8: Complete! Two results found - N737AA was serviced by 2 different people on the same date.',
+                        nodesToHighlight: ['Repair-01', 'JohnDoe', 'Date-01', 'RepairProcess-S001', 'MikeThompson'],
+                        edgesToHighlight: [],
+                        isFinal: true,
+                        stepLabel: 'Step 8 of 8 - Complete'
+                    }
+                ],
+                results: [
+                    {repair: 'ex:Repair-01', person: 'ex:JohnDoe (John Doe)', date: 'ex:Date-01 (1-Jan-25)'},
+                    {repair: 'ex:RepairProcess-S001', person: 'ex:MikeThompson (Mike Thompson)', date: 'ex:Date-01 (1-Jan-25)'}
+                ],
+                resultColumns: ['?repair', '?person', '?date']
+            },
+            {
+                name: "Find N905FR Repairs",
+                queryHtml: `
+                    <span class="sparql-line sparql-comment"># Find all repairs on Aircraft N905FR (serviced twice!)</span>
+                    <span class="sparql-line"><span class="sparql-keyword">PREFIX</span> ex: <<span class="sparql-uri">http://example.com/ontology#</span>></span>
+                    <span class="sparql-line"><span class="sparql-keyword">PREFIX</span> rdf: <<span class="sparql-uri">http://www.w3.org/1999/02/22-rdf-syntax-ns#</span>></span>
+                    <br>
+                    <span class="sparql-line" id="step7-line"><span class="sparql-keyword">SELECT</span> <span class="sparql-variable">?repair</span> <span class="sparql-variable">?person</span> <span class="sparql-variable">?date</span></span>
+                    <span class="sparql-line"><span class="sparql-keyword">WHERE</span> {</span>
+                    <div style="padding-left: 20px;">
+                        <span class="sparql-line sparql-comment"># 1. Bind specific aircraft</span>
+                        <span class="sparql-line" id="step0-line"><span class="sparql-keyword">VALUES</span> <span class="sparql-variable">?aircraft</span> { <span class="sparql-identifier">ex:N905FR</span> }</span>
+                        <span class="sparql-line sparql-comment"># 2. Find repairs with this aircraft</span>
+                        <span class="sparql-line" id="step1-line"><span class="sparql-variable">?repair</span> <span class="sparql-property">ex:has_participant</span> <span class="sparql-variable">?aircraft</span> .</span>
+                        <span class="sparql-line sparql-comment"># 3. Verify RepairProcess type</span>
+                        <span class="sparql-line" id="step2-line"><span class="sparql-variable">?repair</span> <span class="sparql-keyword">rdf:type</span> <span class="sparql-class-type">ex:RepairProcess</span> .</span>
+                        <span class="sparql-line sparql-comment"># 4. Find person participants</span>
+                        <span class="sparql-line" id="step3-line"><span class="sparql-variable">?repair</span> <span class="sparql-property">ex:has_participant</span> <span class="sparql-variable">?person</span> .</span>
+                        <span class="sparql-line sparql-comment"># 5. Verify person type</span>
+                        <span class="sparql-line" id="step4-line"><span class="sparql-variable">?person</span> <span class="sparql-keyword">rdf:type</span> <span class="sparql-class-type">ex:Person</span> .</span>
+                        <span class="sparql-line sparql-comment"># 6. Find dates</span>
+                        <span class="sparql-line" id="step5-line"><span class="sparql-variable">?repair</span> <span class="sparql-property">ex:occurs_on</span> <span class="sparql-variable">?date</span> .</span>
+                        <span class="sparql-line sparql-comment"># 7. Verify date type</span>
+                        <span class="sparql-line" id="step6-line"><span class="sparql-variable">?date</span> <span class="sparql-keyword">rdf:type</span> <span class="sparql-class-type">ex:TimeInterval</span> .</span>
+                    </div>
+                    <span class="sparql-line">}</span>
+                `,
+                steps: [
+                    {
+                        lineId: 'step0-line',
+                        explanation: 'Step 1: Bind ?aircraft to N905FR - this aircraft appears in BOTH datasets and was serviced TWICE.',
+                        nodesToHighlight: ['N905FR'],
+                        edgesToHighlight: [],
+                        stepLabel: 'Step 1 of 8'
+                    },
+                    {
+                        lineId: 'step1-line',
+                        explanation: 'Step 2: Find repairs with N905FR. Three matches: Repair-02, Repair-03 (Dataset 1) and RepairProcess-S002 (Dataset 2).',
+                        nodesToHighlight: ['N905FR', 'Repair-02', 'Repair-03', 'RepairProcess-S002'],
+                        edgesToHighlight: ['e-repair02-n905fr', 'e-repair03-n905fr', 'e-repairs002-n905fr'],
+                        stepLabel: 'Step 2 of 8'
+                    },
+                    {
+                        lineId: 'step2-line',
+                        explanation: 'Step 3: Verify all three are RepairProcess instances.',
+                        nodesToHighlight: ['Repair-02', 'Repair-03', 'RepairProcess-S002', 'RepairProcess'],
+                        edgesToHighlight: ['e-repair02-type', 'e-repair03-type', 'e-repairs002-type'],
+                        stepLabel: 'Step 3 of 8'
+                    },
+                    {
+                        lineId: 'step3-line',
+                        explanation: 'Step 4: Find people. Repair-02 → Jane Smith, Repair-03 → John Doe, RepairProcess-S002 → Lisa Chen.',
+                        nodesToHighlight: ['Repair-02', 'JaneSmith', 'Repair-03', 'JohnDoe', 'RepairProcess-S002', 'LisaChen'],
+                        edgesToHighlight: ['e-repair02-jane', 'e-repair03-johndoe2', 'e-repairs002-lisa'],
+                        stepLabel: 'Step 4 of 8'
+                    },
+                    {
+                        lineId: 'step4-line',
+                        explanation: 'Step 5: Verify all are Person instances.',
+                        nodesToHighlight: ['JaneSmith', 'JohnDoe', 'LisaChen', 'Person'],
+                        edgesToHighlight: ['e-jane-type', 'e-johndoe-type', 'e-lisa-type'],
+                        stepLabel: 'Step 5 of 8'
+                    },
+                    {
+                        lineId: 'step5-line',
+                        explanation: 'Step 6: Find dates. Repair-02 & RepairProcess-S002 on Date-02, Repair-03 on Date-03.',
+                        nodesToHighlight: ['Repair-02', 'Date-02', 'Repair-03', 'Date-03', 'RepairProcess-S002'],
+                        edgesToHighlight: ['e-repair02-date02', 'e-repair03-date03', 'e-repairs002-date02'],
+                        stepLabel: 'Step 6 of 8'
+                    },
+                    {
+                        lineId: 'step6-line',
+                        explanation: 'Step 7: Verify dates are TimeIntervals.',
+                        nodesToHighlight: ['Date-02', 'Date-03', 'TimeInterval'],
+                        edgesToHighlight: ['e-date02-type', 'e-date03-type'],
+                        stepLabel: 'Step 7 of 8'
+                    },
+                    {
+                        lineId: 'step7-line',
+                        explanation: 'Step 8: Complete! Three results - N905FR serviced by 3 different people across 2 months.',
+                        nodesToHighlight: ['Repair-02', 'JaneSmith', 'Date-02', 'Repair-03', 'JohnDoe', 'Date-03', 'RepairProcess-S002', 'LisaChen'],
+                        edgesToHighlight: [],
+                        isFinal: true,
+                        stepLabel: 'Step 8 of 8 - Complete'
+                    }
+                ],
+                results: [
+                    {repair: 'ex:Repair-02', person: 'ex:JaneSmith (Jane Smith)', date: 'ex:Date-02 (1-Feb-25)'},
+                    {repair: 'ex:Repair-03', person: 'ex:JohnDoe (John Doe)', date: 'ex:Date-03 (1-Mar-25)'},
+                    {repair: 'ex:RepairProcess-S002', person: 'ex:LisaChen (Lisa Chen)', date: 'ex:Date-02 (1-Feb-25)'}
+                ],
+                resultColumns: ['?repair', '?person', '?date']
+            },
+            {
+                name: "All Repairs in January",
+                queryHtml: `
+                    <span class="sparql-line sparql-comment"># Find all repairs that occurred on 1-Jan-25</span>
+                    <span class="sparql-line"><span class="sparql-keyword">PREFIX</span> ex: <<span class="sparql-uri">http://example.com/ontology#</span>></span>
+                    <span class="sparql-line"><span class="sparql-keyword">PREFIX</span> rdf: <<span class="sparql-uri">http://www.w3.org/1999/02/22-rdf-syntax-ns#</span>></span>
+                    <br>
+                    <span class="sparql-line" id="step5-line"><span class="sparql-keyword">SELECT</span> <span class="sparql-variable">?repair</span> <span class="sparql-variable">?aircraft</span> <span class="sparql-variable">?person</span></span>
+                    <span class="sparql-line"><span class="sparql-keyword">WHERE</span> {</span>
+                    <div style="padding-left: 20px;">
+                        <span class="sparql-line sparql-comment"># 1. Start with specific date</span>
+                        <span class="sparql-line" id="step0-line"><span class="sparql-keyword">VALUES</span> <span class="sparql-variable">?date</span> { <span class="sparql-identifier">ex:Date-01</span> }</span>
+                        <span class="sparql-line sparql-comment"># 2. Find repairs on this date</span>
+                        <span class="sparql-line" id="step1-line"><span class="sparql-variable">?repair</span> <span class="sparql-property">ex:occurs_on</span> <span class="sparql-variable">?date</span> .</span>
+                        <span class="sparql-line sparql-comment"># 3. Find aircraft participant</span>
+                        <span class="sparql-line" id="step2-line"><span class="sparql-variable">?repair</span> <span class="sparql-property">ex:has_participant</span> <span class="sparql-variable">?aircraft</span> .</span>
+                        <span class="sparql-line sparql-comment"># 4. Verify aircraft type</span>
+                        <span class="sparql-line" id="step3-line"><span class="sparql-variable">?aircraft</span> <span class="sparql-keyword">rdf:type</span> <span class="sparql-class-type">ex:Aircraft</span> .</span>
+                        <span class="sparql-line sparql-comment"># 5. Find person participant</span>
+                        <span class="sparql-line" id="step4-line"><span class="sparql-variable">?repair</span> <span class="sparql-property">ex:has_participant</span> <span class="sparql-variable">?person</span> .</span>
+                        <span class="sparql-line sparql-comment"># 6. Verify person type</span>
+                        <span class="sparql-line" id="step4b-line"><span class="sparql-variable">?person</span> <span class="sparql-keyword">rdf:type</span> <span class="sparql-class-type">ex:Person</span> .</span>
+                    </div>
+                    <span class="sparql-line">}</span>
+                `,
+                steps: [
+                    {
+                        lineId: 'step0-line',
+                        explanation: 'Step 1: Bind ?date to Date-01 (1-Jan-25) - this date appears in BOTH datasets.',
+                        nodesToHighlight: ['Date-01'],
+                        edgesToHighlight: [],
+                        stepLabel: 'Step 1 of 6'
+                    },
+                    {
+                        lineId: 'step1-line',
+                        explanation: 'Step 2: Find all repairs on 1-Jan-25. Two matches: Repair-01 and RepairProcess-S001.',
+                        nodesToHighlight: ['Date-01', 'Repair-01', 'RepairProcess-S001'],
+                        edgesToHighlight: ['e-repair01-date01', 'e-repairs001-date01'],
+                        stepLabel: 'Step 2 of 6'
+                    },
+                    {
+                        lineId: 'step2-line',
+                        explanation: 'Step 3: Find aircraft for each repair. Repair-01 → N737AA, RepairProcess-S001 → N737AA (same aircraft!).',
+                        nodesToHighlight: ['Repair-01', 'N737AA', 'RepairProcess-S001'],
+                        edgesToHighlight: ['e-repair01-n737aa', 'e-repairs001-n737aa'],
+                        stepLabel: 'Step 3 of 6'
+                    },
+                    {
+                        lineId: 'step3-line',
+                        explanation: 'Step 4: Verify N737AA is an Aircraft instance.',
+                        nodesToHighlight: ['N737AA', 'Aircraft'],
+                        edgesToHighlight: ['e-n737aa-type'],
+                        stepLabel: 'Step 4 of 6'
+                    },
+                    {
+                        lineId: 'step4-line',
+                        explanation: 'Step 5: Find person participants. Repair-01 → John Doe, RepairProcess-S001 → Mike Thompson.',
+                        nodesToHighlight: ['Repair-01', 'JohnDoe', 'RepairProcess-S001', 'MikeThompson'],
+                        edgesToHighlight: ['e-repair01-johndoe', 'e-repairs001-mike'],
+                        stepLabel: 'Step 5 of 6'
+                    },
+                    {
+                        lineId: 'step5-line',
+                        explanation: 'Step 6: Complete! Two repairs on 1-Jan-25, both on N737AA by different people from different datasets.',
+                        nodesToHighlight: ['Repair-01', 'N737AA', 'JohnDoe', 'RepairProcess-S001', 'MikeThompson', 'Date-01'],
+                        edgesToHighlight: [],
+                        isFinal: true,
+                        stepLabel: 'Step 6 of 6 - Complete'
+                    }
+                ],
+                results: [
+                    {repair: 'ex:Repair-01', aircraft: 'ex:N737AA (N737AA)', person: 'ex:JohnDoe (John Doe)'},
+                    {repair: 'ex:RepairProcess-S001', aircraft: 'ex:N737AA (N737AA)', person: 'ex:MikeThompson (Mike Thompson)'}
+                ],
+                resultColumns: ['?repair', '?aircraft', '?person']
+            }
+        ];
+
+        function loadQuery(index) {
+            currentQueryIndex = index;
+            currentStep = -1;
+            
+            document.getElementById('queryContainer').innerHTML = queries[index].queryHtml;
+            document.getElementById('explanation-text').textContent = 'Click "Next Step" to begin the query execution.';
+            document.getElementById('step-counter').textContent = 'Ready to start: ' + queries[index].name;
+            document.getElementById('results-body').innerHTML = '';
+            document.getElementById('results-header').innerHTML = '';
+            updateProgressBar(0);
+            
+            resetGraphStyles();
+        }
+
+        function resetAll() {
+            currentStep = -1;
+            if (currentQueryIndex >= 0) {
+                document.querySelectorAll('.sparql-line').forEach(el => el.classList.remove('highlight-line'));
+                document.getElementById('explanation-text').textContent = 'Click "Next Step" to begin the query execution.';
+                document.getElementById('step-counter').textContent = 'Ready to start: ' + queries[currentQueryIndex].name;
+                document.getElementById('results-body').innerHTML = '';
+                document.getElementById('results-header').innerHTML = '';
+                updateProgressBar(0);
+            } else {
+                document.getElementById('explanation-text').textContent = 'Select a query above, then click "Next Step".';
+                document.getElementById('step-counter').textContent = 'Select a query to begin';
+            }
+            resetGraphStyles();
+        }
+
+        function nextStep() {
+            if (currentQueryIndex < 0) {
+                alert('Please select a query first');
+                return;
+            }
+            
+            const query = queries[currentQueryIndex];
+            currentStep++;
+            
+            if (currentStep >= query.steps.length) {
+                currentStep = query.steps.length - 1;
+                return;
+            }
+            
+            executeStep();
+        }
+
+        function prevStep() {
+            if (currentQueryIndex < 0 || currentStep <= 0) {
+                return;
+            }
+            
+            currentStep--;
+            executeStep();
+        }
+
+        function executeStep() {
+            resetAllButKeepState();
+            
+            const query = queries[currentQueryIndex];
+            const step = query.steps[currentStep];
+            
+            document.getElementById(step.lineId).classList.add('highlight-line');
+            document.getElementById('explanation-text').textContent = step.explanation;
+            document.getElementById('step-counter').textContent = step.stepLabel;
+            
+            const progress = ((currentStep + 1) / query.steps.length) * 100;
+            updateProgressBar(progress);
+
+            const nodesToUpdate = step.nodesToHighlight.map(id => ({id: id, ...highlightOptions.node}));
+            if(nodesToUpdate.length > 0) nodes.update(nodesToUpdate);
+
+            const edgesToUpdate = step.edgesToHighlight.map(id => ({id: id, ...highlightOptions.edge}));
+            if(edgesToUpdate.length > 0) edges.update(edgesToUpdate);
+            
+            if (step.isFinal) {
+                populateResults();
+            }
+
+            if (step.nodesToHighlight.length > 0) {
+                network.fit({
+                    nodes: step.nodesToHighlight,
+                    animation: {
+                        duration: 500,
+                        easingFunction: 'easeInOutQuad'
+                    }
+                });
+            }
+        }
+
+        function updateProgressBar(percent) {
+            const bar = document.getElementById('progressBar');
+            bar.style.width = percent + '%';
+            bar.textContent = Math.round(percent) + '%';
+        }
+
+        function resetAllButKeepState() {
+            resetGraphStyles();
+            document.querySelectorAll('.sparql-line').forEach(el => el.classList.remove('highlight-line'));
+            document.getElementById('results-body').innerHTML = '';
+            document.getElementById('results-header').innerHTML = '';
+        }
+
+        function resetGraphStyles() {
+            const nodesToUpdate = Object.keys(originalNodeStyles).map(id => ({ id: id, ...originalNodeStyles[id] }));
+            if (nodesToUpdate.length) nodes.update(nodesToUpdate);
+            
+            const edgesToUpdate = Object.keys(originalEdgeStyles).map(id => ({ id: id, ...originalEdgeStyles[id] }));
+            if (edgesToUpdate.length) edges.update(edgesToUpdate);
+        }
+        
+        function populateResults() {
+            const query = queries[currentQueryIndex];
+            const resultsHeader = document.getElementById('results-header');
+            const resultsBody = document.getElementById('results-body');
+            
+            // Create header
+            let headerRow = '<tr>';
+            query.resultColumns.forEach(col => {
+                headerRow += '<th>' + col + '</th>';
+            });
+            headerRow += '</tr>';
+            resultsHeader.innerHTML = headerRow;
+            
+            // Create rows
+            query.results.forEach(res => {
+                let row = resultsBody.insertRow();
+                Object.values(res).forEach(val => {
+                    row.insertCell().textContent = val;
+                });
+            });
+        }
+
+        function drawGraph() {
+            const container = document.getElementById('mynetwork');
+            
+            const allNodesData = [
+                // Upper ontology
+                {id: "Entity", label: "Entity", shape: "box", color: {background:'#FDD4A0', border: '#c7a87e'}, size: 25},
+                {id: "Continuant", label: "Continuant", shape: "box", color: {background:'#FDD4A0', border: '#c7a87e'}, size: 22},
+                {id: "Occurrent", label: "Occurrent", shape: "box", color: {background:'#FDD4A0', border: '#c7a87e'}, size: 22},
+                
+                // Domain classes
+                {id: "Aircraft", label: "Aircraft", shape: "box", color: {background:'#FFA500', border: '#c78100'}, size: 20},
+                {id: "Person", label: "Person", shape: "box", color: {background:'#FFA500', border: '#c78100'}, size: 20},
+                {id: "RepairProcess", label: "RepairProcess", shape: "box", color: {background:'#FFA500', border: '#c78100'}, size: 20},
+                {id: "TimeInterval", label: "TimeInterval", shape: "box", color: {background:'#FFA500', border: '#c78100'}, size: 20},
+                
+                // People
+                {id: "JohnDoe", label: "John Doe", shape: "dot", color: {background:'#8A2BE2', border: '#6c22b5'}, size: 18},
+                {id: "JaneSmith", label: "Jane Smith", shape: "dot", color: {background:'#8A2BE2', border: '#6c22b5'}, size: 18},
+                {id: "MikeThompson", label: "Mike Thompson", shape: "dot", color: {background:'#8A2BE2', border: '#6c22b5'}, size: 18},
+                {id: "LisaChen", label: "Lisa Chen", shape: "dot", color: {background:'#8A2BE2', border: '#6c22b5'}, size: 18},
+                {id: "DavidRodriguez", label: "David Rodriguez", shape: "dot", color: {background:'#8A2BE2', border: '#6c22b5'}, size: 18},
+                
+                // Aircraft
+                {id: "N737AA", label: "N737AA", shape: "dot", color: {background:'#8A2BE2', border: '#6c22b5'}, size: 22},
+                {id: "N905FR", label: "N905FR", shape: "dot", color: {background:'#8A2BE2', border: '#6c22b5'}, size: 22},
+                {id: "N320DL", label: "N320DL", shape: "dot", color: {background:'#8A2BE2', border: '#6c22b5'}, size: 22},
+                
+                // Dates
+                {id: "Date-01", label: "1-Jan-25", shape: "dot", color: {background:'#9370DB', border: '#7851c9'}, size: 16},
+                {id: "Date-02", label: "1-Feb-25", shape: "dot", color: {background:'#9370DB', border: '#7851c9'}, size: 16},
+                {id: "Date-03", label: "1-Mar-25", shape: "dot", color: {background:'#9370DB', border: '#7851c9'}, size: 16},
+                
+                // Repairs
+                {id: "Repair-01", label: "Repair-01", shape: "dot", color: {background:'#8A2BE2', border: '#6c22b5'}, size: 18},
+                {id: "Repair-02", label: "Repair-02", shape: "dot", color: {background:'#8A2BE2', border: '#6c22b5'}, size: 18},
+                {id: "Repair-03", label: "Repair-03", shape: "dot", color: {background:'#8A2BE2', border: '#6c22b5'}, size: 18},
+                {id: "RepairProcess-S001", label: "RepairProcess-S001", shape: "dot", color: {background:'#8A2BE2', border: '#6c22b5'}, size: 18},
+                {id: "RepairProcess-S002", label: "RepairProcess-S002", shape: "dot", color: {background:'#8A2BE2', border: '#6c22b5'}, size: 18},
+                {id: "RepairProcess-S003", label: "RepairProcess-S003", shape: "dot", color: {background:'#8A2BE2', border: '#6c22b5'}, size: 18}
+            ];
+            
+            const allEdgesData = [
+                // Ontology hierarchy
+                {id: "e1", from: "Continuant", to: "Entity", label: "rdfs:subClassOf", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e2", from: "Occurrent", to: "Entity", label: "rdfs:subClassOf", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e3", from: "Aircraft", to: "Continuant", label: "rdfs:subClassOf", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e4", from: "Person", to: "Continuant", label: "rdfs:subClassOf", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e5", from: "RepairProcess", to: "Occurrent", label: "rdfs:subClassOf", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e6", from: "TimeInterval", to: "Occurrent", label: "rdfs:subClassOf", dashes: true, color: '#808080', arrows: "to"},
+                
+                // Ontology relationships
+                {id: "e7", from: "RepairProcess", to: "Aircraft", label: "has_participant", color: '#DC143C', arrows: "to", width: 2},
+                {id: "e8", from: "RepairProcess", to: "Person", label: "has_participant", color: '#DC143C', arrows: "to", width: 2},
+                {id: "e9", from: "RepairProcess", to: "TimeInterval", label: "occurs_on", color: '#228B22', arrows: "to", width: 2},
+                
+                // Person types
+                {id: "e-johndoe-type", from: "JohnDoe", to: "Person", label: "rdf:type", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e-jane-type", from: "JaneSmith", to: "Person", label: "rdf:type", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e-mike-type", from: "MikeThompson", to: "Person", label: "rdf:type", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e-lisa-type", from: "LisaChen", to: "Person", label: "rdf:type", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e-david-type", from: "DavidRodriguez", to: "Person", label: "rdf:type", dashes: true, color: '#808080', arrows: "to"},
+                
+                // Aircraft types
+                {id: "e-n737aa-type", from: "N737AA", to: "Aircraft", label: "rdf:type", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e-n905fr-type", from: "N905FR", to: "Aircraft", label: "rdf:type", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e-n320dl-type", from: "N320DL", to: "Aircraft", label: "rdf:type", dashes: true, color: '#808080', arrows: "to"},
+                
+                // Date types
+                {id: "e-date01-type", from: "Date-01", to: "TimeInterval", label: "rdf:type", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e-date02-type", from: "Date-02", to: "TimeInterval", label: "rdf:type", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e-date03-type", from: "Date-03", to: "TimeInterval", label: "rdf:type", dashes: true, color: '#808080', arrows: "to"},
+                
+                // Repair types
+                {id: "e-repair01-type", from: "Repair-01", to: "RepairProcess", label: "rdf:type", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e-repair02-type", from: "Repair-02", to: "RepairProcess", label: "rdf:type", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e-repair03-type", from: "Repair-03", to: "RepairProcess", label: "rdf:type", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e-repairs001-type", from: "RepairProcess-S001", to: "RepairProcess", label: "rdf:type", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e-repairs002-type", from: "RepairProcess-S002", to: "RepairProcess", label: "rdf:type", dashes: true, color: '#808080', arrows: "to"},
+                {id: "e-repairs003-type", from: "RepairProcess-S003", to: "RepairProcess", label: "rdf:type", dashes: true, color: '#808080', arrows: "to"},
+                
+                // Repair-01 relationships
+                {id: "e-repair01-johndoe", from: "Repair-01", to: "JohnDoe", label: "has_participant", color: '#DC143C', arrows: "to", width: 2},
+                {id: "e-repair01-n737aa", from: "Repair-01", to: "N737AA", label: "has_participant", color: '#DC143C', arrows: "to", width: 2},
+                {id: "e-repair01-date01", from: "Repair-01", to: "Date-01", label: "occurs_on", color: '#228B22', arrows: "to", width: 2},
+                
+                // Repair-02 relationships
+                {id: "e-repair02-jane", from: "Repair-02", to: "JaneSmith", label: "has_participant", color: '#DC143C', arrows: "to", width: 2},
+                {id: "e-repair02-n905fr", from: "Repair-02", to: "N905FR", label: "has_participant", color: '#DC143C', arrows: "to", width: 2},
+                {id: "e-repair02-date02", from: "Repair-02", to: "Date-02", label: "occurs_on", color: '#228B22', arrows: "to", width: 2},
+                
+                // Repair-03 relationships
+                {id: "e-repair03-johndoe2", from: "Repair-03", to: "JohnDoe", label: "has_participant", color: '#DC143C', arrows: "to", width: 2},
+                {id: "e-repair03-n905fr", from: "Repair-03", to: "N905FR", label: "has_participant", color: '#DC143C', arrows: "to", width: 2},
+                {id: "e-repair03-date03", from: "Repair-03", to: "Date-03", label: "occurs_on", color: '#228B22', arrows: "to", width: 2},
+                
+                // RepairProcess-S001 relationships
+                {id: "e-repairs001-mike", from: "RepairProcess-S001", to: "MikeThompson", label: "has_participant", color: '#DC143C', arrows: "to", width: 2},
+                {id: "e-repairs001-n737aa", from: "RepairProcess-S001", to: "N737AA", label: "has_participant", color: '#DC143C', arrows: "to", width: 2},
+                {id: "e-repairs001-date01", from: "RepairProcess-S001", to: "Date-01", label: "occurs_on", color: '#228B22', arrows: "to", width: 2},
+                
+                // RepairProcess-S002 relationships
+                {id: "e-repairs002-lisa", from: "RepairProcess-S002", to: "LisaChen", label: "has_participant", color: '#DC143C', arrows: "to", width: 2},
+                {id: "e-repairs002-n905fr", from: "RepairProcess-S002", to: "N905FR", label: "has_participant", color: '#DC143C', arrows: "to", width: 2},
+                {id: "e-repairs002-date02", from: "RepairProcess-S002", to: "Date-02", label: "occurs_on", color: '#228B22', arrows: "to", width: 2},
+                
+                // RepairProcess-S003 relationships
+                {id: "e-repairs003-david", from: "RepairProcess-S003", to: "DavidRodriguez", label: "has_participant", color: '#DC143C', arrows: "to", width: 2},
+                {id: "e-repairs003-n320dl", from: "RepairProcess-S003", to: "N320DL", label: "has_participant", color: '#DC143C', arrows: "to", width: 2},
+                {id: "e-repairs003-date03", from: "RepairProcess-S003", to: "Date-03", label: "occurs_on", color: '#228B22', arrows: "to", width: 2}
+            ];
+            
+            nodes = new vis.DataSet(allNodesData);
+            edges = new vis.DataSet(allEdgesData);
+
+            // Save original styles
+            nodes.forEach(node => {
+                originalNodeStyles[node.id] = { 
+                    color: node.color, 
+                    font: node.font || {color: 'black', size: 14},
+                    borderWidth: node.borderWidth || 2
+                };
+            });
+            
+            edges.forEach(edge => {
+                originalEdgeStyles[edge.id] = { 
+                    color: edge.color || '#848484',
+                    width: edge.width || 1.5,
+                    dashes: edge.dashes || false,
+                    arrows: edge.arrows || 'to'
+                };
+            });
+
+            const data = { nodes, edges };
+            const options = {
+                nodes: {
+                    font: { color: 'black', size: 14 },
+                    borderWidth: 2
+                },
+                edges: {
+                    font: { align: 'top', size: 11, color: '#333' },
+                    smooth: { type: 'continuous' }
+                },
+                physics: {
+                    enabled: true,
+                    solver: 'barnesHut',
+                    barnesHut: { 
+                        gravitationalConstant: -15000,
+                        centralGravity: 0.3,
+                        springLength: 180,
+                        springConstant: 0.04
+                    },
+                    stabilization: {
+                        iterations: 1500
+                    }
+                },
+                interaction: {
+                    tooltipDelay: 200,
+                    hideEdgesOnDrag: false,
+                    hover: true
+                }
+            };
+            
+            network = new vis.Network(container, data, options);
+            
+            network.on("stabilizationIterationsDone", function() {
+                network.setOptions({ physics: false });
+            });
+        }
+
+        drawGraph();
+    </script>
+</body>
+</html>
