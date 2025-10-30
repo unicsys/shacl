@@ -1,1 +1,30 @@
+PREFIX ockms: <https://ontologyhub.rtx.com/RTXEnterpriseOntologies/OCKMSDigitalThreadOntology/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX iof-core: <https://spec.industrialontologies.org/ontology/core/Core/>
+PREFIX bfo: <http://purl.obolibrary.org/obo/>
 
+SELECT ?cca ?serial ?partNumber ?revision
+WHERE {
+  ?cca a ockms:CircuitCardAssembly ;
+       rdfs:label ?label .
+  
+  ?ccaId a ockms:CircuitCardAssemblyIdentifier ;
+         iof-core:designates ?cca ;
+         ockms:hasTextValue ?serial .
+  
+  ?designRev a ockms:CircuitCardAssemblyDesignRevision ;
+             iof-core:prescribes ?cca ;
+             rdfs:label ?revLabel .
+  
+  ?design a ockms:CircuitCardAssemblyDesign ;
+          bfo:BFO_0000110 ?designRev .
+  
+  ?designId a ockms:CircuitCardAssemblyDesignIdentifier ;
+            iof-core:designates ?design ;
+            ockms:hasTextValue ?partNumber .
+  
+  ?revId a ockms:CircuitCardAssemblyDesignRevisionIdentifier ;
+         iof-core:designates ?designRev ;
+         ockms:hasTextValue ?revision .
+}
+ORDER BY ?partNumber ?revision ?serial
