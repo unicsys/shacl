@@ -1,1 +1,638 @@
+"""
+OCKMS Knowledge Graph Builder - Complete
+Phase 1: FndByIPT, FndByWC
+Phase 2: 1stLevelMaterial, 1stLevelSerial, 1RevisionLevel
+Phase 3: Defects, Components, Locations, Person, Inspection, Temporal
+"""
 
+import csv
+import re
+from datetime import datetime
+from rdflib import Graph, Namespace, RDF, RDFS, Literal, URIRef, XSD
+
+
+class KnowledgeGraphBuilder:
+    """Build knowledge graph from CSV using existing ontology."""
+    
+    def __init__(self, ontology_file: str):
+        """Initialize with ontology file."""
+        self.graph = Graph()
+        self.graph.parse(ontology_file, format='turtle')
+        print(f"✓ Loaded ontology: {len(self.graph)} triples\n")
+        
+        # Namespaces
+        self.DATA = Namespace("https://ontologyhub.rtx.com/ockms-instances/")
+        self.OCKMS = Namespace("https://ontologyhub.rtx.com/RTXEnterpriseOntologies/OCKMSDigitalThreadOntology/")
+        self.BFO = Namespace("http://purl.obolibrary.org/obo/")
+        self.IOF = Namespace("https://spec.industrialontologies.org/ontology/core/Core/")
+        
+        # Bind prefixes
+        self.graph.bind("", self.DATA)
+        self.graph.bind("ockms", self.OCKMS)
+        self.graph.bind("bfo", self.BFO)
+        self.graph.bind("iof-core", self.IOF)
+        self.graph.bind("xsd", XSD)
+        
+        # Classes - Phase 1
+        self.IntegratedProductTeam = self.OCKMS.IntegratedProductTeam
+        self.IntegratedProductTeamIdentifier = self.OCKMS.IntegratedProductTeamIdentifier
+        self.WorkCenterTeam = self.OCKMS.WorkCenterTeam
+        self.WorkCenterTeamIdentifier = self.OCKMS.WorkCenterTeamIdentifier
+        
+        # Classes - Phase 2
+        self.CircuitCardAssembly = self.OCKMS.CircuitCardAssembly
+        self.CircuitCardAssemblyIdentifier = self.OCKMS.CircuitCardAssemblyIdentifier
+        self.CircuitCardAssemblyDesign = self.OCKMS.CircuitCardAssemblyDesign
+        self.CircuitCardAssemblyDesignIdentifier = self.OCKMS.CircuitCardAssemblyDesignIdentifier
+        self.CircuitCardAssemblyDesignRevision = self.OCKMS.CircuitCardAssemblyDesignRevision
+        self.CircuitCardAssemblyDesignRevisionIdentifier = self.OCKMS.CircuitCardAssemblyDesignRevisionIdentifier
+        
+        # Classes - Phase 3
+        self.ElectronicComponent = self.OCKMS.ElectronicComponent
+        self.ElectronicComponentDesign = self.OCKMS.ElectronicComponentDesign
+        self.ElectronicComponentDesignIdentifier = self.OCKMS.ElectronicComponentDesignIdentifier
+        self.ElectronicComponentLocation = self.OCKMS.ElectronicComponentLocation
+        self.ReferenceDesignator = self.OCKMS.ReferenceDesignator
+        self.Defect = self.OCKMS.Defect
+        self.DefectClassificationCode = self.OCKMS.DefectClassificationCode
+        self.DefectClassificationDescription = self.OCKMS.DefectClassificationDescription
+        self.InspectionProcess = self.OCKMS.InspectionProcess
+        self.InspectionProcessIdentifier = self.OCKMS.InspectionProcessIdentifier
+        self.DefectRecordingProcess = self.OCKMS.DefectRecordingProcess
+        self.Person = self.IOF.Person
+        self.TemporalInstant = self.BFO.BFO_0000203
+        self.TemporalInstantValueExpression = self.IOF.TemporalInstantValueExpression
+        
+        # Object Properties
+        self.designates = self.IOF.designates
+        self.prescribes = self.IOF.prescribes
+        self.describes = self.IOF.describes
+        self.hasContinuantPartAtAllTimes = self.BFO.BFO_0000110
+        self.locatedInAtSomeTime = self.BFO.BFO_0000171
+        self.bearerOf = self.BFO.BFO_0000196
+        self.hasParticipantAtSomeTime = self.BFO.BFO_0000057
+        self.participatesInAtSomeTime = self.BFO.BFO_0000056
+        self.occurrentPartOf = self.BFO.BFO_0000132
+        self.occupiesTemporalRegion = self.BFO.BFO_0000199
+        self.hasSpecifiedOutput = self.IOF.hasSpecifiedOutput
+        self.isValueExpressionOfAtSomeTime = self.IOF.isValueExpressionOfAtSomeTime
+        
+        # Data Properties
+        self.hasTextValue = self.OCKMS.hasTextValue
+        self.hasIntegerValue = self.OCKMS.hasIntegerValue
+        self.hasDateTimeInstantValue = self.IOF.hasDateTimeInstantValue
+        
+        # Track created entities
+        self.created = set()
+    
+    def clean_iri_part(self, value: str) -> str:
+        """Clean value for IRI."""
+        if not value:
+            return "EMPTY"
+        return str(value).strip().replace(' ', '_').replace('/', '_').replace(':', '').replace('-', '_')
+    
+    def format_datetime_iri(self, date_str: str, time_str: str) -> str:
+        """Format date and time for IRI (YYYYMMDD_HHMMSS)."""
+        try:
+            date_parts = date_str.split('/')
+            month = date_parts[0].zfill(2)
+            day = date_parts[1].zfill(2)
+            year = date_parts[2]
+            
+            time_parts = time_str.split(':')
+            hour = time_parts[0].zfill(2)
+            minute = time_parts[1].zfill(2)
+            second = time_parts[2].zfill(2)
+            
+            return f"{year}{month}{day}_{hour}{minute}{second}"
+        except:
+            return "19700101_000000"
+    
+    def format_datetime_xsd(self, date_str: str, time_str: str) -> Literal:
+        """Format date and time as xsd:dateTime."""
+        try:
+            date_parts = date_str.split('/')
+            month = date_parts[0].zfill(2)
+            day = date_parts[1].zfill(2)
+            year = date_parts[2]
+            
+            time_parts = time_str.split(':')
+            hour = time_parts[0].zfill(2)
+            minute = time_parts[1].zfill(2)
+            second = time_parts[2].zfill(2)
+            
+            datetime_str = f"{year}-{month}-{day}T{hour}:{minute}:{second}"
+            return Literal(datetime_str, datatype=XSD.dateTime)
+        except:
+            return Literal("1970-01-01T00:00:00", datatype=XSD.dateTime)
+    
+    def parse_refdes_from_description(self, description: str, primary_refdes: str, expected_qty: int) -> list:
+        """Parse reference designators from description field."""
+        if not description or not isinstance(description, str) or description.strip() == '':
+            if expected_qty == 1:
+                return [primary_refdes.upper()]
+            else:
+                refdes_list = [primary_refdes.upper()]
+                for i in range(1, expected_qty):
+                    refdes_list.append(f"UNKNOWN_{i:02d}")
+                return refdes_list
+        
+        # Clean up: remove spaces within numbers
+        cleaned = re.sub(r'(\d)\s+(\d)', r'\1\2', description)
+        
+        # Find all patterns: letter+digits or just digits
+        matches = re.findall(r'[A-Z]?\d+', cleaned, re.IGNORECASE)
+        
+        # Normalize
+        refdes_list = []
+        for match in matches:
+            match_upper = match.upper()
+            if match_upper[0].isalpha():
+                refdes_list.append(match_upper)
+            else:
+                # Add prefix from primary RefDes
+                prefix = primary_refdes[0] if primary_refdes and primary_refdes[0].isalpha() else 'R'
+                refdes_list.append(f"{prefix}{match}")
+        
+        # Remove duplicates
+        refdes_list = list(dict.fromkeys(refdes_list))
+        
+        # Ensure primary is included
+        primary_upper = primary_refdes.upper()
+        if primary_upper not in refdes_list:
+            refdes_list.insert(0, primary_upper)
+        
+        # Fill unknowns if needed
+        if len(refdes_list) < expected_qty:
+            num_unknowns = expected_qty - len(refdes_list)
+            for i in range(1, num_unknowns + 1):
+                refdes_list.append(f"UNKNOWN_{i:02d}")
+        
+        return refdes_list[:expected_qty]
+    
+    # ========================================================================
+    # Phase 1: IPT and Work Center
+    # ========================================================================
+    
+    def add_ipt(self, ipt_code: str) -> URIRef:
+        """Create Integrated Product Team + Identifier."""
+        ipt_iri = URIRef(f"{self.DATA}IntegratedProductTeam/{self.clean_iri_part(ipt_code)}")
+        ipt_id_iri = URIRef(f"{self.DATA}IntegratedProductTeamIdentifier/{self.clean_iri_part(ipt_code)}")
+        
+        if ipt_iri in self.created:
+            return ipt_iri
+        
+        self.graph.add((ipt_iri, RDF.type, self.IntegratedProductTeam))
+        self.graph.add((ipt_iri, RDFS.label, Literal(f"{ipt_code} IPT")))
+        
+        self.graph.add((ipt_id_iri, RDF.type, self.IntegratedProductTeamIdentifier))
+        self.graph.add((ipt_id_iri, RDFS.label, Literal(f"IPT Code {ipt_code}")))
+        self.graph.add((ipt_id_iri, self.designates, ipt_iri))
+        self.graph.add((ipt_id_iri, self.hasTextValue, Literal(ipt_code)))
+        
+        self.created.add(ipt_iri)
+        self.created.add(ipt_id_iri)
+        return ipt_iri
+    
+    def add_work_center(self, ipt_code: str, wc_code: str) -> URIRef:
+        """Create Work Center Team + Identifier."""
+        wc_iri = URIRef(f"{self.DATA}WorkCenterTeam/{self.clean_iri_part(ipt_code)}_{self.clean_iri_part(wc_code)}")
+        wc_id_iri = URIRef(f"{self.DATA}WorkCenterTeamIdentifier/{self.clean_iri_part(ipt_code)}_{self.clean_iri_part(wc_code)}")
+        
+        if wc_iri in self.created:
+            return wc_iri
+        
+        ipt_iri = self.add_ipt(ipt_code)
+        
+        self.graph.add((wc_iri, RDF.type, self.WorkCenterTeam))
+        self.graph.add((wc_iri, RDFS.label, Literal(wc_code)))
+        
+        self.graph.add((wc_id_iri, RDF.type, self.WorkCenterTeamIdentifier))
+        self.graph.add((wc_id_iri, RDFS.label, Literal(f"WC Code {wc_code}")))
+        self.graph.add((wc_id_iri, self.designates, wc_iri))
+        self.graph.add((wc_id_iri, self.hasTextValue, Literal(wc_code)))
+        
+        self.graph.add((ipt_iri, self.hasContinuantPartAtAllTimes, wc_iri))
+        
+        self.created.add(wc_iri)
+        self.created.add(wc_id_iri)
+        return wc_iri
+    
+    # ========================================================================
+    # Phase 2: CCA Design, Revision, Instance
+    # ========================================================================
+    
+    def add_cca_design(self, part_number: str) -> URIRef:
+        """Create CCA Design + Identifier."""
+        design_iri = URIRef(f"{self.DATA}CircuitCardAssemblyDesign/{self.clean_iri_part(part_number)}")
+        design_id_iri = URIRef(f"{self.DATA}CircuitCardAssemblyDesignIdentifier/{self.clean_iri_part(part_number)}")
+        
+        if design_iri in self.created:
+            return design_iri
+        
+        self.graph.add((design_iri, RDF.type, self.CircuitCardAssemblyDesign))
+        self.graph.add((design_iri, RDFS.label, Literal(f"CCA Design {part_number}")))
+        
+        self.graph.add((design_id_iri, RDF.type, self.CircuitCardAssemblyDesignIdentifier))
+        self.graph.add((design_id_iri, RDFS.label, Literal(f"Part Number {part_number}")))
+        self.graph.add((design_id_iri, self.designates, design_iri))
+        self.graph.add((design_id_iri, self.hasTextValue, Literal(part_number)))
+        
+        self.created.add(design_iri)
+        self.created.add(design_id_iri)
+        return design_iri
+    
+    def add_cca_revision(self, part_number: str, revision: str) -> URIRef:
+        """Create CCA Design Revision + Identifier."""
+        revision_iri = URIRef(f"{self.DATA}CircuitCardAssemblyDesignRevision/{self.clean_iri_part(part_number)}_{self.clean_iri_part(revision)}")
+        revision_id_iri = URIRef(f"{self.DATA}CircuitCardAssemblyDesignRevisionIdentifier/{self.clean_iri_part(part_number)}_{self.clean_iri_part(revision)}")
+        
+        if revision_iri in self.created:
+            return revision_iri
+        
+        design_iri = self.add_cca_design(part_number)
+        
+        self.graph.add((revision_iri, RDF.type, self.CircuitCardAssemblyDesignRevision))
+        self.graph.add((revision_iri, RDFS.label, Literal(f"CCA Design {part_number} Rev {revision}")))
+        
+        self.graph.add((revision_id_iri, RDF.type, self.CircuitCardAssemblyDesignRevisionIdentifier))
+        self.graph.add((revision_id_iri, RDFS.label, Literal(f"Revision {revision}")))
+        self.graph.add((revision_id_iri, self.designates, revision_iri))
+        self.graph.add((revision_id_iri, self.hasTextValue, Literal(revision)))
+        
+        self.graph.add((design_iri, self.hasContinuantPartAtAllTimes, revision_iri))
+        
+        self.created.add(revision_iri)
+        self.created.add(revision_id_iri)
+        return revision_iri
+    
+    def add_cca_instance(self, part_number: str, revision: str, serial_number: str) -> URIRef:
+        """Create CCA Instance + Identifier."""
+        cca_iri = URIRef(f"{self.DATA}CircuitCardAssembly/{self.clean_iri_part(part_number)}_{self.clean_iri_part(revision)}_{self.clean_iri_part(serial_number)}")
+        cca_id_iri = URIRef(f"{self.DATA}CircuitCardAssemblyIdentifier/{self.clean_iri_part(serial_number)}")
+        
+        if cca_iri in self.created:
+            return cca_iri
+        
+        design_iri = self.add_cca_design(part_number)
+        revision_iri = self.add_cca_revision(part_number, revision)
+        
+        self.graph.add((cca_iri, RDF.type, self.CircuitCardAssembly))
+        self.graph.add((cca_iri, RDFS.label, Literal(f"CCA S/N {serial_number}")))
+        
+        self.graph.add((cca_id_iri, RDF.type, self.CircuitCardAssemblyIdentifier))
+        self.graph.add((cca_id_iri, RDFS.label, Literal(f"Serial Number {serial_number}")))
+        self.graph.add((cca_id_iri, self.designates, cca_iri))
+        self.graph.add((cca_id_iri, self.hasTextValue, Literal(serial_number)))
+        
+        self.graph.add((revision_iri, self.prescribes, cca_iri))
+        
+        self.created.add(cca_iri)
+        self.created.add(cca_id_iri)
+        return cca_iri
+    
+    # ========================================================================
+    # Phase 3: Components, Locations
+    # ========================================================================
+    
+    def add_component_design(self, component_part: str) -> URIRef:
+        """Create Electronic Component Design + Identifier."""
+        design_iri = URIRef(f"{self.DATA}ElectronicComponentDesign/{self.clean_iri_part(component_part)}")
+        design_id_iri = URIRef(f"{self.DATA}ElectronicComponentDesignIdentifier/{self.clean_iri_part(component_part)}")
+        
+        if design_iri in self.created:
+            return design_iri
+        
+        self.graph.add((design_iri, RDF.type, self.ElectronicComponentDesign))
+        self.graph.add((design_iri, RDFS.label, Literal(f"Component Design {component_part}")))
+        
+        self.graph.add((design_id_iri, RDF.type, self.ElectronicComponentDesignIdentifier))
+        self.graph.add((design_id_iri, RDFS.label, Literal(f"Component P/N {component_part}")))
+        self.graph.add((design_id_iri, self.designates, design_iri))
+        self.graph.add((design_id_iri, self.hasTextValue, Literal(component_part)))
+        
+        self.created.add(design_iri)
+        self.created.add(design_id_iri)
+        return design_iri
+    
+    def add_component_location(self, cca_part: str, refdes: str) -> URIRef:
+        """Create Electronic Component Location + Reference Designator."""
+        location_iri = URIRef(f"{self.DATA}ElectronicComponentLocation/{self.clean_iri_part(cca_part)}_{self.clean_iri_part(refdes)}")
+        refdes_iri = URIRef(f"{self.DATA}ReferenceDesignator/{self.clean_iri_part(cca_part)}_{self.clean_iri_part(refdes)}")
+        
+        if location_iri in self.created:
+            return location_iri
+        
+        self.graph.add((location_iri, RDF.type, self.ElectronicComponentLocation))
+        self.graph.add((location_iri, RDFS.label, Literal(f"Location {refdes} on {cca_part}")))
+        
+        self.graph.add((refdes_iri, RDF.type, self.ReferenceDesignator))
+        self.graph.add((refdes_iri, RDFS.label, Literal(f"RefDes {refdes}")))
+        self.graph.add((refdes_iri, self.designates, location_iri))
+        self.graph.add((refdes_iri, self.hasTextValue, Literal(refdes)))
+        
+        self.created.add(location_iri)
+        self.created.add(refdes_iri)
+        return location_iri
+    
+    def add_electronic_component(self, cca_serial: str, refdes: str, component_part: str, cca_part: str) -> URIRef:
+        """Create Electronic Component instance."""
+        component_iri = URIRef(f"{self.DATA}ElectronicComponent/{self.clean_iri_part(cca_part)}_{self.clean_iri_part(cca_serial)}_{self.clean_iri_part(refdes)}_{self.clean_iri_part(component_part)}")
+        
+        if component_iri in self.created:
+            return component_iri
+        
+        design_iri = self.add_component_design(component_part)
+        location_iri = self.add_component_location(cca_part, refdes)
+        
+        self.graph.add((component_iri, RDF.type, self.ElectronicComponent))
+        self.graph.add((component_iri, RDFS.label, Literal(f"Component {component_part} at {refdes}")))
+        
+        self.graph.add((design_iri, self.prescribes, component_iri))
+        self.graph.add((component_iri, self.locatedInAtSomeTime, location_iri))
+        
+        self.created.add(component_iri)
+        return component_iri
+    
+    # ========================================================================
+    # Phase 3: Person, Inspection, Temporal, Defects
+    # ========================================================================
+    
+    def add_person(self, person_code: str) -> URIRef:
+        """Create Person + Identifier."""
+        person_iri = URIRef(f"{self.DATA}Person/{self.clean_iri_part(person_code)}")
+        person_id_iri = URIRef(f"{self.DATA}PersonIdentifier/{self.clean_iri_part(person_code)}")
+        
+        if person_iri in self.created:
+            return person_iri
+        
+        self.graph.add((person_iri, RDF.type, self.Person))
+        self.graph.add((person_iri, RDFS.label, Literal(f"Person {person_code}")))
+        
+        self.graph.add((person_id_iri, RDF.type, self.IOF.Identifier))
+        self.graph.add((person_id_iri, RDFS.label, Literal(f"Person ID {person_code}")))
+        self.graph.add((person_id_iri, self.designates, person_iri))
+        self.graph.add((person_id_iri, self.hasTextValue, Literal(person_code)))
+        
+        self.created.add(person_iri)
+        self.created.add(person_id_iri)
+        return person_iri
+    
+    def add_inspection_process(self, insp_lot: str, component_iris: list) -> URIRef:
+        """Create Inspection Process + Identifier."""
+        insp_iri = URIRef(f"{self.DATA}InspectionProcess/{self.clean_iri_part(insp_lot)}")
+        insp_id_iri = URIRef(f"{self.DATA}InspectionProcessIdentifier/{self.clean_iri_part(insp_lot)}")
+        
+        if insp_iri in self.created:
+            return insp_iri
+        
+        self.graph.add((insp_iri, RDF.type, self.InspectionProcess))
+        self.graph.add((insp_iri, RDFS.label, Literal(f"Inspection {insp_lot}")))
+        
+        self.graph.add((insp_id_iri, RDF.type, self.InspectionProcessIdentifier))
+        self.graph.add((insp_id_iri, RDFS.label, Literal(f"Inspection Lot {insp_lot}")))
+        self.graph.add((insp_id_iri, self.designates, insp_iri))
+        self.graph.add((insp_id_iri, self.hasTextValue, Literal(insp_lot)))
+        
+        # Inspection has components as participants
+        for comp_iri in component_iris:
+            self.graph.add((insp_iri, self.hasParticipantAtSomeTime, comp_iri))
+        
+        self.created.add(insp_iri)
+        self.created.add(insp_id_iri)
+        return insp_iri
+    
+    def add_temporal_instant(self, date_str: str, time_str: str) -> tuple:
+        """Create Temporal Instant + Value Expression."""
+        datetime_iri_str = self.format_datetime_iri(date_str, time_str)
+        instant_iri = URIRef(f"{self.DATA}TemporalInstant/{datetime_iri_str}")
+        value_iri = URIRef(f"{self.DATA}TemporalInstantValueExpression/{datetime_iri_str}")
+        
+        if instant_iri in self.created:
+            return instant_iri, value_iri
+        
+        # Temporal Instant
+        self.graph.add((instant_iri, RDF.type, self.TemporalInstant))
+        self.graph.add((instant_iri, RDFS.label, Literal(f"Instant {datetime_iri_str}")))
+        
+        # Value Expression
+        datetime_literal = self.format_datetime_xsd(date_str, time_str)
+        self.graph.add((value_iri, RDF.type, self.TemporalInstantValueExpression))
+        self.graph.add((value_iri, self.hasDateTimeInstantValue, datetime_literal))
+        self.graph.add((value_iri, self.isValueExpressionOfAtSomeTime, instant_iri))
+        
+        self.created.add(instant_iri)
+        self.created.add(value_iri)
+        return instant_iri, value_iri
+    
+    def add_defect_classification(self, defect_code: str, defect_description: str) -> tuple:
+        """Create Defect Classification Code + Description."""
+        code_iri = URIRef(f"{self.DATA}DefectClassificationCode/{self.clean_iri_part(defect_code)}")
+        desc_iri = URIRef(f"{self.DATA}DefectClassificationDescription/{self.clean_iri_part(defect_code)}")
+        
+        if code_iri in self.created:
+            return code_iri, desc_iri
+        
+        self.graph.add((code_iri, RDF.type, self.DefectClassificationCode))
+        self.graph.add((code_iri, RDFS.label, Literal(f"Defect Code {defect_code}")))
+        self.graph.add((code_iri, self.hasTextValue, Literal(defect_code)))
+        
+        self.graph.add((desc_iri, RDF.type, self.DefectClassificationDescription))
+        self.graph.add((desc_iri, RDFS.label, Literal(defect_description)))
+        self.graph.add((desc_iri, self.hasTextValue, Literal(defect_description)))
+        
+        self.graph.add((code_iri, self.designates, desc_iri))
+        
+        self.created.add(code_iri)
+        self.created.add(desc_iri)
+        return code_iri, desc_iri
+    
+    def add_defect_recording_process(self, person_iri: URIRef, insp_iri: URIRef, 
+                                     instant_iri: URIRef, desc_iri: URIRef,
+                                     insp_lot: str, datetime_iri_str: str) -> URIRef:
+        """Create Defect Recording Process."""
+        recording_iri = URIRef(f"{self.DATA}DefectRecordingProcess/{datetime_iri_str}_InspLot_{self.clean_iri_part(insp_lot)}")
+        
+        if recording_iri in self.created:
+            return recording_iri
+        
+        self.graph.add((recording_iri, RDF.type, self.DefectRecordingProcess))
+        self.graph.add((recording_iri, RDFS.label, Literal(f"Defect Recording {datetime_iri_str}")))
+        
+        # Has participant: Person
+        self.graph.add((recording_iri, self.hasParticipantAtSomeTime, person_iri))
+        
+        # Occurrent part of: Inspection Process
+        self.graph.add((recording_iri, self.occurrentPartOf, insp_iri))
+        
+        # Occupies temporal region: Temporal Instant
+        self.graph.add((recording_iri, self.occupiesTemporalRegion, instant_iri))
+        
+        # Has specified output: Defect Classification Description
+        self.graph.add((recording_iri, self.hasSpecifiedOutput, desc_iri))
+        
+        # Description describes the process
+        self.graph.add((desc_iri, self.describes, recording_iri))
+        
+        self.created.add(recording_iri)
+        return recording_iri
+    
+    def add_defect(self, cca_part: str, cca_serial: str, refdes: str, component_part: str,
+                   defect_code: str, date_str: str, time_str: str, defect_qty: int) -> URIRef:
+        """Create Defect instance."""
+        datetime_str = self.format_datetime_iri(date_str, time_str)
+        defect_iri = URIRef(f"{self.DATA}Defect/{self.clean_iri_part(cca_part)}_{self.clean_iri_part(cca_serial)}_{self.clean_iri_part(refdes)}_{self.clean_iri_part(component_part)}_{self.clean_iri_part(defect_code)}_{datetime_str}")
+        
+        if defect_iri in self.created:
+            return defect_iri
+        
+        # Ensure component exists
+        component_iri = self.add_electronic_component(cca_serial, refdes, component_part, cca_part)
+        
+        self.graph.add((defect_iri, RDF.type, self.Defect))
+        self.graph.add((defect_iri, RDFS.label, Literal(f"Defect {defect_code} on {refdes}")))
+        self.graph.add((defect_iri, self.hasIntegerValue, Literal(defect_qty, datatype=XSD.integer)))
+        
+        # Component bearer of Defect
+        self.graph.add((component_iri, self.bearerOf, defect_iri))
+        
+        self.created.add(defect_iri)
+        return defect_iri
+    
+    def process_defects(self, row: dict):
+        """Process all defects for a row."""
+        # Extract data
+        cca_part = row['1stLevelMaterial']
+        cca_serial = row['1stLevelSerial']
+        primary_refdes = row['RefDesigDescription']
+        component_part = row['FailedComponent']
+        defect_code = row['DefCode']
+        defect_desc = row.get('DefCodeDescription', '')
+        defect_qty = int(row.get('DefQty', 1))
+        date_str = row['CreatedOn']
+        time_str = row['CreatTime']
+        description = row.get('Defect Description/In struction', '')
+        person_code = row.get('CreaBy', 'UNKNOWN')
+        insp_lot = row.get('InspLot#', 'UNKNOWN')
+        
+        # Parse RefDes list
+        refdes_list = self.parse_refdes_from_description(description, primary_refdes, defect_qty)
+        
+        # Create all electronic components first (they're participants in inspection)
+        component_iris = []
+        for refdes in refdes_list:
+            comp_iri = self.add_electronic_component(cca_serial, refdes, component_part, cca_part)
+            component_iris.append(comp_iri)
+        
+        # Create person
+        person_iri = self.add_person(person_code)
+        
+        # Create inspection process (with all components as participants)
+        insp_iri = self.add_inspection_process(insp_lot, component_iris)
+        
+        # Create temporal instant
+        datetime_iri_str = self.format_datetime_iri(date_str, time_str)
+        instant_iri, value_iri = self.add_temporal_instant(date_str, time_str)
+        
+        # Create defect classification
+        code_iri, desc_iri = self.add_defect_classification(defect_code, defect_desc)
+        
+        # Create defect recording process
+        recording_iri = self.add_defect_recording_process(
+            person_iri, insp_iri, instant_iri, desc_iri, insp_lot, datetime_iri_str
+        )
+        
+        # Create defects (one per RefDes)
+        for refdes in refdes_list:
+            defect_iri = self.add_defect(
+                cca_part, cca_serial, refdes, component_part,
+                defect_code, date_str, time_str, defect_qty
+            )
+            
+            # Description describes each defect
+            self.graph.add((desc_iri, self.describes, defect_iri))
+    
+    # ========================================================================
+    # CSV Processing
+    # ========================================================================
+    
+    def process_csv(self, csv_file: str, phase: int = 3):
+        """Process CSV - choose phase."""
+        print(f"Processing: {csv_file}\n")
+        
+        with open(csv_file, 'r', encoding='utf-8-sig') as f:
+            reader = csv.DictReader(f)
+            
+            row_count = 0
+            for row in reader:
+                if phase >= 1:
+                    self.add_ipt(row['FndByIPT'])
+                    self.add_work_center(row['FndByIPT'], row['FndByWC'])
+                
+                if phase >= 2:
+                    self.add_cca_design(row['1stLevelMaterial'])
+                    self.add_cca_revision(row['1stLevelMaterial'], row['1RevisionLevel'])
+                    self.add_cca_instance(row['1stLevelMaterial'], row['1RevisionLevel'], row['1stLevelSerial'])
+                
+                if phase >= 3:
+                    self.process_defects(row)
+                
+                row_count += 1
+                if row_count % 100 == 0:
+                    print(f"  Processed {row_count} rows...")
+        
+        print(f"✓ Complete! Processed {row_count} rows")
+        print(f"✓ Total triples: {len(self.graph)}")
+        print(f"✓ Entities created: {len(self.created)}\n")
+    
+    def save(self, output_file: str, data_only: bool = True):
+        """Save graph to file."""
+        if data_only:
+            data_graph = Graph()
+            data_graph.bind("", self.DATA)
+            data_graph.bind("ockms", self.OCKMS)
+            data_graph.bind("bfo", self.BFO)
+            data_graph.bind("iof-core", self.IOF)
+            data_graph.bind("rdfs", RDFS)
+            data_graph.bind("xsd", XSD)
+            
+            for entity_iri in self.created:
+                for s, p, o in self.graph.triples((entity_iri, None, None)):
+                    data_graph.add((s, p, o))
+            
+            data_graph.serialize(destination=output_file, format='turtle')
+            print(f"✓ Saved to: {output_file}")
+            print(f"  Data triples: {len(data_graph)}")
+        else:
+            self.graph.serialize(destination=output_file, format='turtle')
+            print(f"✓ Saved to: {output_file}")
+
+
+# ============================================================================
+# Main Function
+# ============================================================================
+
+def main():
+    ontology_file = "Ontology.ttl"
+    csv_file = "exampletable.csv"
+    output_file = "output_data_complete.ttl"
+    
+    print("=" * 80)
+    print("OCKMS Knowledge Graph Builder - Complete")
+    print("Phase 1: FndByIPT, FndByWC")
+    print("Phase 2: 1stLevelMaterial, 1stLevelSerial, 1RevisionLevel")
+    print("Phase 3: Defects, Components, Person, Inspection, Temporal")
+    print("=" * 80 + "\n")
+    
+    builder = KnowledgeGraphBuilder(ontology_file)
+    builder.process_csv(csv_file, phase=3)
+    
+    builder.save(output_file, data_only=True)
+    
+    print("\n" + "=" * 80)
+    print("Done! Check output_data_complete.ttl")
+    print("=" * 80)
+
+
+if __name__ == "__main__":
+    main()
