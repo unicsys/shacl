@@ -1,1 +1,5 @@
+I’m working on ontology and knowledge graph development. We plan to store the QIF analysis data in the knowledge graph, and then pull that data through REST APIs to present it on a dashboard or user interface.
 
+Danny mentioned that the user interface will be integrated within Teamcenter. I wanted to ask — are there any existing apps or tools in Teamcenter that allow running APIs to pull data from external systems and build such a UI?
+
+Mendix availability: Do we have a Mendix license and the Teamcenter Extension/Connector enabled? Will we surface the Mendix app inside AW or via link?
