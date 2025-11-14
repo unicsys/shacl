@@ -1,1 +1,170 @@
+import pandas as pd
+import re
 
+# ============================================================================
+# CONFIGURATION
+# ============================================================================
+INPUT_FILE = "quality_notifications.csv"
+OUTPUT_FILE = "quality_notifications_classified.csv"
+TEXT_COLUMN = "LONG_TEXT"
+MAX_EVIDENCE_EXAMPLES = 5
+
+
+# ============================================================================
+# CONTEXTUAL EXCLUSION HELPERS
+# ============================================================================
+def is_date_pattern(text, match_start, match_end):
+    context = text[max(0, match_start - 15) : min(len(text), match_end + 15)]
+    date_patterns = [r'\d{1,2}/\d{1,2}/\d{2,4}', r'\d{1,2}-\d{1,2}-\d{2,4}', r'\d{4}-\d{1,2}-\d{1,2}']
+    return any(re.search(p, context) for p in date_patterns)
+
+def is_part_number_pattern(text, match_start, match_end):
+    context = text[max(0, match_start - 25) : min(len(text), match_end + 5)]
+    part_indicators = [r'Part\s+No\.?:?\s*', r'P/N:?\s*', r'Part\s+Sn\s*\(s\):?\s*', r'Material:?\s*', r'Eng\.\s*Part\s*No\.?:?\s*', r'Drawing:?\s*', r'Dwg:?\s*']
+    return any(re.search(indicator, context, re.IGNORECASE) for indicator in part_indicators)
+
+def is_section_or_clause_number(text, match_start, match_end):
+    context = text[max(0, match_start - 25) : min(len(text), match_end + 5)]
+    section_indicators = [r'Section\s+', r'Clause\s+', r'Para\.?\s+', r'Paragraph\s+', r'Article\s+', r'Chapter\s+', r'Page\s+', r'Sheet\s+', r'Sht#?\s+']
+    return any(re.search(indicator, context, re.IGNORECASE) for indicator in section_indicators)
+
+def is_material_grade_context(text, match_start, match_end):
+    context = text[max(0, match_start - 30) : min(len(text), match_end + 5)]
+    grade_indicators = [r'[Gg]rade\s+', r'[Cc]lass\s+', r'[Pp]roperty\s+[Cc]lass\s+', r'ISO\s+[Cc]lass\s+', r'Type\s+', r'[Aa]lloy\s+']
+    return any(re.search(indicator, context, re.IGNORECASE) for indicator in grade_indicators)
+
+def is_standard_part(text, match_start, match_end):
+    context = text[max(0, match_start - 35) : min(len(text), match_end + 5)]
+    standard_pattern = r'\b(?:ISO|ASTM|MIL-STD|SAE|AMS|ASME|IEEE|DIN|EN|BS|ENG-STD)\s*[-\s]?\d+'
+    return re.search(standard_pattern, context, re.IGNORECASE)
+
+
+# ============================================================================
+# CLASSIFICATION RULES
+# ============================================================================
+def get_classifier_definitions():
+    units = [
+        r'mm', r'cm', r'meters?', r'm\b', r'km', r'inches?', r'in\b', r'feet', r'ft\b', r'yards?', r'yd', r'mils?', r'mil\b',
+        r'kg', r'grams?', r'g\b', r'mg', r'pounds?', r'lbs?', r'lb\b', r'oz', r'tons?', r'N\b', r'kN', r'lbf', r'kgf',
+        r'psi', r'psig', r'kPa', r'MPa', r'GPa', r'Pa\b', r'bar', r'mbar', r'°C', r'°F', r'K\b', r'deg\s*C', r'deg\s*F', r'degrees?\s*[CF]',
+        r'seconds?', r'sec\b', r'minutes?', r'min\b', r'hours?', r'hrs?', r'hr\b', r'days?', r'rpm', r'Hz', r'kHz', r'MHz', r'GHz',
+        r'volts?', r'V\b', r'amps?', r'amperes?', r'A\b', r'watts?', r'W\b', r'kW', r'MW', r'ohms?', r'Ω', r'mA', r'μA',
+        r'Nm', r'N-m', r'ft-lbs?', r'lb-ft', r'ksi', r'Mpa', r'Ra', r'Rz', r'μin', r'micro-?inch'
+    ]
+    units_pattern = '|'.join(units)
+
+    classifiers = [
+        ('material_grades', r'\b(?:6061|7075|2024|4130|304|316|17-4|15-5)(?:[-\s]?(?:T[0-9]|H\d+|PH|L))?\b|\b(?:A325|A490|A193|A320)\b|\b(?:property\s+)?(?:ISO\s+)?(?:[Gg]rade|[Cc]lass)\s+\d+\.?\d*\b', []),
+        ('decimal_numbers', r'\b\d+\.\d+\b', [is_section_or_clause_number, is_material_grade_context, is_date_pattern, is_part_number_pattern]),
+        ('numbers_with_units', rf'\b\d+(?:\.\d+)?\s*(?:{units_pattern})\b', [is_date_pattern]),
+        ('tolerances', r'(?:±|\+/-|\+-)\s*\d+(?:\.\d+)?(?:\s*(?:mm|cm|m|in|inch|%|degrees?|deg|°))?', [is_date_pattern]),
+        ('standard_specs', r'\b(?:ISO|ASTM|MIL-STD|MIL-SPEC|AMS|SAE|ASME|IEEE|IEC|DIN|EN|JIS|BS|ANSI|API|AWS|NIST|ENG-STD|AS9100|NADCAP)\s*[-\s]?\d+[-.]?\d*(?:[A-Z]\d*)?', []),
+        ('percentage', r'\b\d+(?:\.\d+)?\s*%', []),
+        ('numerical_range', r'\b\d+(?:\.\d+)?\s*(?:to|-|through|thru)\s*\d+(?:\.\d+)?(?:\s*(?:mm|cm|m|in|psi|rpm|°C|°F|Hz|Nm))?\b', [is_standard_part, is_date_pattern]),
+        ('chemical_composition', r'\b[A-Z][a-z]?\s*[:=]?\s*\d+(?:\.\d+)?\s*%', [])
+    ]
+    return classifiers
+
+# ============================================================================
+# CORE PROCESSING ENGINE
+# ============================================================================
+def analyze_text(text, classifiers):
+    if pd.isna(text):
+        return {}
+
+    text_str = str(text)
+    found_patterns = {}
+
+    def get_matches(pattern, text, exclusions=[]):
+        matches = []
+        for match in re.finditer(pattern, text_str, re.IGNORECASE):
+            is_excluded = any(checker(text_str, match.start(), match.end()) for checker in exclusions)
+            if not is_excluded:
+                matches.append(match.group())
+        return matches
+
+    for name, pattern, exclusions in classifiers:
+        matches = get_matches(pattern, text_str, exclusions)
+        if matches:
+            found_patterns[name] = matches
+            
+    return found_patterns
+
+def format_evidence(matches):
+    if not matches:
+        return ""
+    unique_matches = list(dict.fromkeys(matches))
+    evidence = ', '.join(unique_matches[:MAX_EVIDENCE_EXAMPLES])
+    if len(unique_matches) > MAX_EVIDENCE_EXAMPLES:
+        evidence += f" ... (+{len(unique_matches) - MAX_EVIDENCE_EXAMPLES} more)"
+    return evidence
+
+
+# ============================================================================
+# DATAFRAME HANDLING
+# ============================================================================
+def load_data(filepath):
+    try:
+        return pd.read_csv(filepath, encoding='utf-8')
+    except (FileNotFoundError, Exception):
+        return None
+
+def add_classification_columns(df, results, classifier_names):
+    for name in classifier_names:
+        df[f'has_{name}'] = results.apply(lambda x: 1 if name in x else 0)
+        df[f'{name}_evidence'] = results.apply(lambda x: format_evidence(x.get(name)))
+    return df
+
+def add_summary_columns(df, classifier_names):
+    technical_columns = [f'has_{name}' for name in classifier_names]
+    df['is_technical'] = df[technical_columns].max(axis=1)
+    df['technical_indicator_count'] = df[technical_columns].sum(axis=1)
+
+    def create_evidence_summary(row):
+        evidence_map = {
+            'Materials': 'material_grades_evidence', 'Decimals': 'decimal_numbers_evidence',
+            'Units': 'numbers_with_units_evidence', 'Tolerances': 'tolerances_evidence',
+            'Standards': 'standard_specs_evidence', 'Percentages': 'percentage_evidence',
+            'Ranges': 'numerical_range_evidence', 'Chemistry': 'chemical_composition_evidence'
+        }
+        evidences = [f"{label}: {row[col]}" for label, col in evidence_map.items() if pd.notna(row[col]) and row[col]]
+        return " | ".join(evidences) if evidences else "No technical indicators"
+
+    df['technical_evidence_summary'] = df.apply(create_evidence_summary, axis=1)
+    return df
+
+# ============================================================================
+# MAIN ORCHESTRATOR
+# ============================================================================
+def main():
+    df = load_data(INPUT_FILE)
+    if df is None or TEXT_COLUMN not in df.columns:
+        print(f"Error: Could not load data or find column '{TEXT_COLUMN}'.")
+        return
+
+    classifiers = get_classifier_definitions()
+    classifier_names = [name for name, _, _ in classifiers]
+    
+    # Priority handling for material grades to prevent double-counting with decimals
+    material_classifier = classifiers[0]
+    other_classifiers = classifiers[1:]
+
+    # Run material grades first
+    results = df[TEXT_COLUMN].apply(lambda text: analyze_text(text, [material_classifier]))
+    
+    # Run other classifiers
+    other_results = df[TEXT_COLUMN].apply(lambda text: analyze_text(text, other_classifiers))
+
+    # Combine results
+    for i, row in other_results.items():
+        results[i].update(row)
+
+    df = add_classification_columns(df, results, classifier_names)
+    df = add_summary_columns(df, classifier_names)
+
+    df.to_csv(OUTPUT_FILE, index=False, encoding='utf-8')
+    print(f"Processing complete. Output saved to {OUTPUT_FILE}")
+
+
+if __name__ == "__main__":
+    main()
