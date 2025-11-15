@@ -1,19 +1,1 @@
-# ============================
-# 1. Imports & model loading
-# ============================
-from transformers import AutoTokenizer, AutoModelForCausalLM
-import torch
 
-model_id = "google/gemma-3-12b-it"
-
-print("Loading tokenizer and model...")
-
-tokenizer = AutoTokenizer.from_pretrained(model_id)
-
-model = AutoModelForCausalLM.from_pretrained(
-    model_id,
-    torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
-    device_map="auto",
-)
-
-print("Model loaded. CUDA available:", torch.cuda.is_available())
