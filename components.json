@@ -1,17 +1,27 @@
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
-import torch
+# ============================
+# 2. Helper: format conversation
+# ============================
 
-model_id = "google/gemma-2-12b-it"   # try this one first
+def build_input_ids_from_history(chat_history):
+    """
+    chat_history: list of {"role": "user"|"assistant"|"system", "content": "..."}
+    returns: input_ids tensor on model device
+    """
+    # If the tokenizer supports chat templates (Gemma does), use it
+    if hasattr(tokenizer, "apply_chat_template"):
+        input_ids = tokenizer.apply_chat_template(
+            chat_history,
+            tokenize=True,
+            add_generation_prompt=True,
+            return_tensors="pt"
+        ).to(model.device)
+    else:
+        # Fallback: simple concatenation of messages
+        prompt = ""
+        for m in chat_history:
+            role = m["role"].upper()
+            prompt += f"{role}: {m['content']}\n"
+        prompt += "ASSISTANT: "
+        input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(model.device)
 
-tokenizer = AutoTokenizer.from_pretrained(model_id)
-model = AutoModelForCausalLM.from_pretrained(
-    model_id,
-    torch_dtype=torch.bfloat16,
-    device_map="auto"
-)
-
-pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
-
-out = pipe("Write a short message about digital thread and ontologies:\n", max_new_tokens=80)
-print(out)
-
+    return input_ids
