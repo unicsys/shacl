@@ -1,1 +1,17 @@
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+import torch
+
+model_id = "google/gemma-2-12b-it"   # try this one first
+
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForCausalLM.from_pretrained(
+    model_id,
+    torch_dtype=torch.bfloat16,
+    device_map="auto"
+)
+
+pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
+
+out = pipe("Write a short message about digital thread and ontologies:\n", max_new_tokens=80)
+print(out)
 
