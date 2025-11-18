@@ -1,1 +1,111 @@
+# AI-OCKMS Digital Thread Knowledge Graph Integration
+## CRAD Seedling Quadchart (Single Slide Format)
 
+**Title:** AI-Enabled OCKMS Digital Thread Knowledge Graph
+**Subtitle:** Natural Language Access to Manufacturing Intelligence — Hours to Seconds
+
+---
+
+## QUADRANT 1: PROBLEM DEFINITION
+
+**What are you trying to do?**
+Enable natural language queries to TDMS/OCKMS knowledge graphs, eliminating technical barriers for 90% of stakeholders.
+
+**How is it done today?**
+- Manual data archaeology: 4-48 hours per query
+- Requires SQL/SPARQL expertise
+- Operations teams submit tickets → analysts write queries → delayed results
+
+**Limits of current practice:**
+- **Speed:** Hours/days delay kills real-time decisions
+- **Access:** Only 5-10% can query data directly
+- **Capability:** Complex multi-hop questions impossible
+
+**CRAD Alignment:**
+Digital Engineering, Manufacturing Intelligence, Human-AI Teaming — LLM-to-SPARQL translation with ontology grounding
+
+---
+
+## QUADRANT 2: NEW IDEA
+
+**Core Concept:**
+LLMs as natural language interface to OCKMS digital thread
+- User Query → LLM → SPARQL → TDMS KG → Natural Language Answer
+
+**What makes it novel?**
+- **Ontology-Grounded LLM:** BFO-aligned constraints reduce hallucination
+- **Semantic Translation:** NL ↔ SPARQL with precision preservation
+- **Contextual Chaining:** Follow-up questions with memory
+- **Domain Specialized:** Manufacturing test processes, yield, utilization
+
+**Value over current practice:**
+- Speed: Hours → Seconds
+- Access: 5% → 90% of stakeholders
+- Capability: Simple → Complex multi-hop reasoning
+
+**Key Risks & Mitigation:**
+- Query accuracy: Ontology constraints + validation (✓ Seedling validates on 3 core questions)
+- Hallucination: Strict SPARQL grounding
+- Adoption: Gradual rollout with query transparency
+
+---
+
+## QUADRANT 3: IMPACT
+
+**CRAD Agencies:**
+- **CRAD-DEM:** Digital thread ROI proof
+- **CRAD-AI:** LLM + knowledge graph integration
+- **CRAD-O&S:** Manufacturing efficiency gains
+
+**Qualitative Difference:**
+Data archaeology → Conversational intelligence
+Technical gatekeeping → Self-service
+Reactive → Proactive operations
+
+**Quantitative Benefits:**
+- **Query Time:** 4-48 hrs → 5 sec (480-35,000× speedup)
+- **Productivity:** 60-80% reduction in analyst routine queries
+- **Cost Avoidance:** $3M/year per site
+- **RTX Enterprise:** $200M+/year (70 sites)
+- **Payback:** 3-6 months, ROI 19,000% (5 years)
+
+**BU Transition:**
+Alpha (Collins Milwaukee) → Beta (3 sites) → Production (Collins 25 sites) → Enterprise (P&W, Raytheon)
+
+**BU SMEs Consulted:**
+Collins (Digital Mfg, Test Eng), P&W (CDO), Raytheon (Smart Mfg), RTX Research (AI/ML, Digital Thread)
+
+---
+
+## QUADRANT 4: PATH FORWARD
+
+**Seedling: 5 Months / $120K**
+
+**Milestone 1 (Month 3):** Core Query Translation Validated
+- LLM-to-SPARQL engine for 3 TDMS queries
+- ≥95% accuracy on 50 test variants
+- TDMS KG prototype (10K records)
+- <5 sec latency, security audit clean
+
+**Milestone 2 (Month 5):** Alpha Prototype Demo
+- Functional web chat interface with 20+ query patterns
+- User testing: 15 Collins users
+- ROI validation: 10× faster than current
+- Live demo to CRAD & RTX leadership
+
+**Success Criteria:**
+✓ 80% task completion by non-technical users
+✓ >4/5 satisfaction score
+✓ Positive business case (>500% ROI in 3 years)
+
+**Marketing Strategy:**
+- **Customers:** CRAD-DEM, CRAD-AI, CRAD-O&S
+- **Channels:** CRAD Symposium, NIST DMSC, RTX Digital Thread CoP
+- **Messages:** "Hours to Seconds" | "Ontology + AI = Trust"
+
+**Follow-On Partners:**
+- **Universities:** RPI (ontology/BFO), MIT CSAIL (LLM/NLP), CMU (smart mfg)
+- **National Labs:** NIST DMSC (standards), ORNL MDF (testbed)
+- **Industry:** Neo4j, Palantir, Anthropic/OpenAI
+
+**Budget:** Personnel $70K | Compute $15K | Infrastructure $10K | Consulting $15K | Travel/Contingency $10K
