@@ -1,1 +1,97 @@
+import pandas as pd
+import ijson
+import os
 
+# ---------------------------------------------------------
+# CONFIGURATION
+# ---------------------------------------------------------
+INPUT_FILE = 'sample.json'  # Replace with your actual large filename
+OUTPUT_FILE = 'tdms_yield_report.csv'
+
+def get_yield_report(input_path, output_path):
+    print(f"Processing {input_path}...")
+    
+    # ---------------------------------------------------------
+    # 1. LOAD DATA (Memory Optimized)
+    # ---------------------------------------------------------
+    # Instead of loading the whole file, we stream it and pick only needed cols.
+    # We use a list of lists to store data temporarily (lighter than list of dicts).
+    data = []
+    
+    try:
+        with open(input_path, 'rb') as f:
+            # ijson.items reads the file incrementally. 
+            # 'item' assumes the JSON is a list of objects [...]
+            for item in ijson.items(f, 'item'):
+                data.append([
+                    item.get('partNo'),
+                    item.get('uutSn'),
+                    item.get('startDateTime'),
+                    item.get('productTestPassed')
+                ])
+                
+                # Optional: specific check to catch 'invalid' parts if necessary
+                # if item.get('partNo') == 'invalid': continue
+                
+    except FileNotFoundError:
+        print(f"Error: The file '{input_path}' was not found.")
+        return
+
+    # Create DataFrame with only the columns we need
+    print(f"Data loaded. Rows found: {len(data)}")
+    df = pd.DataFrame(data, columns=['partNo', 'uutSn', 'startDateTime', 'productTestPassed'])
+
+    # Free up memory by deleting the list
+    del data
+
+    # ---------------------------------------------------------
+    # 2. PRE-PROCESSING
+    # ---------------------------------------------------------
+    print("Sorting and analyzing data...")
+    
+    # Convert time string to actual datetime object
+    df['startDateTime'] = pd.to_datetime(df['startDateTime'])
+
+    # Sort: We need this to identify which test happened "First"
+    # Sorting by PartNo first speeds up the subsequent operations
+    df.sort_values(by=['partNo', 'startDateTime'], inplace=True)
+
+    # ---------------------------------------------------------
+    # 3. CALCULATE TRUE YIELD (First Pass Yield)
+    # ---------------------------------------------------------
+    
+    # Logic: Group by Part and Serial Number, keeping only the FIRST record.
+    # This represents the "First Pass" attempt.
+    first_attempts = df.drop_duplicates(subset=['partNo', 'uutSn'], keep='first')
+
+    # ---------------------------------------------------------
+    # 4. AGGREGATE BY PART NUMBER
+    # ---------------------------------------------------------
+    
+    # We aggregate to count total unique units and how many passed on the first try.
+    # summing 'productTestPassed' works because True=1 and False=0.
+    report = first_attempts.groupby('partNo').agg(
+        Unique_Units_Tested=('uutSn', 'count'),
+        First_Pass_Passes=('productTestPassed', 'sum')
+    ).reset_index()
+
+    # Calculate Percentage
+    report['True_Yield_Percentage'] = (report['First_Pass_Passes'] / report['Unique_Units_Tested']) * 100
+    
+    # Rounding for clean output
+    report['True_Yield_Percentage'] = report['True_Yield_Percentage'].round(2)
+
+    # ---------------------------------------------------------
+    # 5. OUTPUT
+    # ---------------------------------------------------------
+    report.to_csv(output_path, index=False)
+    
+    print("\n" + "="*40)
+    print("SAMPLE OUTPUT (First 5 rows)")
+    print("="*40)
+    print(report.head().to_string(index=False))
+    print("="*40)
+    print(f"Full report saved to: {os.path.abspath(output_path)}")
+
+if __name__ == "__main__":
+    get_yield_report(INPUT_FILE, OUTPUT_FILE)
