@@ -1,38 +1,87 @@
-1️⃣ Purpose of Ontology Quality Governance
-
-To ensure:
-✔ Consistency — Standardized class, property, and instance naming
-✔ Interoperability — Alignment with upper-level ontologies (BFO, CCO, IOF)
-✔ Maintainability — Clear patterns facilitate collaborative development
-✔ Traceability — Everything is verifiable, linked to sources, SMEs, and change logs
-✔ Machine Reasoning Readiness — Optimized for logical inference, SPARQL queries, reasoning engines
-
-2️⃣ Layers of Quality Governance
-Governance Layer	Description
-Conceptual Quality	Is the class logically correct? Does it represent a single concept?
-Structural Quality	Is it correctly placed in class hierarchy? Domain/range?
-Linguistic Quality	Does the label follow naming conventions (e.g., PascalCase)?
-Semantic Quality	Is the concept aligned with BFO/CCO/IOF/Industrial standards?
-Technical Quality	Validation in Protégé, Stardog, OWL reasoners, SHACL rules
-Change/Version Quality	Has it passed review, change control, SME approval?
-
-3️⃣ Naming Convention Principles
-
-⚖ Goal: Human-readable, machine-interpretable, logically precise.
-
-🏷 Class Naming
-Rule	Example	Notes
-PascalCase	AircraftEngine, CompressorBlade	No spaces, no punctuation
-Singular nouns	InspectionReport, not InspectionReports	Represents a class, not individuals
-Avoid abbreviations unless standard	LCFFailureMode, but prefer LowCycleFatigueFailureMode	Abbrev. allowed only if globally accepted
-Semantic alignment	Align with BFO, CCO categories — InformationContentEntity, Process, MaterialComponent	Reflect ontological meaning
 
 
-👤 Individual Naming
-Rule	Example
-Use snake_case or concatenated	engine_SN12345, inspection_2024_10_05
-Include identifiers	Serial number, Part number, Work Order ID
-Use underscores, not spaces	engine_maintenance_2025
+--------
 
+PWRUP - Power Up Count - Number of engine start events
 
+RUNCNT - Run Count - Number of engine run cycles
 
+EOT - Engine Operating Time - Total accumulated operating time 
+
+LCF1, LCF3, LCF4 - Low Cycle Fatigue Zone 1, Zone 3, Zone4 - Fatigue cycles accumulated in different zones of engine
+
+TAC - Total Accumulated Cycles - Total thermal/mechanical cycles
+
+AUGLIT - Augmentor Lit Time - Time with afterburner engaged
+
+AUGOT - Augmentor Operating Time - Total afterburner operating time
+
+AUGLITR1 / AUGLITR2 - Augmentor Lit Time (Zone 1 / Zone 2).
+
+ABRECR1_RUN / ABRECR2_RUN - Afterburner Recycle counts per run.
+
+N1 - Fan Speed (Low Pressure Rotor Speed).
+
+N2 - Core Speed (High Pressure Rotor Speed).
+
+T3 - Compressor Discharge Temperature.
+
+T41 - Turbine Inlet Temperature
+
+T6 - Exhaust Gas Temperature.
+
+HST_L1_THR - Hot Section Time Level 1 Threshold - Time at Level 1 hot section temperature
+
+FAN - Fan Module usage index
+
+COMP - Compressor Module usage index
+
+COMB - Combustor Module usage index
+
+HPT - High-Pressure Turbine usage index
+
+LPT - Low-Pressure Turbine usage index
+
+NOZZLE - Exhaust Nozzle actuator usage.
+
+BEARING - Bearing stress or usage index
+
+EFT - Engine Flight Time - Total flight time accumulated
+
+FLTCNT - Flight Count - Number of flights
+
+ERLT - Engine Run Life Time - Remaining life time estimate
+
+AICNT / AI_OPN - Anti-Ice Count / Anti-Ice Open - Time/Cycles the anti-ice system was active
+
+PB_TSEC - Burner Pressure Time Seconds - Time at elevated burner pressure
+
+PB_MAX - Burner Pressure Maximum - Maximum burner pressure
+
+TestBed - Test Bed Identifier
+
+--------------------
+
+ENGINE_SN - Engine Serial Number - Unique identifier for the engine being inspected
+
+DEFECT_DTG - Defect Date Time Group - Date/time when defect was recorded
+
+JCN - Job Control Number - Maintenance process identifier 
+
+WCE - Work Center Event - Subtask number in maintenance process
+
+PART_NO - Part Number - Part number of the inspected component 
+
+POSITION_ID - Position Identifier - Position code on the component 
+
+SUBPOSITION_ID - Sub-Position Identifier - Sub-location within the position
+
+LOCATION_X - Location X Coordinate - X-axis coordinate of defect on part surface
+
+LOCATION_Y - Location Y Coordinate - Y-axis coordinate of defect on part surface
+
+DEFECT_NO - Defect Number Sequential identifier for defects on this part 
+
+AREA - Defect Area - Measured coating loss area
+
+BASE - Base Location - Air base where inspection occurred (maps to SRAN)
