@@ -1,1 +1,81 @@
+import pandas as pd
+import ijson
+import os
 
+# ---------------------------------------------------------
+# CONFIGURATION
+# ---------------------------------------------------------
+INPUT_FILE = 'sample.json'  # Replace with your actual large filename
+OUTPUT_FILE = 'tdms_yield_report.csv'
+
+def get_yield_report(input_path, output_path):
+    print(f"Processing {input_path}...")
+    
+    # ---------------------------------------------------------
+    # 1. LOAD DATA (Memory Optimized)
+    # ---------------------------------------------------------
+    data = []
+    
+    try:
+        with open(input_path, 'rb') as f:
+            for item in ijson.items(f, 'item'):
+                data.append([
+                    item.get('partNo'),
+                    item.get('uutSn'),
+                    item.get('startDateTime'),
+                    item.get('productTestPassed')
+                ])
+                
+    except FileNotFoundError:
+        print(f"Error: The file '{input_path}' was not found.")
+        return
+
+    print(f"Data loaded. Rows found: {len(data)}")
+    df = pd.DataFrame(data, columns=['partNo', 'uutSn', 'startDateTime', 'productTestPassed'])
+    del data
+
+    # ---------------------------------------------------------
+    # 2. PRE-PROCESSING (UPDATED FIX)
+    # ---------------------------------------------------------
+    print("Sorting and analyzing data...")
+    
+    # FIX: format='mixed' handles cases where some dates have milliseconds and others don't.
+    # errors='coerce' ensures that if a date is truly garbage (e.g. "invalid"), it becomes NaT instead of crashing the script.
+    df['startDateTime'] = pd.to_datetime(df['startDateTime'], format='mixed', errors='coerce')
+
+    # Remove rows where date parsing failed (NaT) so sorting doesn't break
+    df.dropna(subset=['startDateTime'], inplace=True)
+
+    # Sort: Primary sort by PartNo, Secondary sort by Date (Oldest first)
+    df.sort_values(by=['partNo', 'startDateTime'], inplace=True)
+
+    # ---------------------------------------------------------
+    # 3. CALCULATE TRUE YIELD (First Pass Yield)
+    # ---------------------------------------------------------
+    first_attempts = df.drop_duplicates(subset=['partNo', 'uutSn'], keep='first')
+
+    # ---------------------------------------------------------
+    # 4. AGGREGATE BY PART NUMBER
+    # ---------------------------------------------------------
+    report = first_attempts.groupby('partNo').agg(
+        Unique_Units_Tested=('uutSn', 'count'),
+        First_Pass_Passes=('productTestPassed', 'sum')
+    ).reset_index()
+
+    report['True_Yield_Percentage'] = (report['First_Pass_Passes'] / report['Unique_Units_Tested']) * 100
+    report['True_Yield_Percentage'] = report['True_Yield_Percentage'].round(2)
+
+    # ---------------------------------------------------------
+    # 5. OUTPUT
+    # ---------------------------------------------------------
+    report.to_csv(output_path, index=False)
+    
+    print("\n" + "="*40)
+    print("SAMPLE OUTPUT (First 5 rows)")
+    print("="*40)
+    print(report.head().to_string(index=False))
+    print("="*40)
+    print(f"Full report saved to: {os.path.abspath(output_path)}")
+
+if __name__ == "__main__":
+    get_yield_report(INPUT_FILE, OUTPUT_FILE)
