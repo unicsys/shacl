@@ -1,1 +1,1 @@
-
+OAGi just highlighted Airbus as a key example for using BFO-based IOF ontologies in production. Airbus is officially implementing BFO-based IOF ontologies to solve data interoperability in design and manufacturing in production.
