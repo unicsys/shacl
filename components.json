@@ -1,8 +1,9 @@
-import requests
+import urllib.request
+import ssl
 import pandas as pd
 import io
-import urllib3
 import os
+import sys
 
 # --- CONFIGURATION ---
 LOCATION_NAME = "Los Angeles"
@@ -11,22 +12,19 @@ LONGITUDE = -118.2426
 START_DATE = "2023-01-01"
 END_DATE = "2023-01-31"
 
-# --- NETWORK FIXES ---
-# 1. Disable SSL Warnings
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+def get_weather_bare_metal():
+    # 1. Clean Environment Variables
+    # Sometimes old proxy settings get stuck in memory. We remove them for this run.
+    for k in list(os.environ.keys()):
+        if "proxy" in k.lower():
+            try:
+                del os.environ[k]
+            except:
+                pass
 
-# 2. Force Python to ignore any "Ghost" Proxies in your environment variables
-# (Sometimes old settings get stuck here and break things)
-os.environ.pop('HTTP_PROXY', None)
-os.environ.pop('HTTPS_PROXY', None)
-os.environ.pop('http_proxy', None)
-os.environ.pop('https_proxy', None)
-
-def get_weather_manual():
-    # We ask for CSV format directly from the API to skip processing steps
+    # 2. Setup the URL for CSV format
     base_url = "https://archive-api.open-meteo.com/v1/archive"
     
-    # All the variables you wanted
     variables = [
         "temperature_2m", "relative_humidity_2m", "dew_point_2m", "apparent_temperature",
         "precipitation", "rain", "snowfall", "snow_depth", "weather_code",
@@ -37,62 +35,68 @@ def get_weather_manual():
         "diffuse_radiation", "direct_normal_irradiance"
     ]
     
-    # Join variables with comma for the URL
     hourly_string = ",".join(variables)
-
-    params = {
-        "latitude": LATITUDE,
-        "longitude": LONGITUDE,
-        "start_date": START_DATE,
-        "end_date": END_DATE,
-        "hourly": hourly_string,
-        "timezone": "auto",
-        "format": "csv" # <--- Request CSV directly
-    }
-
-    headers = {
-        # Mimic Chrome exactly
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Connection": "keep-alive"
-    }
-
-    print(f"Attempting connection to Open-Meteo for {LOCATION_NAME}...")
     
-    try:
-        # verify=False disables the SSL check that your firewall is blocking
-        response = requests.get(base_url, params=params, headers=headers, verify=False, timeout=20)
-        
-        # Check if successful
-        response.raise_for_status()
-        
-        print("Connection Successful! Downloading data...")
-        
-        # Read the CSV data directly into Pandas
-        # Skip the first 3 rows because Open-Meteo CSVs have header metadata lines
-        df = pd.read_csv(io.BytesIO(response.content), skiprows=3)
-        
-        return df
+    # Construct the full URL manually
+    full_url = (
+        f"{base_url}?latitude={LATITUDE}&longitude={LONGITUDE}"
+        f"&start_date={START_DATE}&end_date={END_DATE}"
+        f"&hourly={hourly_string}&timezone=auto&format=csv"
+    )
 
-    except requests.exceptions.SSLError as e:
-        print("\n--- SSL ERROR ---")
-        print("The firewall is still blocking the certificate.")
-        print(e)
-    except requests.exceptions.ConnectionError as e:
-        print("\n--- CONNECTION ERROR ---")
-        print("Python cannot reach the internet.")
-        print(e)
+    print(f"Target URL constructed for {LOCATION_NAME}...")
+
+    # 3. Create a 'No-Check' SSL Context
+    # This is the standard library way to say "verify=False"
+    try:
+        ctx = ssl._create_unverified_context()
+    except AttributeError:
+        # Fallback for older Pythons
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+
+    # 4. Force 'No Proxy' Configuration
+    # We create an 'opener' that explicitly uses empty proxy settings
+    proxy_handler = urllib.request.ProxyHandler({})
+    opener = urllib.request.build_opener(proxy_handler, urllib.request.HTTPSHandler(context=ctx))
+    urllib.request.install_opener(opener)
+
+    # 5. Download Data
+    print("Attempting download using Standard Library (urllib)...")
+    try:
+        # Fake a browser user-agent
+        req = urllib.request.Request(
+            full_url, 
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+        )
+        
+        with urllib.request.urlopen(req, timeout=30) as response:
+            print("Connection Established! Reading data...")
+            data_bytes = response.read()
+            
+            # 6. Load into Pandas
+            # We wrap the bytes in a buffer so pandas treats it like a file
+            df = pd.read_csv(io.BytesIO(data_bytes), skiprows=3)
+            return df
+
+    except urllib.request.HTTPError as e:
+        print(f"\nHTTP ERROR: {e.code} - {e.reason}")
+    except urllib.request.URLError as e:
+        print(f"\nURL ERROR: {e.reason}")
     except Exception as e:
-        print("\n--- GENERAL ERROR ---")
-        print(e)
+        import traceback
+        print("\n--- CRITICAL ERROR ---")
+        traceback.print_exc()
+        
     return None
 
 # --- EXECUTION ---
-df = get_weather_manual()
+df = get_weather_bare_metal()
 
 if df is not None:
     filename = "comprehensive_environment_data.csv"
     df.to_csv(filename, index=False)
     print(f"\nSUCCESS: Saved {len(df)} rows to '{filename}'.")
-    print(f"Columns: {list(df.columns)}")
+    # Show first few columns to verify
+    print(f"Columns Retrieved: {list(df.columns)[:5]} ...")
