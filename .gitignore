@@ -1,1 +1,51 @@
-pip install openmeteo-requests requests-cache pandas retry-requests geopy
+import requests
+import urllib3
+import traceback
+
+# Disable SSL warnings
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# Configuration
+URL = "https://archive-api.open-meteo.com/v1/archive"
+PARAMS = {
+    "latitude": 34.05,
+    "longitude": -118.24,
+    "start_date": "2023-01-01",
+    "end_date": "2023-01-02", # Short date range for testing
+    "hourly": "temperature_2m",
+    "format": "csv" # Request CSV format
+}
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+}
+
+print("--- DIAGNOSTIC START ---")
+try:
+    print(f"1. Attempting to connect to: {URL}")
+    
+    # We use verify=False to bypass SSL errors
+    response = requests.get(URL, params=PARAMS, headers=HEADERS, verify=False, timeout=15)
+    
+    print(f"2. Connection finished. Status Code: {response.status_code}")
+    print(f"3. Response content type: {response.headers.get('Content-Type', 'Unknown')}")
+    
+    # Check if the request was actually successful (Status 200)
+    if response.status_code == 200:
+        print("\n--- SUCCESS! PREVIEW OF DATA ---")
+        # Print the first 500 characters of the received data
+        print(response.text[:500])
+        print("-------------------------------")
+        
+        if "<html" in response.text.lower():
+            print("\nALERT: The server returned HTML instead of Data.")
+            print("This means your Firewall intercepted the call and sent a Block Page.")
+    else:
+        print(f"\nFAILURE: Server returned error code {response.status_code}")
+        print("Response text:", response.text)
+
+except Exception:
+    print("\n--- CRITICAL ERROR ---")
+    # This prints the FULL error message, so it cannot hide from us
+    traceback.print_exc()
+
+print("--- DIAGNOSTIC END ---")
