@@ -1,7 +1,8 @@
-import openmeteo_requests
 import requests
 import pandas as pd
+import io
 import urllib3
+import os
 
 # --- CONFIGURATION ---
 LOCATION_NAME = "Los Angeles"
@@ -10,28 +11,23 @@ LONGITUDE = -118.2426
 START_DATE = "2023-01-01"
 END_DATE = "2023-01-31"
 
-# --- SETUP API CLIENT ---
-# 1. Disable warnings
+# --- NETWORK FIXES ---
+# 1. Disable SSL Warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# 2. Setup a standard session (No cache/retry for now to test connection)
-session = requests.Session()
+# 2. Force Python to ignore any "Ghost" Proxies in your environment variables
+# (Sometimes old settings get stuck here and break things)
+os.environ.pop('HTTP_PROXY', None)
+os.environ.pop('HTTPS_PROXY', None)
+os.environ.pop('http_proxy', None)
+os.environ.pop('https_proxy', None)
 
-# 3. CRITICAL: Pretend to be a Browser (Chrome) to bypass Firewall blocks
-session.headers.update({
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-})
-
-# 4. Disable SSL Verification
-session.verify = False
-
-# 5. Initialize Client
-openmeteo = openmeteo_requests.Client(session=session)
-
-def get_maximal_weather(lat, lon, start, end):
-    url = "https://archive-api.open-meteo.com/v1/archive"
+def get_weather_manual():
+    # We ask for CSV format directly from the API to skip processing steps
+    base_url = "https://archive-api.open-meteo.com/v1/archive"
     
-    hourly_vars = [
+    # All the variables you wanted
+    variables = [
         "temperature_2m", "relative_humidity_2m", "dew_point_2m", "apparent_temperature",
         "precipitation", "rain", "snowfall", "snow_depth", "weather_code",
         "pressure_msl", "surface_pressure", "cloud_cover", "cloud_cover_low",
@@ -40,51 +36,63 @@ def get_maximal_weather(lat, lon, start, end):
         "soil_moisture_0_to_7cm", "shortwave_radiation", "direct_radiation",
         "diffuse_radiation", "direct_normal_irradiance"
     ]
+    
+    # Join variables with comma for the URL
+    hourly_string = ",".join(variables)
 
     params = {
-        "latitude": lat,
-        "longitude": lon,
-        "start_date": start,
-        "end_date": end,
-        "hourly": hourly_vars,
-        "timezone": "auto"
+        "latitude": LATITUDE,
+        "longitude": LONGITUDE,
+        "start_date": START_DATE,
+        "end_date": END_DATE,
+        "hourly": hourly_string,
+        "timezone": "auto",
+        "format": "csv" # <--- Request CSV directly
     }
-    
-    print(f"Requesting weather data for {lat}, {lon}...")
-    
-    # Process the request
-    responses = openmeteo.weather_api(url, params=params)
-    response = responses[0]
 
-    # Process Data
-    hourly = response.Hourly()
+    headers = {
+        # Mimic Chrome exactly
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Connection": "keep-alive"
+    }
+
+    print(f"Attempting connection to Open-Meteo for {LOCATION_NAME}...")
     
-    # Create the time index
-    data_dict = {"date_time": pd.date_range(
-        start=pd.to_datetime(hourly.Time(), unit="s", origin="unix"),
-        end=pd.to_datetime(hourly.TimeEnd(), unit="s", origin="unix"),
-        freq=pd.Timedelta(seconds=hourly.Interval()),
-        inclusive="left"
-    )}
+    try:
+        # verify=False disables the SSL check that your firewall is blocking
+        response = requests.get(base_url, params=params, headers=headers, verify=False, timeout=20)
+        
+        # Check if successful
+        response.raise_for_status()
+        
+        print("Connection Successful! Downloading data...")
+        
+        # Read the CSV data directly into Pandas
+        # Skip the first 3 rows because Open-Meteo CSVs have header metadata lines
+        df = pd.read_csv(io.BytesIO(response.content), skiprows=3)
+        
+        return df
 
-    for i, var_name in enumerate(hourly_vars):
-        data_dict[var_name] = hourly.Variables(i).ValuesAsNumpy()
-
-    weather_df = pd.DataFrame(data=data_dict)
-    return weather_df
+    except requests.exceptions.SSLError as e:
+        print("\n--- SSL ERROR ---")
+        print("The firewall is still blocking the certificate.")
+        print(e)
+    except requests.exceptions.ConnectionError as e:
+        print("\n--- CONNECTION ERROR ---")
+        print("Python cannot reach the internet.")
+        print(e)
+    except Exception as e:
+        print("\n--- GENERAL ERROR ---")
+        print(e)
+    return None
 
 # --- EXECUTION ---
-try:
-    df = get_maximal_weather(LATITUDE, LONGITUDE, START_DATE, END_DATE)
-    
+df = get_weather_manual()
+
+if df is not None:
     filename = "comprehensive_environment_data.csv"
     df.to_csv(filename, index=False)
     print(f"\nSUCCESS: Saved {len(df)} rows to '{filename}'.")
-    
-except Exception as e:
-    print("\n--- ERROR DETAIL ---")
-    print(e)
-    print("\n--- TROUBLESHOOTING STEP ---")
-    print("Please try pasting this URL into your web browser (Chrome/Edge):")
-    print("https://archive-api.open-meteo.com/v1/archive?latitude=34.05&longitude=-118.24&start_date=2023-01-01&end_date=2023-01-02&hourly=temperature_2m")
-    print("If the browser fails to load this page, your company network has blocked this website entirely.")
+    print(f"Columns: {list(df.columns)}")
