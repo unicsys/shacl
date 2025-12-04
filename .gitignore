@@ -1,1 +1,1 @@
-
+pip install openmeteo-requests requests-cache pandas retry-requests geopy
