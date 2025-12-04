@@ -1,1 +1,20 @@
-
+	Ontological Realism: Separating Words from Things. The specification currently treats Concepts, Terms, and Real World Objects as overlapping or interchangeable.
+	We shoul follow Ontological Realism. This means the ontology should model the entities in reality (the actual engine part), not just our data or ideas about them.
+	The specification should clearly separate the Information Artifact (the Term/Label/Record) from the Physical Entity it denotes.
+	Confusing a Thing with the Name of the Thing could lead to critical data errors. (e.g., A Plan for an Engine is not an Engine). If MVF treats everything as a Concept, we lose this safety check.
+	Mathematical Foundation: The specification mixes definitions of types (what a thing is) with usage (how a community uses a term).
+	A robust ontology requires a strict separation between the TBox (Terminology/Definitions/Classes) and the ABox (Assertions/Data Instances).
+	We need clear boundaries so that a computer can distinguish between a universal rule (TBox: All Landing Gears have Wheels) and a specific fact (ABox: "This specific Landing Gear is broken").
+	Without this structure, Automated Reasoners cannot function. We rely on reasoners to mathematically prove that our data is consistent. If the TBox and ABox are muddled, the reasoner cannot detect conflicts.
+	The depreciation of hasURI and the use of vague relationships like associates (defined as thematic connection) could weaken the logic.
+	We need univocity (each term means exactly one thing) and Logical Constraints are required to prevent data stovepipes.
+	The model must define exactly what makes an entry unique (Identity Condition). Relying solely on a web address (IRI) is insufficient for tracking.
+	Vague properties like associates should be avoided in the core logic. In engineering, relationships must be causal or structural.
+	Thematic links introduce noise. To support Formal Semantics, every relationship must be logically rigorous so the software knows exactly what implications follow from a connection.
+	The definitions in the MVF draft often describe usage rather than essence.
+	Definitions should follow the Aristotelian form ( Species=Genus+Differentia).
+	We recommend that VocabularyEntry definitions follow the format: An [A] is a [B] which [C] (ex. A Jet Engine is an Engine which uses jet propulsion).
+	This structure ensures definitions are unpackable and machine-verifiable. It prevents circular definitions and ensures that every term fits cleanly into the hierarchy.
+	The proposed hierarchy of terms (Blends, Compound Terms, etc.) is complex and risks overlapping categories.
+	Each class should be a subclass of one and only one parent class to ensure a clean Is-A backbone.
+	Complex multiple inheritance creates Diamond Problems in logic, where a reasoner cannot determine which rules apply. A single-inheritance backbone is safer and easier to maintain for long-term industrial projects.
