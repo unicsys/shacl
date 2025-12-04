@@ -1,58 +1,44 @@
 import openmeteo_requests
-import requests_cache
+import requests
 import pandas as pd
-from retry_requests import retry
 import urllib3
 
 # --- CONFIGURATION ---
 LOCATION_NAME = "Los Angeles"
-# Hardcoded coordinates to bypass Geopy/Network errors
 LATITUDE = 34.0549
 LONGITUDE = -118.2426
-
 START_DATE = "2023-01-01"
 END_DATE = "2023-01-31"
 
 # --- SETUP API CLIENT ---
-# Suppress the "InsecureRequest" warnings that appear when we disable SSL verify
+# 1. Disable warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-cache_session = requests_cache.CachedSession('.cache', expire_after = -1)
-# CRITICAL FIX: Disable SSL verification to bypass corporate proxy issues
-cache_session.verify = False 
+# 2. Setup a standard session (No cache/retry for now to test connection)
+session = requests.Session()
 
-retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
-openmeteo = openmeteo_requests.Client(session = retry_session)
+# 3. CRITICAL: Pretend to be a Browser (Chrome) to bypass Firewall blocks
+session.headers.update({
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+})
+
+# 4. Disable SSL Verification
+session.verify = False
+
+# 5. Initialize Client
+openmeteo = openmeteo_requests.Client(session=session)
 
 def get_maximal_weather(lat, lon, start, end):
     url = "https://archive-api.open-meteo.com/v1/archive"
     
-    # LIST OF ALL RELEVANT VARIABLES
     hourly_vars = [
-        "temperature_2m",           # Air Temp
-        "relative_humidity_2m",     # Moisture %
-        "dew_point_2m",             # Condensation Temp
-        "apparent_temperature",     # Feels like
-        "precipitation",            # Total Water Falling
-        "rain",                     # Liquid Water
-        "snowfall",                 # Solid Water
-        "snow_depth",               # Accumulated Snow
-        "weather_code",             # WMO Code
-        "pressure_msl",             # Pressure at Sea Level
-        "surface_pressure",         # Pressure at Location Height
-        "cloud_cover",              # Total Cloud %
-        "cloud_cover_low",          # Low Clouds
-        "et0_fao_evapotranspiration", # Drying rate
-        "vapor_pressure_deficit",   # Moisture demand
-        "wind_speed_10m",           # Wind Speed
-        "wind_direction_10m",       # Wind Direction
-        "wind_gusts_10m",           # Max Gust
-        "soil_temperature_0_to_7cm",# Ground Temp
-        "soil_moisture_0_to_7cm",   # Ground Wetness
-        "shortwave_radiation",      # Total Solar Energy
-        "direct_radiation",         # Direct Sun
-        "diffuse_radiation",        # Ambient Light
-        "direct_normal_irradiance"  # Sun intensity perpendicular
+        "temperature_2m", "relative_humidity_2m", "dew_point_2m", "apparent_temperature",
+        "precipitation", "rain", "snowfall", "snow_depth", "weather_code",
+        "pressure_msl", "surface_pressure", "cloud_cover", "cloud_cover_low",
+        "et0_fao_evapotranspiration", "vapor_pressure_deficit", "wind_speed_10m",
+        "wind_direction_10m", "wind_gusts_10m", "soil_temperature_0_to_7cm",
+        "soil_moisture_0_to_7cm", "shortwave_radiation", "direct_radiation",
+        "diffuse_radiation", "direct_normal_irradiance"
     ]
 
     params = {
@@ -81,7 +67,6 @@ def get_maximal_weather(lat, lon, start, end):
         inclusive="left"
     )}
 
-    # Dynamically map API response to the variable names
     for i, var_name in enumerate(hourly_vars):
         data_dict[var_name] = hourly.Variables(i).ValuesAsNumpy()
 
@@ -92,11 +77,14 @@ def get_maximal_weather(lat, lon, start, end):
 try:
     df = get_maximal_weather(LATITUDE, LONGITUDE, START_DATE, END_DATE)
     
-    # Save
     filename = "comprehensive_environment_data.csv"
     df.to_csv(filename, index=False)
     print(f"\nSUCCESS: Saved {len(df)} rows to '{filename}'.")
-    print(f"Location: {LOCATION_NAME}")
     
 except Exception as e:
-    print(f"An error occurred: {e}")
+    print("\n--- ERROR DETAIL ---")
+    print(e)
+    print("\n--- TROUBLESHOOTING STEP ---")
+    print("Please try pasting this URL into your web browser (Chrome/Edge):")
+    print("https://archive-api.open-meteo.com/v1/archive?latitude=34.05&longitude=-118.24&start_date=2023-01-01&end_date=2023-01-02&hourly=temperature_2m")
+    print("If the browser fails to load this page, your company network has blocked this website entirely.")
