@@ -1,81 +1,100 @@
+import openmeteo_requests
 import pandas as pd
-import ijson
-import os
+import urllib3
+from pypac import PACSession
+from requests.auth import HTTPProxyAuth
 
-# ---------------------------------------------------------
-# CONFIGURATION
-# ---------------------------------------------------------
-INPUT_FILE = 'sample.json'  # Replace with your actual large filename
-OUTPUT_FILE = 'tdms_yield_report.csv'
+# --- CONFIGURATION ---
+LOCATION_NAME = "Los Angeles"
+LATITUDE = 34.0549
+LONGITUDE = -118.2426
+START_DATE = "2023-01-01"
+END_DATE = "2023-01-31"
 
-def get_yield_report(input_path, output_path):
-    print(f"Processing {input_path}...")
+# --- SETUP API CLIENT ---
+# 1. Disable SSL warnings
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# 2. Use PACSession (The "Magic Bullet" for corporate networks)
+# This looks for the script your browser uses.
+try:
+    session = PACSession()
+    print("PAC Session created successfully.")
+except Exception as e:
+    print(f"PAC Session failed, falling back to standard session: {e}")
+    import requests
+    session = requests.Session()
+
+# 3. CRITICAL: Fake the Browser User-Agent
+session.headers.update({
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+})
+
+# 4. Disable SSL Verification
+session.verify = False
+
+# 5. Initialize OpenMeteo Client
+openmeteo = openmeteo_requests.Client(session=session)
+
+def get_maximal_weather(lat, lon, start, end):
+    url = "https://archive-api.open-meteo.com/v1/archive"
     
-    # ---------------------------------------------------------
-    # 1. LOAD DATA (Memory Optimized)
-    # ---------------------------------------------------------
-    data = []
+    hourly_vars = [
+        "temperature_2m", "relative_humidity_2m", "dew_point_2m", "apparent_temperature",
+        "precipitation", "rain", "snowfall", "snow_depth", "weather_code",
+        "pressure_msl", "surface_pressure", "cloud_cover", "cloud_cover_low",
+        "et0_fao_evapotranspiration", "vapor_pressure_deficit", "wind_speed_10m",
+        "wind_direction_10m", "wind_gusts_10m", "soil_temperature_0_to_7cm",
+        "soil_moisture_0_to_7cm", "shortwave_radiation", "direct_radiation",
+        "diffuse_radiation", "direct_normal_irradiance"
+    ]
+
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "start_date": start,
+        "end_date": end,
+        "hourly": hourly_vars,
+        "timezone": "auto"
+    }
     
+    print(f"Requesting weather data for {lat}, {lon}...")
+    
+    # Process the request
+    # We wrap this in a specific try/catch to see the REAL network error if it fails
     try:
-        with open(input_path, 'rb') as f:
-            for item in ijson.items(f, 'item'):
-                data.append([
-                    item.get('partNo'),
-                    item.get('uutSn'),
-                    item.get('startDateTime'),
-                    item.get('productTestPassed')
-                ])
-                
-    except FileNotFoundError:
-        print(f"Error: The file '{input_path}' was not found.")
-        return
+        responses = openmeteo.weather_api(url, params=params)
+    except Exception as e:
+        print("\n!!! CONNECTION FAILED !!!")
+        print("Python still cannot find the Proxy.")
+        raise e
 
-    print(f"Data loaded. Rows found: {len(data)}")
-    df = pd.DataFrame(data, columns=['partNo', 'uutSn', 'startDateTime', 'productTestPassed'])
-    del data
+    response = responses[0]
 
-    # ---------------------------------------------------------
-    # 2. PRE-PROCESSING (UPDATED FIX)
-    # ---------------------------------------------------------
-    print("Sorting and analyzing data...")
+    # Process Data
+    hourly = response.Hourly()
     
-    # FIX: format='mixed' handles cases where some dates have milliseconds and others don't.
-    # errors='coerce' ensures that if a date is truly garbage (e.g. "invalid"), it becomes NaT instead of crashing the script.
-    df['startDateTime'] = pd.to_datetime(df['startDateTime'], format='mixed', errors='coerce')
+    data_dict = {"date_time": pd.date_range(
+        start=pd.to_datetime(hourly.Time(), unit="s", origin="unix"),
+        end=pd.to_datetime(hourly.TimeEnd(), unit="s", origin="unix"),
+        freq=pd.Timedelta(seconds=hourly.Interval()),
+        inclusive="left"
+    )}
 
-    # Remove rows where date parsing failed (NaT) so sorting doesn't break
-    df.dropna(subset=['startDateTime'], inplace=True)
+    for i, var_name in enumerate(hourly_vars):
+        data_dict[var_name] = hourly.Variables(i).ValuesAsNumpy()
 
-    # Sort: Primary sort by PartNo, Secondary sort by Date (Oldest first)
-    df.sort_values(by=['partNo', 'startDateTime'], inplace=True)
+    weather_df = pd.DataFrame(data=data_dict)
+    return weather_df
 
-    # ---------------------------------------------------------
-    # 3. CALCULATE TRUE YIELD (First Pass Yield)
-    # ---------------------------------------------------------
-    first_attempts = df.drop_duplicates(subset=['partNo', 'uutSn'], keep='first')
-
-    # ---------------------------------------------------------
-    # 4. AGGREGATE BY PART NUMBER
-    # ---------------------------------------------------------
-    report = first_attempts.groupby('partNo').agg(
-        Unique_Units_Tested=('uutSn', 'count'),
-        First_Pass_Passes=('productTestPassed', 'sum')
-    ).reset_index()
-
-    report['True_Yield_Percentage'] = (report['First_Pass_Passes'] / report['Unique_Units_Tested']) * 100
-    report['True_Yield_Percentage'] = report['True_Yield_Percentage'].round(2)
-
-    # ---------------------------------------------------------
-    # 5. OUTPUT
-    # ---------------------------------------------------------
-    report.to_csv(output_path, index=False)
+# --- EXECUTION ---
+try:
+    df = get_maximal_weather(LATITUDE, LONGITUDE, START_DATE, END_DATE)
     
-    print("\n" + "="*40)
-    print("SAMPLE OUTPUT (First 5 rows)")
-    print("="*40)
-    print(report.head().to_string(index=False))
-    print("="*40)
-    print(f"Full report saved to: {os.path.abspath(output_path)}")
-
-if __name__ == "__main__":
-    get_yield_report(INPUT_FILE, OUTPUT_FILE)
+    filename = "comprehensive_environment_data.csv"
+    df.to_csv(filename, index=False)
+    print(f"\nSUCCESS: Saved {len(df)} rows to '{filename}'.")
+    
+except Exception as e:
+    print("\n--- DETAILED ERROR ---")
+    print(e)
