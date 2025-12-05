@@ -1,1 +1,52 @@
+import csv
+from rdflib import Graph
 
+def convert_ttl_to_csv(input_file, output_file):
+    # 1. Initialize the RDF Graph
+    g = Graph()
+    
+    print(f"Loading {input_file}...")
+    try:
+        g.parse(input_file, format='ttl')
+    except Exception as e:
+        print(f"Error parsing file: {e}")
+        return
+
+    # 2. Define the SPARQL query
+    # We select the label and description for any subject (?s) that has both.
+    query = """
+    SELECT ?label ?description
+    WHERE {
+        ?s <http://www.w3.org/2000/01/rdf-schema#label> ?label .
+        ?s <http://purl.org/dc/elements/1.1/description> ?description .
+    }
+    """
+    
+    print("Querying graph...")
+    results = g.query(query)
+    
+    # 3. Write results to CSV
+    print(f"Writing to {output_file}...")
+    with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+        
+        # Write Header
+        writer.writerow(['Name of Class', 'Definition'])
+        
+        # Write Rows
+        count = 0
+        for row in results:
+            # row.label and row.description are RDF Literals. 
+            # .value gives the clean Python string text.
+            writer.writerow([row.label.value, row.description.value])
+            count += 1
+            
+    print(f"Done! Successfully wrote {count} rows to {output_file}.")
+
+# --- usage ---
+# Replace 'input.ttl' with your actual file name
+input_filename = 'input.ttl'  
+output_filename = 'output.csv'
+
+if __name__ == "__main__":
+    convert_ttl_to_csv(input_filename, output_filename)
