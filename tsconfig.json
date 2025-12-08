@@ -1,1 +1,48 @@
+import pandas as pd
 
+def inspect_duplicates(df, columns):
+    print(f"\n--- Investigating Duplicates for: {columns} ---")
+    
+    # 1. Find duplicates
+    # keep=False means: "Mark ALL rows as True if they belong to a duplicate set"
+    mask = df.duplicated(subset=columns, keep=False)
+    
+    # 2. Filter the dataframe to only keep the duplicate rows
+    dup_df = df[mask]
+    
+    if dup_df.empty:
+        print("✅ No duplicates found! This combination is unique.")
+        return
+
+    # 3. Sort values so identical rows appear next to each other
+    # This makes it easy to compare them visually
+    dup_df = dup_df.sort_values(by=columns)
+    
+    count = len(dup_df)
+    print(f"❌ Found {count} rows involved in duplicates.\n")
+    
+    # 4. Show a sample in the console
+    print("Here are the first 10 duplicate rows (sorted so matches are together):")
+    print(dup_df.head(10))
+    
+    # 5. Export to CSV (Recommended for analysis)
+    # This allows you to open it in Excel and scroll through the "same ones"
+    output_filename = "debug_duplicates.csv"
+    dup_df.to_csv(output_filename, index=True) # index=True helps you see the original Row ID
+    print(f"\n📄 Full list of duplicates saved to: {output_filename}")
+    print("Open this file to see exactly which rows are colliding.")
+
+def main():
+    csv_path = "sample_data.csv" # <--- Your file
+    
+    print("Loading CSV...")
+    df = pd.read_csv(csv_path, low_memory=False)
+    
+    # Define the combination you want to investigate
+    target_cols = ['1stLevelSerial', 'CreatedOn', 'CreatTime']
+    
+    # Run the inspection
+    inspect_duplicates(df, target_cols)
+
+if __name__ == "__main__":
+    main()
