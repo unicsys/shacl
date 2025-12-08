@@ -1,1 +1,102 @@
+import pandas as pd
+import ijson
+import os
 
+# ---------------------------------------------------------
+# CONFIGURATION
+# ---------------------------------------------------------
+INPUT_FILE = 'sample.json' 
+OUTPUT_FILE = 'yield_by_product_part_number.csv'
+
+def calculate_product_yield(input_path, output_path):
+    print(f"Processing {input_path}...")
+    
+    # ---------------------------------------------------------
+    # 1. LOAD DATA
+    # ---------------------------------------------------------
+    data = []
+    
+    try:
+        with open(input_path, 'rb') as f:
+            for item in ijson.items(f, 'item'):
+                data.append([
+                    item.get('partNo', 'Unknown'), # The specific product model
+                    item.get('uutSn'),             # The serial number
+                    item.get('startDateTime'),     # The time
+                    item.get('productTestPassed')  # The result
+                ])
+                
+    except FileNotFoundError:
+        print(f"Error: The file '{input_path}' was not found.")
+        return
+
+    # Create DataFrame
+    cols = ['partNo', 'uutSn', 'startDateTime', 'productTestPassed']
+    df = pd.DataFrame(data, columns=cols)
+    del data
+
+    # ---------------------------------------------------------
+    # 2. PRE-PROCESSING
+    # ---------------------------------------------------------
+    print("Standardizing dates and sorting...")
+    
+    # FIX: Handle mixed date formats (with and without milliseconds)
+    df['startDateTime'] = pd.to_datetime(df['startDateTime'], format='mixed', errors='coerce')
+    
+    # Remove rows with invalid dates (cannot determine order without time)
+    df.dropna(subset=['startDateTime'], inplace=True)
+
+    # SORTING:
+    # 1. By Part Number (to keep data chunked)
+    # 2. By Date/Time (Oldest first - critical for "First Pass" logic)
+    df.sort_values(by=['partNo', 'startDateTime'], inplace=True)
+
+    # ---------------------------------------------------------
+    # 3. FIRST PASS LOGIC (The "True Yield" Engine)
+    # ---------------------------------------------------------
+    # Definition: The result of the very first time a unique Serial Number 
+    # was tested against a specific Part Number.
+    first_attempts = df.drop_duplicates(subset=['partNo', 'uutSn'], keep='first')
+
+    print(f"Total Unique Units (Across all parts): {len(first_attempts)}")
+
+    # ---------------------------------------------------------
+    # 4. AGGREGATE BY PART NUMBER
+    # ---------------------------------------------------------
+    yield_report = first_attempts.groupby('partNo').agg(
+        Total_Units_Built=('uutSn', 'count'),
+        Units_Passed_First_Try=('productTestPassed', 'sum')
+    ).reset_index()
+
+    # ---------------------------------------------------------
+    # 5. CALCULATE YIELD PERCENTAGE
+    # ---------------------------------------------------------
+    yield_report['True_Yield_Percentage'] = (
+        yield_report['Units_Passed_First_Try'] / yield_report['Total_Units_Built']
+    ) * 100
+
+    # Formatting: Round to 2 decimal places
+    yield_report['True_Yield_Percentage'] = yield_report['True_Yield_Percentage'].round(2)
+
+    # Sorting: Show worst performing parts at the top (Action Items for management)
+    yield_report.sort_values(by='True_Yield_Percentage', ascending=True, inplace=True)
+
+    # ---------------------------------------------------------
+    # 6. OUTPUT
+    # ---------------------------------------------------------
+    print("\n" + "="*60)
+    print(f"{'PART NUMBER':<20} | {'TOTAL UNITS':<12} | {'PASSED 1ST':<12} | {'YIELD %':<10}")
+    print("-" * 60)
+    
+    # Print rows to console
+    for index, row in yield_report.iterrows():
+        print(f"{row['partNo']:<20} | {row['Total_Units_Built']:<12} | {row['Units_Passed_First_Try']:<12} | {row['True_Yield_Percentage']}%")
+    
+    print("="*60)
+
+    # Save to CSV
+    yield_report.to_csv(output_path, index=False)
+    print(f"\nDetailed report saved to: {output_path}")
+
+if __name__ == "__main__":
+    calculate_product_yield(INPUT_FILE, OUTPUT_FILE)
