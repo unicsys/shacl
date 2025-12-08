@@ -1,52 +1,110 @@
-import csv
-from rdflib import Graph
+import pandas as pd
+import ijson
+import os
 
-def convert_ttl_to_csv(input_file, output_file):
-    # 1. Initialize the RDF Graph
-    g = Graph()
+# ---------------------------------------------------------
+# CONFIGURATION
+# ---------------------------------------------------------
+INPUT_FILE = 'sample.json' 
+
+def process_manufacturing_yields(input_path):
+    print(f"Processing {input_path}...")
     
-    print(f"Loading {input_file}...")
+    # ---------------------------------------------------------
+    # 1. LOAD DATA (Memory Optimized)
+    # ---------------------------------------------------------
+    data = []
+    
     try:
-        g.parse(input_file, format='ttl')
-    except Exception as e:
-        print(f"Error parsing file: {e}")
+        with open(input_path, 'rb') as f:
+            for item in ijson.items(f, 'item'):
+                data.append([
+                    item.get('partNo'),
+                    item.get('uutSn'),
+                    item.get('startDateTime'),
+                    item.get('productTestPassed'),
+                    item.get('ateCpn', 'Unknown'), # Machine Part Number
+                    item.get('ateSn', 'Unknown'),  # Machine Serial Number
+                    item.get('slotID', -1)         # Slot ID
+                ])
+                
+    except FileNotFoundError:
+        print(f"Error: The file '{input_path}' was not found.")
         return
 
-    # 2. Define the SPARQL query
-    # We select the label and description for any subject (?s) that has both.
-    query = """
-    SELECT ?label ?description
-    WHERE {
-        ?s <http://www.w3.org/2000/01/rdf-schema#label> ?label .
-        ?s <http://purl.org/dc/elements/1.1/description> ?description .
-    }
-    """
+    # Create DataFrame
+    cols = ['partNo', 'uutSn', 'startDateTime', 'productTestPassed', 'ateCpn', 'ateSn', 'slotID']
+    df = pd.DataFrame(data, columns=cols)
     
-    print("Querying graph...")
-    results = g.query(query)
-    
-    # 3. Write results to CSV
-    print(f"Writing to {output_file}...")
-    with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
-        writer = csv.writer(csvfile)
-        
-        # Write Header
-        writer.writerow(['Name of Class', 'Definition'])
-        
-        # Write Rows
-        count = 0
-        for row in results:
-            # row.label and row.description are RDF Literals. 
-            # .value gives the clean Python string text.
-            writer.writerow([row.label.value, row.description.value])
-            count += 1
-            
-    print(f"Done! Successfully wrote {count} rows to {output_file}.")
+    # Memory cleanup
+    del data
 
-# --- usage ---
-# Replace 'input.ttl' with your actual file name
-input_filename = 'input.ttl'  
-output_filename = 'output.csv'
+    # ---------------------------------------------------------
+    # 2. PRE-PROCESSING
+    # ---------------------------------------------------------
+    print("Standardizing dates and sorting...")
+    
+    # Fix Date Formats (Handle mixed formats)
+    df['startDateTime'] = pd.to_datetime(df['startDateTime'], format='mixed', errors='coerce')
+    df.dropna(subset=['startDateTime'], inplace=True)
+
+    # SORTING IS CRITICAL
+    # We sort by UUT and Time to find the "First Pass" event.
+    df.sort_values(by=['uutSn', 'startDateTime'], inplace=True)
+
+    # ---------------------------------------------------------
+    # 3. ISOLATE FIRST PASS EVENTS
+    # ---------------------------------------------------------
+    # We only care about the FIRST time a unit was tested.
+    # The machine that tested it first gets the credit (Pass) or the blame (Fail).
+    first_attempts = df.drop_duplicates(subset=['partNo', 'uutSn'], keep='first').copy()
+
+    print(f"Total Unique Units Analyzed: {len(first_attempts)}")
+
+    # ---------------------------------------------------------
+    # 4. DEFINE CALCULATION FUNCTION
+    # ---------------------------------------------------------
+    def calculate_yield(df, group_cols, report_name):
+        # Group by the specific columns (e.g., Machine SN, or Machine SN + Slot)
+        report = df.groupby(group_cols).agg(
+            Units_Processed=('uutSn', 'count'),
+            Passed_First_Try=('productTestPassed', 'sum')
+        ).reset_index()
+
+        # Calculate Yield
+        report['Yield_Percentage'] = (report['Passed_First_Try'] / report['Units_Processed']) * 100
+        report['Yield_Percentage'] = report['Yield_Percentage'].round(2)
+        
+        # Sort by Yield (Lowest first - to highlight problems)
+        report.sort_values(by='Yield_Percentage', ascending=True, inplace=True)
+
+        print(f"\n--- Report: {report_name} ---")
+        print(report.head(3).to_string(index=False))
+        
+        # Save to CSV
+        filename = f"yield_{report_name.lower().replace(' ', '_')}.csv"
+        report.to_csv(filename, index=False)
+        print(f"Saved to {filename}")
+
+    # ---------------------------------------------------------
+    # 5. GENERATE THE 4 REPORTS
+    # ---------------------------------------------------------
+    
+    # Report A: Yield by Machine Part Number (ateCpn)
+    # "Is this MODEL of machine performing well?"
+    calculate_yield(first_attempts, ['ateCpn'], "By Machine Part")
+
+    # Report B: Yield by Machine Serial Number (ateSn)
+    # "Is this SPECIFIC machine broken?"
+    calculate_yield(first_attempts, ['ateSn'], "By Machine SN")
+
+    # Report C: Yield by Machine Part + Slot
+    # "Is a specific slot on this TYPE of machine problematic?"
+    calculate_yield(first_attempts, ['ateCpn', 'slotID'], "By Machine Part and Slot")
+
+    # Report D: Yield by Machine SN + Slot
+    # "Is Slot 1 on Machine #006 broken?" (The most granular analysis)
+    calculate_yield(first_attempts, ['ateSn', 'slotID'], "By Machine SN and Slot")
 
 if __name__ == "__main__":
-    convert_ttl_to_csv(input_filename, output_filename)
+    process_manufacturing_yields(INPUT_FILE)
