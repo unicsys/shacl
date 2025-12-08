@@ -1,58 +1,59 @@
-import pandas as pd
+import ijson
 
-def check_uniqueness(df, columns, name):
-    """
-    Checks if a specific combination of columns is unique across the whole file.
-    """
-    # Create a composite key by joining the columns with a pipe |
-    # We convert to string and handle nulls to ensure accuracy
-    composite = df[columns].apply(lambda x: '|'.join(x.dropna().astype(str)), axis=1)
+# ---------------------------------------------------------
+# CONFIGURATION
+# ---------------------------------------------------------
+INPUT_FILE = 'sample.json' 
+TARGET_PART_NUMBER = "822-2132-003"  # <--- Change this to the part you want to check
+
+def count_unique_units_for_part(input_path, target_part):
+    print(f"Searching for Part Number: {target_part} in {input_path}...")
     
-    total_rows = len(df)
-    unique_count = composite.nunique()
+    # We use a Python 'set'. Sets automatically handle uniqueness.
+    # If we add "SN123" five times, the set only keeps it once.
+    unique_serial_numbers = set()
     
-    is_unique = (total_rows == unique_count)
+    row_count = 0
     
-    print(f"--- Strategy: {name} ---")
-    print(f"Columns: {columns}")
-    print(f"Unique Records: {unique_count} / {total_rows}")
-    print(f"Is Unique? {'✅ YES (Safe to use)' if is_unique else '❌ NO (Duplicates found)'}")
-    print("")
-    return is_unique
+    try:
+        with open(input_path, 'rb') as f:
+            # Stream the file item by item
+            for item in ijson.items(f, 'item'):
+                
+                # Check if this record matches the part number we want
+                # We use .get() to avoid errors if keys are missing
+                part_no = item.get('partNo')
+                uut_sn = item.get('uutSn')
+                
+                if part_no == target_part:
+                    if uut_sn: # Ensure SN is not None or empty
+                        unique_serial_numbers.add(uut_sn)
+                
+                row_count += 1
+                if row_count % 10000 == 0:
+                    print(f"Scanned {row_count} rows...", end='\r')
 
-def main():
-    csv_path = "sample_data.csv"  # <--- Point this to your large file
+    except FileNotFoundError:
+        print(f"Error: The file '{input_path}' was not found.")
+        return
+
+    # ---------------------------------------------------------
+    # OUTPUT
+    # ---------------------------------------------------------
+    count = len(unique_serial_numbers)
     
-    print("Loading CSV...")
-    # Read CSV (Low memory mode false to handle mixed types warning on large files)
-    df = pd.read_csv(csv_path, low_memory=False)
+    print("\n" + "="*50)
+    print(f"REPORT FOR PART: {target_part}")
+    print("="*50)
+    print(f"Total Unique Units Found: {count}")
+    print("="*50)
     
-    print(f"Total Rows Loaded: {len(df)}\n")
-
-    # ---------------------------------------------------------
-    # STRATEGY 1: Serial Number Only (We expect this to fail)
-    # ---------------------------------------------------------
-    check_uniqueness(df, ['1stLevelSerial'], "Serial Number Only")
-
-    # ---------------------------------------------------------
-    # STRATEGY 2: Serial + Sequence Number (Likely Candidate)
-    # ---------------------------------------------------------
-    check_uniqueness(df, ['1stLevelSerial', 'SeqNum'], "Serial + SeqNum")
-
-    # ---------------------------------------------------------
-    # STRATEGY 3: Serial + Defect Code (Logical)
-    # ---------------------------------------------------------
-    check_uniqueness(df, ['1stLevelSerial', 'DefCode'], "Serial + DefectCode")
-
-    # ---------------------------------------------------------
-    # STRATEGY 4: Serial + Timestamp (Temporal)
-    # ---------------------------------------------------------
-    check_uniqueness(df, ['1stLevelSerial', 'CreatedOn', 'CreatTime'], "Serial + Timestamp")
-
-    # ---------------------------------------------------------
-    # STRATEGY 5: Inspection Lot + SeqNum (ERP Style)
-    # ---------------------------------------------------------
-    check_uniqueness(df, ['InspLot#', 'SeqNum'], "Inspection Lot + SeqNum")
+    # Optional: Print the actual serial numbers if the list is short
+    if count > 0 and count <= 20:
+        print("\nSerial Numbers found:")
+        print(", ".join(sorted(unique_serial_numbers)))
+    elif count > 20:
+        print(f"\n(List of serial numbers hidden because there are {count} of them)")
 
 if __name__ == "__main__":
-    main()
+    count_unique_units_for_part(INPUT_FILE, TARGET_PART_NUMBER)
