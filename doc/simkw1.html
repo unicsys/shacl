@@ -1,117 +1,51 @@
-import hashlib
-import base64
-from .config import ENTERPRISE_BASE_URI
+PREFIX bfo: <http://purl.obolibrary.org/obo/BFO_>
+PREFIX iof: <https://spec.industrialontologies.org/ontology/core/Core/>
+PREFIX ockms: <https://ontologyhub.rtx.com/RTXEnterpriseOntologies/OCKMSDigitalThreadOntology/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-def generate_iri(category, scope, *keys):
-    """
-    Generates Deterministic SHA-256 Base64URL IRI.
-    """
-    seed_parts = [str(category), str(scope)] + [str(k) for k in keys]
-    seed_string = "|".join(seed_parts)
+SELECT DISTINCT ?BoardSerial ?RefDes ?ComponentPartNum ?DefectCode ?DefectDesc
+WHERE {
+    # 1. INPUT: Define the Part Number of the CCA
+    VALUES ?SearchPartNum { "752-6502-003" }
+
+    # 2. FIND BOARDS
+    ?design_ice iof:designates ?designFamily ;
+                bfo:0000084/ockms:hasTextValue ?SearchPartNum .
+    ?designFamily bfo:0000110 ?revision .
+    ?revision iof:prescribes ?board .
     
-    digest = hashlib.sha256(seed_string.encode('utf-8')).digest()
-    hash_str = base64.urlsafe_b64encode(digest).decode('utf-8').rstrip('=')
-    
-    return f"{ENTERPRISE_BASE_URI}{category}/{hash_str}"
+    ?board_ice iof:designates ?board ;
+               a ockms:CircuitCardAssemblyIdentifier ;
+               bfo:0000084/ockms:hasTextValue ?BoardSerial .
 
+    # 3. FIND COMPONENTS
+    ?board bfo:0000110 ?component .
+    ?component a ockms:ElectronicComponent .
 
-def generate_label(template_type, **kwargs):
-    """
-    Generates Clean Labels.
-    """
-    pn   = kwargs.get('pn', '?')
-    sn   = kwargs.get('sn', '?')
-    rev  = kwargs.get('rev', '?')
-    val  = kwargs.get('val', '?')
-    ref  = kwargs.get('ref', '?')
-    code = kwargs.get('code', '?')
-    
-    # --- SYSTEM LEVEL ---
-    if template_type == 'system_design':
-        return f"System Design {pn}"
-    
-    elif template_type == 'engineered_system':
-        return f"Engineered System {sn} ({pn})"
-    
-    elif template_type == 'system_design_identifier':
-        return f"System Design Identifier {val}"
-    
-    elif template_type == 'system_serial_number':
-        return f"System Serial Number {val}"
+    # 4. FIND DEFECTS
+    ?component bfo:0000196 ?defect . 
+    ?def_ice iof:designates ?defect ;
+             bfo:0000084/ockms:hasTextValue ?DefectCode .
 
-    # --- CCA LEVEL ---
-    elif template_type == 'circuit_card_assembly':
-        return f"Circuit Card Assembly {sn} ({pn})"
+    OPTIONAL {
+        ?desc_node iof:describes ?defect ;
+                   bfo:0000084/ockms:hasTextValue ?DefectDesc .
+    }
 
-    elif template_type == 'circuit_card_assembly_design':
-        return f"Circuit Card Assembly Design {pn}"
+    # 5. FIND LOCATION (RefDes)
+    ?component bfo:0000171 ?location .
+    ?loc_ice iof:designates ?location ;
+             bfo:0000084/ockms:hasTextValue ?RefDes .
 
-    elif template_type == 'circuit_card_assembly_design_revision':
-        return f"Circuit Card Assembly Design Revision {pn} {rev}"
-
-    # --- IDENTIFIERS ---
-    elif template_type == 'circuit_card_assembly_identifier':
-        return f"Circuit Card Assembly Identifier {val}"
-        
-    elif template_type == 'circuit_card_assembly_design_identifier':
-        return f"Circuit Card Assembly Design Identifier {val}"
-        
-    elif template_type == 'circuit_card_assembly_design_revision_identifier':
-        return f"Circuit Card Assembly Design Revision Identifier {val}"
-
-    # --- IBE ---
-    elif template_type == 'information_bearing_entity':
-        return f"{kwargs.get('src')}[{kwargs.get('row')}].{kwargs.get('col')}"
-
-    # --- COMPONENT DESIGNS ---
-    elif template_type == 'electronic_component_design':
-        return f"Electronic Component Design {pn}"
-
-    elif template_type == 'electronic_component_design_identifier':
-        return f"Electronic Component Design Identifier {val}"
-
-    # --- PHYSICAL COMPONENTS (Updated) ---
-    elif template_type == 'electronic_component':
-        # Show Part Number if available for better context
-        if pn and pn != '?':
-            return f"Electronic Component {ref} ({pn})"
-        return f"Electronic Component {ref}"
-
-    elif template_type == 'component_part_number':
-        return f"Component Part Number {val}"
-
-    # --- LOCATIONS ---
-    elif template_type == 'electronic_component_location':
-        return f"Location {ref} on {sn}"
-    
-    elif template_type == 'electronic_component_location_identifier':
-        return f"Location Identifier {ref}"
-    
-    elif template_type == 'reference_designator':
-        return f"Reference Designator {ref}"
-
-    # --- DEFECTS ---
-    elif template_type == 'defect':
-        return f"Defect {code} on {sn}"
-    
-    elif template_type == 'defect_classification_code':
-        return f"Defect Code {code}"
-    
-    elif template_type == 'defect_classification_description':
-        return f"Defect Description {code}"
-
-    # --- PROCESS & TIME ---
-    elif template_type == 'inspection_process':
-        return f"Inspection Process for {sn}"
-    
-    elif template_type == 'defect_recording_process':
-        return f"Defect Recording Process for {sn}"
-
-    elif template_type == 'temporal_interval':
-        return f"Temporal Interval {val}"
-        
-    elif template_type == 'temporal_interval_identifier':
-        return f"Temporal Interval Identifier {val}"
-
-    return "Unknown Label"
-
+    # ========================================================
+    # 6. FIND COMPONENT PART NUMBER (FIXED PATH)
+    # ========================================================
+    # Traverse: Component <- prescribed_by <- Design <- designated_by <- Identifier
+    OPTIONAL {
+        ?compDesign iof:prescribes ?component .
+        ?compDesignIce iof:designates ?compDesign ;
+                       a ockms:ElectronicComponentDesignIdentifier ;
+                       bfo:0000084/ockms:hasTextValue ?ComponentPartNum .
+    }
+}
+ORDER BY ?BoardSerial ?RefDes
