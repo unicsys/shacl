@@ -1,59 +1,246 @@
-import ijson
+import xml.etree.ElementTree as ET
+import numpy as np
+import pyvista as pv
+import os
 
-# ---------------------------------------------------------
-# CONFIGURATION
-# ---------------------------------------------------------
-INPUT_FILE = 'sample.json' 
-TARGET_PART_NUMBER = "822-2132-003"  # <--- Change this to the part you want to check
+# QIF Namespace Definition
+NS = {'q': 'http://qifstandards.org/xsd/qif3'}
 
-def count_unique_units_for_part(input_path, target_part):
-    print(f"Searching for Part Number: {target_part} in {input_path}...")
+def get_3d_circle_points(center, radius, normal, resolution=32):
+    """
+    Generates 3D points for a circle oriented by a normal vector.
+    This fixes the issue where tires appeared flat facing upwards.
+    """
+    center = np.array(center)
+    normal = np.array(normal)
     
-    # We use a Python 'set'. Sets automatically handle uniqueness.
-    # If we add "SN123" five times, the set only keeps it once.
-    unique_serial_numbers = set()
+    # Normalize the normal vector
+    norm = np.linalg.norm(normal)
+    if norm == 0:
+        return np.array([]) # Invalid normal
+    normal = normal / norm
     
-    row_count = 0
+    # Find two orthogonal vectors (u, v) in the plane of the circle
+    # If normal is roughly parallel to Z, use X as arbitrary. Otherwise use Z.
+    if np.abs(normal[2]) > 0.9:
+        arbitrary = np.array([1, 0, 0])
+    else:
+        arbitrary = np.array([0, 0, 1])
+        
+    u = np.cross(normal, arbitrary)
+    u = u / np.linalg.norm(u)
+    v = np.cross(normal, u)
+    v = v / np.linalg.norm(v)
     
-    try:
-        with open(input_path, 'rb') as f:
-            # Stream the file item by item
-            for item in ijson.items(f, 'item'):
-                
-                # Check if this record matches the part number we want
-                # We use .get() to avoid errors if keys are missing
-                part_no = item.get('partNo')
-                uut_sn = item.get('uutSn')
-                
-                if part_no == target_part:
-                    if uut_sn: # Ensure SN is not None or empty
-                        unique_serial_numbers.add(uut_sn)
-                
-                row_count += 1
-                if row_count % 10000 == 0:
-                    print(f"Scanned {row_count} rows...", end='\r')
+    # Generate parametric points around the circle
+    t = np.linspace(0, 2*np.pi, resolution)
+    
+    # Formula: P = Center + r*cos(t)*u + r*sin(t)*v
+    # We use np.outer to handle the arrays efficiently
+    points = (center + 
+              radius * np.outer(np.cos(t), u) + 
+              radius * np.outer(np.sin(t), v))
+    
+    return points
 
-    except FileNotFoundError:
-        print(f"Error: The file '{input_path}' was not found.")
+def parse_transform(transform_node):
+    """
+    Parses QIF Transform into a 4x4 Numpy Matrix.
+    """
+    if transform_node is None:
+        return np.eye(4)
+
+    mat = np.eye(4)
+    
+    # 1. Check for explicit 12-value or 16-value matrix
+    val = transform_node.find('q:Value', NS)
+    if val is not None:
+        data = np.fromstring(val.text, sep=' ')
+        if len(data) == 12: 
+            # QIF 12-val is usually: X-axis(3) Y-axis(3) Z-axis(3) Translation(3)
+            # Stored row-wise in QIF usually, but we fill columns for transformation
+            mat[0:3, 0] = data[0:3]
+            mat[0:3, 1] = data[3:6]
+            mat[0:3, 2] = data[6:9]
+            mat[0:3, 3] = data[9:12]
+        elif len(data) == 16:
+            mat = data.reshape(4,4)
+            
+    # 2. Check for simple Origin translation (common in your file)
+    else:
+        origin = transform_node.find('q:Origin', NS)
+        if origin is not None:
+            t = np.fromstring(origin.text, sep=' ')
+            mat[0:3, 3] = t
+            
+    return mat
+
+def get_geometry_for_part(part_node, root, geometry_map):
+    """
+    Extracts geometric lines/circles for a specific Part ID.
+    Correctly handles 3D orientation of arcs.
+    """
+    part_id = part_node.get('id')
+    
+    if part_id in geometry_map:
+        return geometry_map[part_id]
+    
+    # 1. Identify Edges belonging to this Part via BodyIds
+    body_ids = [b.text for b in part_node.findall('.//q:BodyIds/q:Id', NS)]
+    
+    edge_ids = []
+    for body in root.findall('.//q:Body', NS):
+        if body.get('id') in body_ids:
+            for edge_ref in body.findall('.//q:EdgeIds/q:Id', NS):
+                edge_ids.append(edge_ref.text)
+                
+    curve_ids = []
+    for edge in root.findall('.//q:Edge', NS):
+        if edge.get('id') in edge_ids:
+            curve_ref = edge.find('q:Curve/q:Id', NS)
+            if curve_ref is not None:
+                curve_ids.append(curve_ref.text)
+    
+    lines = []
+
+    # 2. Extract Linear Segments (Segment13)
+    for seg in root.findall('.//q:Segment13', NS):
+        if seg.get('id') in curve_ids:
+            core = seg.find('q:Segment13Core', NS)
+            if core is not None:
+                start = np.fromstring(core.find('q:StartPoint', NS).text, sep=' ')
+                end = np.fromstring(core.find('q:EndPoint', NS).text, sep=' ')
+                lines.append([start, end])
+
+    # 3. Extract Arcs (ArcCircular13) with correct 3D Orientation
+    for arc in root.findall('.//q:ArcCircular13', NS):
+        if arc.get('id') in curve_ids:
+            core = arc.find('q:ArcCircular13Core', NS)
+            if core is not None:
+                center = np.fromstring(core.find('q:Center', NS).text, sep=' ')
+                radius = float(core.find('q:Radius', NS).text)
+                
+                # Crucial Fix: Read the Normal vector to orient the circle correctly
+                normal_node = core.find('q:Normal', NS)
+                if normal_node is not None:
+                    normal = np.fromstring(normal_node.text, sep=' ')
+                else:
+                    normal = [0, 0, 1] # Default fallback
+                
+                # Generate 3D circle points
+                circle_pts = get_3d_circle_points(center, radius, normal)
+                
+                # Convert continuous circle points into individual line segments
+                for i in range(len(circle_pts) - 1):
+                    lines.append([circle_pts[i], circle_pts[i+1]])
+
+    if not lines:
+        return None
+
+    # Build PyVista PolyData from the lines
+    all_pts = []
+    line_indices = []
+    ctr = 0
+    for s, e in lines:
+        all_pts.append(s)
+        all_pts.append(e)
+        line_indices.extend([2, ctr, ctr+1])
+        ctr += 2
+        
+    mesh = pv.PolyData(np.array(all_pts))
+    mesh.lines = np.array(line_indices)
+    
+    geometry_map[part_id] = mesh
+    return mesh
+
+def traverse_assembly(node_id, current_matrix, root, plotter, geometry_map, transform_map, visited):
+    """
+    Recursively traverses the assembly tree (Assembly -> Component -> Part)
+    and applies cumulative transforms (Parent * Child).
+    """
+    
+    # CASE A: It is a Part -> Draw it
+    part_node = root.find(f".//q:Part[@id='{node_id}']", NS)
+    if part_node is not None:
+        mesh = get_geometry_for_part(part_node, root, geometry_map)
+        if mesh:
+            # Clone mesh, apply transform, and add to scene
+            transformed_mesh = mesh.copy()
+            transformed_mesh.transform(current_matrix)
+            plotter.add_mesh(transformed_mesh, color="#5f825f", line_width=3)
         return
 
-    # ---------------------------------------------------------
-    # OUTPUT
-    # ---------------------------------------------------------
-    count = len(unique_serial_numbers)
-    
-    print("\n" + "="*50)
-    print(f"REPORT FOR PART: {target_part}")
-    print("="*50)
-    print(f"Total Unique Units Found: {count}")
-    print("="*50)
-    
-    # Optional: Print the actual serial numbers if the list is short
-    if count > 0 and count <= 20:
-        print("\nSerial Numbers found:")
-        print(", ".join(sorted(unique_serial_numbers)))
-    elif count > 20:
-        print(f"\n(List of serial numbers hidden because there are {count} of them)")
+    # CASE B: It is an Assembly -> Loop through Components
+    asm_node = root.find(f".//q:Assembly[@id='{node_id}']", NS)
+    if asm_node is not None:
+        for comp_id_node in asm_node.findall('.//q:ComponentIds/q:Id', NS):
+            traverse_assembly(comp_id_node.text, current_matrix, root, plotter, geometry_map, transform_map, visited)
+        return
 
+    # CASE C: It is a Component -> Apply Transform -> Find Target
+    comp_node = root.find(f".//q:Component[@id='{node_id}']", NS)
+    if comp_node is not None:
+        # 1. Get Local Transform
+        trans_id_node = comp_node.find('q:Transform/q:Id', NS)
+        local_matrix = np.eye(4)
+        if trans_id_node is not None:
+            t_id = trans_id_node.text
+            if t_id in transform_map:
+                local_matrix = transform_map[t_id]
+        
+        # 2. Multiply Matrices (Matrix multiplication @)
+        new_matrix = current_matrix @ local_matrix
+        
+        # 3. Traverse Deeper (Part or Assembly)
+        part_ref = comp_node.find('q:Part/q:Id', NS)
+        if part_ref is not None:
+            traverse_assembly(part_ref.text, new_matrix, root, plotter, geometry_map, transform_map, visited)
+            
+        asm_ref = comp_node.find('q:Assembly/q:Id', NS)
+        if asm_ref is not None:
+            traverse_assembly(asm_ref.text, new_matrix, root, plotter, geometry_map, transform_map, visited)
+
+def visualize_qif_assembly(qif_path):
+    if not os.path.exists(qif_path):
+        print(f"Error: File '{qif_path}' not found.")
+        return
+
+    print(f"Parsing {qif_path}...")
+    tree = ET.parse(qif_path)
+    root = tree.getroot()
+    
+    # 1. Parse All Transforms globally
+    transform_map = {}
+    for trans in root.findall('.//q:Transform', NS):
+        tid = trans.get('id')
+        mat = parse_transform(trans)
+        transform_map[tid] = mat
+
+    # 2. Setup Visualization
+    plotter = pv.Plotter()
+    plotter.set_background("#303030") 
+    
+    geometry_map = {}
+    visited = set()
+
+    # 3. Find Root Assembly and Start Traversal
+    root_asm = root.find('.//q:RootAssembly/q:Id', NS)
+    if root_asm is not None:
+        print(f"Found Root Assembly ID: {root_asm.text}")
+        traverse_assembly(root_asm.text, np.eye(4), root, plotter, geometry_map, transform_map, visited)
+    else:
+        print("No Root Assembly found. Drawing independent parts...")
+        for part in root.findall('.//q:Part', NS):
+            mesh = get_geometry_for_part(part, root, geometry_map)
+            if mesh: plotter.add_mesh(mesh, color="cyan", line_width=2)
+
+    plotter.add_axes()
+    plotter.add_text("QIF B-Rep Visualizer", position='upper_left', color='white', font_size=12)
+    print("Displaying 3D Model...")
+    plotter.show()
+
+# --- Entry Point ---
 if __name__ == "__main__":
-    count_unique_units_for_part(INPUT_FILE, TARGET_PART_NUMBER)
+    # Updated filename as requested
+    qif_filename = "check_car.qif" 
+    visualize_qif_assembly(qif_filename)
