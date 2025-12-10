@@ -1,319 +1,161 @@
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Federated Query Demonstration</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js"></script>
+step_refdes.py
 
-    <style>
-        body, html {
-            height: 100%;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-        }
-        #mynetwork {
-            width: 100%;
-            height: 95vh;
-            border: 1px solid #ddd;
-            background-color: #fff;
-            border-radius: 5px;
-        }
-        .sparql-query-container {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: #ffffff;
-            border: 1px solid #ddd;
-            padding: 15px;
-            border-radius: 5px;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-        .sparql-query-container .sparql-line {
-            display: block;
-            padding: 1px 5px;
-            margin: 0 -5px;
-            border-radius: 3px;
-            transition: background-color 0.3s ease;
-        }
-        .sparql-query-container .highlight-line {
-            background-color: #fff1a8;
-        }
-        .sparql-comment { color: #8B4513; }
-        .sparql-keyword { color: #800080; font-weight: bold; }
-        .sparql-variable { color: #333; }
-        .sparql-uri { color: #008080; }
-        .sparql-class-type { color: #D2691E; }
-        .sparql-property { color: #00008B; }
-        .sparql-identifier { color: #4169E1; }
-        #explanation-box {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #e9ecef;
-            border-radius: 5px;
-            border: 1px solid #ced4da;
-            min-height: 100px;
-        }
-        #results-container {
-             margin-top: 10px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container-fluid pt-3">
-        <div class="row">
-            <!-- Left Column -->
-            <div class="col-lg-5">
-                <div class="sparql-query-container">
-                    <span class="sparql-line sparql-comment"># Find the person involved in repairing Aircraft N737AA</span>
-                    <span class="sparql-line"><span class="sparql-keyword">PREFIX</span> ex: <<span class="sparql-uri">http://example.com/ontology#</span>></span>
-                    <span class="sparql-line"><span class="sparql-keyword">PREFIX</span> rdfs: <<span class="sparql-uri">http://www.w3.org/2000/01/rdf-schema#</span>></span>
-                    <br>
-                    <span class="sparql-line" id="step4-line"><span class="sparql-keyword">SELECT</span> <span class="sparql-variable">?person</span> <span class="sparql-variable">?personLabel</span></span>
-                    <span class="sparql-line"><span class="sparql-keyword">WHERE</span> {</span>
-                    <div style="padding-left: 20px;">
-                        <span class="sparql-line sparql-comment"># 1. Start with the specific aircraft instance.</span>
-                        <span class="sparql-line" id="step0-line"><span class="sparql-keyword">VALUES</span> <span class="sparql-variable">?aircraft</span> { <span class="sparql-identifier">ex:N737AA</span> }</span>
-                        <span class="sparql-line sparql-comment"># 2. Find the repair process it participated in.</span>
-                        <span class="sparql-line" id="step1-line"><span class="sparql-variable">?repair</span> <span class="sparql-property">ex:has_participant</span> <span class="sparql-variable">?aircraft</span> .</span>
-                        <span class="sparql-line sparql-comment"># 3. Find the person who was also a participant.</span>
-                        <span class="sparql-line" id="step2-line"><span class="sparql-variable">?repair</span> <span class="sparql-property">ex:has_participant</span> <span class="sparql-variable">?person</span> .</span>
-                        <span class="sparql-line sparql-comment"># 4. Ensure this participant is a Person.</span>
-                        <span class="sparql-line" id="step3-line"><span class="sparql-variable">?person</span> <span class="sparql-keyword">a</span> <span class="sparql-class-type">ex:Person</span> .</span>
-                        <span class="sparql-line sparql-comment"># 5. Get the person's name for display.</span>
-                        <span class="sparql-line" id="step5-line"><span class="sparql-variable">?person</span> <span class="sparql-property">rdfs:label</span> <span class="sparql-variable">?personLabel</span> .</span>
-                    </div>
-                    <span class="sparql-line">}</span>
-                </div>
+import pandas as pd
+from rdflib import Graph, XSD
+from framework.config import *
+from framework.utils import normalize_key, clean_literal, clean_date_time
+from framework.identity import generate_iri, generate_label
+from framework.graph_builder import CCOGraphBuilder
 
-                <div class="mt-2">
-                    <button class="btn btn-primary" onclick="nextStep();">Next Step</button>
-                    <button class="btn btn-secondary" onclick="resetAll();">Reset</button>
-                </div>
-                
-                <div id="explanation-box">
-                    <strong>Explanation:</strong>
-                    <p id="explanation-text" class="mb-0">Run the query to see which parts of the combined graph it can understand.</p>
-                </div>
+def run(csv_path, output_path, source_name):
+    print(f"--- [Step: RefDes] Processing Dynamic Locations ---")
+    
+    g = Graph()
+    g.bind("ockms", OCKMS)
+    g.bind("iof", IOF)
+    g.bind("bfo", BFO)
+    g.bind("cco", CCO)
+    builder = CCOGraphBuilder(g)
+    
+    try:
+        df = pd.read_csv(csv_path, low_memory=False)
+    except Exception as e:
+        print(f"Error: {e}")
+        return
 
-                <div id="results-container">
-                    <h6>Query Results:</h6>
-                    <table class="table table-sm table-bordered table-striped">
-                        <thead><tr><th>?person</th><th>?personLabel</th></tr></thead>
-                        <tbody id="results-body"></tbody>
-                    </table>
-                </div>
-            </div>
+    # =========================================================
+    # A. REGENERATE ROW IDs
+    # =========================================================
+    df['clean_date'] = pd.to_datetime(df['CreatedOn'], errors='coerce').dt.strftime('%Y%m%d').fillna('00000000')
+    df['clean_time'] = df['CreatTime'].apply(clean_date_time)
+    df['clean_sn']   = df['1stLevelSerial'].fillna('UNK').astype(str).str.strip().str.upper()
+    df['clean_seq']  = df['SeqNum'].fillna('0').astype(str).str.strip()
 
-            <!-- Right Column -->
-            <div class="col-lg-7">
-                <div id="mynetwork"></div>
-            </div>
-        </div>
-    </div>
+    df['base_id'] = df['clean_sn'] + "_" + df['clean_date'] + "_" + df['clean_time'] + "_" + df['clean_seq']
+    df['dup_idx'] = df.groupby('base_id').cumcount()
+    df['RowID']   = df['base_id'] + "_" + df['dup_idx'].astype(str)
 
-    <script>
-        var network, nodes, edges;
-        var originalNodeStyles = {}, originalEdgeStyles = {};
-        var currentStep = -1;
+    # =========================================================
+    # B. MAPPING LOOP
+    # =========================================================
+    count = 0
 
-        const highlightOptions = {
-            success: { node: { color: { background: '#4CAF50', border: '#388E3C' }, font: { color: 'black' } }, edge: { color: '#4CAF50', width: 3.5, arrows: 'to' } },
-            miss:    { node: { color: { background: '#FFEB3B', border: '#FBC02D' }, font: { color: 'black' } } },
-            path:    { node: { color: { background: '#ff5722', border: '#d44a1c' }, font: { color: 'black' } }, edge: { color: '#ff5722', width: 3.5, arrows: 'to' } }
-        };
-
-        const querySteps = [
-            {
-                lineId: 'step0-line',
-                explanation: 'Start by binding ?aircraft to the specific URI <code>ex:N737AA</code>. The query finds a match in Team A\'s model (green) but ignores Team B\'s identically-named instance (yellow) because its URI belongs to a different namespace.',
-                nodesToHighlight: {
-                    success: ['A-N737AA'],
-                    miss: ['B-N737AA']
-                },
-                edgesToHighlight: []
-            },
-            {
-                lineId: 'step1-line',
-                explanation: 'From the valid aircraft, find its repair process via <code>ex:has_participant</code>. It successfully finds Repair-01. The query cannot traverse Team B\'s graph, which uses the <code>repairedBy</code> property instead.',
-                nodesToHighlight: {
-                    path: ['A-N737AA', 'A-Repair-01']
-                },
-                edgesToHighlight: {
-                    path: ['e13']
-                }
-            },
-            {
-                lineId: 'step2-line',
-                explanation: 'From Repair-01, find the other participant. The query successfully traverses to John Doe.',
-                nodesToHighlight: {
-                    path: ['A-N737AA', 'A-Repair-01', 'A-JohnDoe']
-                },
-                edgesToHighlight: {
-                    path: ['e13', 'e14']
-                }
-            },
-            {
-                lineId: 'step3-line',
-                explanation: 'Verify that this participant is of type <code>ex:Person</code>. The condition is met for John Doe. Team B\'s data, which uses <code>exB:Technician</code>, is irrelevant.',
-                nodesToHighlight: {
-                    path: ['A-JohnDoe', 'A-Person']
-                },
-                edgesToHighlight: {
-                    path: ['e9']
-                }
-            },
-            {
-                lineId: 'step4-line',
-                explanation: 'The SELECT clause specifies we want the person\'s URI and their label.',
-                nodesToHighlight: {
-                    path: ['A-JohnDoe']
-                },
-                edgesToHighlight: {}
-            },
-            {
-                lineId: 'step5-line',
-                explanation: 'The query retrieves the label for John Doe and completes. It found a valid path through Team A\'s data but was blind to Team B\'s, resulting in a partial answer.',
-                nodesToHighlight: {
-                    path: ['A-JohnDoe']
-                },
-                edgesToHighlight: {},
-                isFinal: true
-            }
-        ];
-
-        function resetAll() {
-            currentStep = -1;
-            document.querySelectorAll('.sparql-line').forEach(el => el.classList.remove('highlight-line'));
-            document.getElementById('explanation-text').innerHTML = 'Run the query to see which parts of the combined graph it can understand.';
-            document.getElementById('results-body').innerHTML = '';
-            resetGraphStyles();
-        }
-
-        function nextStep() {
-            currentStep++;
-            if (currentStep >= querySteps.length) {
-                currentStep = 0;
-            }
-            resetAllButKeepState();
-
-            const step = querySteps[currentStep];
-            document.getElementById(step.lineId).classList.add('highlight-line');
-            document.getElementById('explanation-text').innerHTML = step.explanation;
-
-            // Apply highlighting based on type (success, miss, path)
-            if (step.nodesToHighlight.success) nodes.update(step.nodesToHighlight.success.map(id => ({id, ...highlightOptions.success.node})));
-            if (step.nodesToHighlight.miss)    nodes.update(step.nodesToHighlight.miss.map(id => ({id, ...highlightOptions.miss.node})));
-            if (step.nodesToHighlight.path)    nodes.update(step.nodesToHighlight.path.map(id => ({id, ...highlightOptions.path.node})));
-
-            if (step.edgesToHighlight.path)    edges.update(step.edgesToHighlight.path.map(id => ({id, ...highlightOptions.path.edge})));
-            
-            if (step.isFinal) {
-                populateResults();
-            }
-        }
-
-        function resetAllButKeepState() {
-            resetGraphStyles();
-            document.querySelectorAll('.sparql-line').forEach(el => el.classList.remove('highlight-line'));
-            document.getElementById('results-body').innerHTML = '';
-        }
-
-        function resetGraphStyles() {
-            const nodesToUpdate = Object.keys(originalNodeStyles).map(id => ({ id, ...originalNodeStyles[id] }));
-            if (nodesToUpdate.length) nodes.update(nodesToUpdate);
-            
-            const edgesToUpdate = Object.keys(originalEdgeStyles).map(id => ({ id, ...originalEdgeStyles[id] }));
-            if (edgesToUpdate.length) edges.update(edgesToUpdate);
-        }
+    for idx, row in df.iterrows():
+        # Ingredients
+        raw_ref = row.get('RefDesigDescription') # The Location
+        raw_fpn = row.get('FailedComponent')     # The Trigger
         
-        function populateResults() {
-             const resultsBody = document.getElementById('results-body');
-             const results = [
-                 {uri: 'ex:JohnDoe', label: 'John Doe'}
-             ];
-             results.forEach(res => {
-                 let row = resultsBody.insertRow();
-                 row.insertCell(0).textContent = res.uri;
-                 row.insertCell(1).textContent = res.label;
-             });
-        }
+        # 1. Child Keys (The Board)
+        raw_pn  = row.get('1stLevelMaterial')
+        raw_sn  = row.get('1stLevelSerial')
+        
+        # 2. Parent Keys (The System)
+        raw_sys_mat = row.get('Material')
+        raw_sys_ser = row.get('SerialNumber')
+        
+        row_id  = row['RowID']
 
-        function drawGraph() {
-            const container = document.getElementById('mynetwork');
+        # Normalize
+        key_ref = normalize_key(raw_ref)
+        key_fpn = normalize_key(raw_fpn)
+        
+        key_pn  = normalize_key(raw_pn)
+        key_sn  = normalize_key(raw_sn)
+        
+        key_sys_mat = normalize_key(raw_sys_mat)
+        key_sys_ser = normalize_key(raw_sys_ser)
+        
+        lit_ref = clean_literal(raw_ref)
+        lit_sn  = clean_literal(raw_sn)
+        lit_sys_ser = clean_literal(raw_sys_ser)
 
-            const allNodesData = [
-                // Team A Nodes (prefixed with A-)
-                {"id": "A-Aircraft", "label": "Aircraft", "shape": "box", color: {background:'#FFA500', border: '#c78100'}},
-                {"id": "A-Person", "label": "Person", "shape": "box", color: {background:'#FFA500', border: '#c78100'}},
-                {"id": "A-RepairProcess", "label": "RepairProcess", "shape": "box", color: {background:'#FFA500', border: '#c78100'}},
-                {"id": "A-N737AA", "label": "Aircraft N737AA", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}},
-                {"id": "A-JohnDoe", "label": "John Doe", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}},
-                {"id": "A-Repair-01", "label": "Repair-01", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}},
+        if not key_ref: continue
 
-                // Team B Nodes (prefixed with B-)
-                {"id": "B-System", "label": "System", "shape": "box", color: {background:'#FFA500', border: '#c78100'}},
-                {"id": "B-Technician", "label": "Technician", "shape": "box", color: {background:'#FFA500', border: '#c78100'}},
-                {"id": "B-N737AA", "label": "Aircraft N737AA", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}},
-                {"id": "B-MikeRoss", "label": "Mike Ross", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}}
-            ];
+        # =========================================================
+        # DYNAMIC PARENT LOGIC
+        # =========================================================
+        
+        parent_iri = None
+        child_iri = None
+        
+        # Keys used for the Location Seed (Must match the Parent)
+        loc_parent_key_1 = "" 
+        loc_parent_key_2 = ""
 
-             const allEdgesData = [
-                // Team A Edges
-                {"id": "e8", "from": "A-N737AA", "to": "A-Aircraft", "label": "rdf:type", "dashes": true, "arrows": "to"},
-                {"id": "e9", "from": "A-JohnDoe", "to": "A-Person", "label": "rdf:type", "dashes": true, "arrows": "to"},
-                {"id": "e10", "from": "A-Repair-01", "to": "A-RepairProcess", "label": "rdf:type", "dashes": true, "arrows": "to"},
-                {"id": "e13", "from": "A-Repair-01", "to": "A-N737AA", "label": "has_participant", "arrows": "to"},
-                {"id": "e14", "from": "A-Repair-01", "to": "A-JohnDoe", "label": "has_participant", "arrows": "to"},
-
-                // Team B Edges
-                {"id": "b-e1", "from": "B-System", "to": "B-Technician", "label": "repairedBy", "arrows": "to"},
-                {"id": "b-e2", "from": "B-N737AA", "to": "B-System", "label": "rdf:type", "dashes": true, "arrows": "to"},
-                {"id": "b-e3", "from": "B-MikeRoss", "to": "B-Technician", "label": "rdf:type", "dashes": true, "arrows": "to"},
-                {"id": "b-e6", "from": "B-N737AA", "to": "B-MikeRoss", "label": "repairedBy", "arrows": "to"}
-            ];
+        if key_fpn:
+            # === SCENARIO A: FAILED COMPONENT EXISTS ===
+            # Parent = Board (1st Level)
+            # Child  = Electronic Component
             
-            nodes = new vis.DataSet(allNodesData);
-            edges = new vis.DataSet(allEdgesData);
+            if not key_pn or not key_sn: continue
+            
+            # 1. Define Parent (Board)
+            parent_iri = generate_iri(CAT_CCA_INST, "GLOBAL", key_pn, key_sn)
+            loc_parent_key_1 = key_pn
+            loc_parent_key_2 = key_sn
+            
+            # 2. Define Child (Component)
+            # Reconstruct Component IRI (Matches Step 5)
+            # Identity: Board + RefDes (or FailedPN)
+            comp_id_key = key_ref 
+            CAT_COMPONENT = "electronic_component" 
+            child_iri = generate_iri(CAT_COMPONENT, "GLOBAL", key_pn, key_sn, comp_id_key)
+            
+        else:
+            # === SCENARIO B: FAILED COMPONENT EMPTY ===
+            # Parent = System (Material/Serial)
+            # Child  = Board (1st Level)
+            
+            if not key_sys_mat or not key_sys_ser: continue
+            if not key_pn or not key_sn: continue # Need child board info too
+            
+            # 1. Define Parent (System)
+            parent_iri = generate_iri(CAT_SYS_INST, "GLOBAL", key_sys_mat, key_sys_ser)
+            loc_parent_key_1 = key_sys_mat
+            loc_parent_key_2 = key_sys_ser
+            
+            # 2. Define Child (Board)
+            child_iri = generate_iri(CAT_CCA_INST, "GLOBAL", key_pn, key_sn)
 
-            nodes.forEach(node => {
-                originalNodeStyles[node.id] = { color: node.color, font: node.font };
-            });
-            edges.forEach(edge => {
-                originalEdgeStyles[edge.id] = { 
-                    color: edge.color, 
-                    width: edge.width, 
-                    dashes: edge.dashes,
-                    arrows: edge.arrows
-                };
-            });
+        # =========================================================
+        # NODE 1: THE LOCATION (Site)
+        # =========================================================
+        # Identity: Unique to the *Parent* + RefDes
+        # This ensures R1 on a Board is different from Slot 1 on a System
+        loc_iri = generate_iri(CAT_COMP_LOC, "GLOBAL", loc_parent_key_1, loc_parent_key_2, key_ref)
+        
+        ice_iri = generate_iri(CAT_ID_COMP_LOC, "GLOBAL", key_ref)
+        ibe_iri = generate_iri(CAT_IBE, source_name, row_id, "RefDesigDescription")
 
-            const data = { nodes, edges };
-            const options = {
-                nodes: {
-                    font: { color: 'black' },
-                    borderWidth: 2,
-                    size: 22
-                },
-                edges: {
-                    color: '#555555',
-                    font: { align: 'middle', size: 12, color: '#333' },
-                    smooth: { type: 'continuous' },
-                    width: 1.5,
-                    arrows: 'to'
-                },
-                physics: {
-                    solver: 'barnesHut',
-                    barnesHut: { gravitationalConstant: -35000 }
-                },
-                interaction: {
-                    tooltipDelay: 200
-                }
-            };
-            network = new vis.Network(container, data, options);
-        }
+        builder.create_designative_pattern(
+            entity_iri=loc_iri,
+            ice_iri=ice_iri,
+            ibe_iri=ibe_iri,
+            
+            # Label depends on context
+            entity_label=f"Location {lit_ref} on {lit_sn if key_fpn else lit_sys_ser}",
+            ice_label=generate_label("electronic_component_location_identifier", val=lit_ref),
+            ibe_label=generate_label("information_bearing_entity", src=source_name, row=row_id, col="RefDesigDescription"),
+            
+            literal_value=lit_ref,
+            ice_class=OCKMS.ElectronicComponentLocationIdentifier,
+            data_property=PROP_HAS_TEXT_VALUE,
+            data_type=XSD.string
+        )
+        builder.add_type(loc_iri, OCKMS.ElectronicComponentLocation)
 
-        drawGraph();
-    </script>
-</body>
-</html>
+        # =========================================================
+        # CREATE LINKS
+        # =========================================================
+        
+        # 1. Parent --has_part--> Location
+        builder.add_relationship(parent_iri, REL_HAS_PART, loc_iri)
+        
+        # 2. Child --located_in--> Location
+        builder.add_relationship(child_iri, REL_LOCATED_IN, loc_iri)
+        
+        count += 1
+
+    g.serialize(destination=output_path, format="turtle")
+    print(f"Success. Mapped {count} dynamic locations.")
+    print(f"Output saved to: {output_path}")
