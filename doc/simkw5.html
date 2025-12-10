@@ -1,254 +1,122 @@
-<html>
-    <head>
-        <meta charset="utf-8">
+step_1stlevelserial.py
+
+import pandas as pd
+from rdflib import Graph, XSD
+from framework.config import *
+from framework.utils import normalize_key, clean_literal, clean_date_time
+from framework.identity import generate_iri, generate_label
+from framework.graph_builder import CCOGraphBuilder
+
+def run(csv_path, output_path, source_name):
+    print(f"--- [Step: 1stLevelSerial] Processing Physical Items & System Links ---")
+    
+    # 1. Setup
+    g = Graph()
+    g.bind("ockms", OCKMS)
+    g.bind("iof", IOF)
+    g.bind("bfo", BFO)
+    g.bind("cco", CCO)
+    builder = CCOGraphBuilder(g)
+    
+    # 2. Load Data
+    try:
+        df = pd.read_csv(csv_path, low_memory=False)
+    except Exception as e:
+        print(f"Error reading CSV: {e}")
+        return
+
+    # =========================================================
+    # A. GENERATE ROBUST ROW IDs
+    # =========================================================
+    df['clean_date'] = pd.to_datetime(df['CreatedOn'], errors='coerce').dt.strftime('%Y%m%d').fillna('00000000')
+    df['clean_time'] = df['CreatTime'].apply(clean_date_time)
+    df['clean_sn']   = df['1stLevelSerial'].fillna('UNK').astype(str).str.strip().str.upper()
+    df['clean_seq']  = df['SeqNum'].fillna('0').astype(str).str.strip()
+
+    df['base_id'] = df['clean_sn'] + "_" + df['clean_date'] + "_" + df['clean_time'] + "_" + df['clean_seq']
+    df['dup_idx'] = df.groupby('base_id').cumcount()
+    df['RowID']   = df['base_id'] + "_" + df['dup_idx'].astype(str)
+
+    # =========================================================
+    # B. MAPPING LOOP
+    # =========================================================
+    mapped_items = set()
+    count = 0
+
+    for idx, row in df.iterrows():
+        # 1. Ingredients (CCA - Child)
+        raw_pn  = row.get('1stLevelMaterial')
+        raw_sn  = row.get('1stLevelSerial')
+        raw_rev = row.get('1RevisionLevel') 
         
-            <script src="lib/bindings/utils.js"></script>
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        # 2. Ingredients (System - Parent)
+        raw_sys_mat = row.get('Material')     
+        raw_sys_ser = row.get('SerialNumber') 
+
+        row_id  = row['RowID']
+
+        # Normalize Keys
+        key_pn  = normalize_key(raw_pn)
+        key_sn  = normalize_key(raw_sn)
+        key_rev = normalize_key(raw_rev)
+        
+        key_sys_mat = normalize_key(raw_sys_mat)
+        key_sys_ser = normalize_key(raw_sys_ser)
+        
+        lit_pn  = clean_literal(raw_pn)
+        lit_sn  = clean_literal(raw_sn)
+
+        # We must have CCA Part & Serial to proceed
+        if not key_pn or not key_sn: continue
+
+        # ---------------------------------------------------------
+        # NODE: PHYSICAL ITEM (The Child)
+        # ---------------------------------------------------------
+        cca_iri = generate_iri(CAT_CCA_INST, "GLOBAL", key_pn, key_sn)
+        ice_iri = generate_iri(CAT_ID_CCA, "GLOBAL", key_sn)
+        ibe_iri = generate_iri(CAT_IBE, source_name, row_id, "1stLevelSerial")
+
+        builder.create_designative_pattern(
+            entity_iri=cca_iri,
+            ice_iri=ice_iri,
+            ibe_iri=ibe_iri,
+            entity_label=generate_label("circuit_card_assembly", pn=lit_pn, sn=lit_sn),
+            ice_label=generate_label("circuit_card_assembly_identifier", val=lit_sn),
+            ibe_label=generate_label("information_bearing_entity", src=source_name, row=row_id, col="1stLevelSerial"),
+            literal_value=lit_sn,
+            ice_class=OCKMS.CircuitCardAssemblyIdentifier,
+            data_property=PROP_HAS_TEXT_VALUE,
+            data_type=XSD.string
+        )
+
+        # ---------------------------------------------------------
+        # LINKING & LOGIC
+        # ---------------------------------------------------------
+        combo_key = (key_pn, key_sn)
+        
+        if combo_key not in mapped_items:
+            builder.add_type(cca_iri, OCKMS.CircuitCardAssembly)
             
-        
-        <link
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
-          crossorigin="anonymous"
-        />
-        <script
-          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
-          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
-          crossorigin="anonymous"
-        ></script>
-
-
-        
-        <style type="text/css">
-
-             #mynetwork {
-                 width: 100%;
-                 height: 700px;
-                 background-color: #ffffff;
-                 border: 1px solid lightgray;
-                 position: relative;
-                 float: left;
-             }
-             
-             #config {
-                 float: left;
-                 width: 400px;
-                 height: 600px;
-             }
-
-             #query-container {
-                font-family: 'Courier New', Courier, monospace;
-                background-color: #f4f4f4;
-                border: 1px solid #ddd;
-                padding: 15px;
-                margin-top: 20px;
-                margin-bottom: 20px;
-                border-radius: 5px;
-             }
-
-             #query-container h5 {
-                 margin-top: 0;
-             }
-             
-        </style>
-    </head>
-
-
-    <body>
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-md-12">
-                    <center><h1>Ontology with SPARQL Query Demonstration</h1></center>
-                </div>
-            </div>
-
-            <div id="query-container">
-                <h5><b>Sample SPARQL Query:</b> Find aircraft repaired by 'John Doe'</h5>
-                <pre><code>
-PREFIX ex: <http://example.com/ontology#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-
-SELECT ?aircraftLabel
-WHERE {
-  ?person ex:label "John Doe" .
-  ?repair rdf:type ex:RepairProcess .
-  ?repair ex:has_participant ?person .
-  ?repair ex:has_participant ?aircraft .
-  ?aircraft rdf:type ex:Aircraft .
-  ?aircraft ex:label ?aircraftLabel .
-}
-                </code></pre>
-                <button class="btn btn-primary" onclick="runQuery();">Run SPARQL Query & Highlight</button>
-                <button class="btn btn-secondary" onclick="resetGraph();">Reset Graph</button>
-            </div>
-
-            <div class="card" style="width: 100%">
-                <div id="mynetwork" class="card-body"></div>
-            </div>
+            # LINK 1: Revision (or Design) PRESCRIBES CCA
+            if key_rev:
+                rev_iri = generate_iri(CAT_CCA_REV, "GLOBAL", key_pn, key_rev)
+                builder.add_relationship(rev_iri, REL_PRESCRIBES, cca_iri)
+            else:
+                family_iri = generate_iri(CAT_CCA_DESIGN, "GLOBAL", key_pn)
+                builder.add_relationship(family_iri, REL_PRESCRIBES, cca_iri)
             
-            <div id="config" style="display:none;"></div>
-        </div>
-        
-
-        <script type="text/javascript">
-
-              // initialize global variables.
-              var edges;
-              var nodes;
-              var network;
-              var container;
-              var options, data;
-              
-              var originalNodeStyles = {};
-              var originalEdgeStyles = {};
-              
-
-              // This method is responsible for drawing the graph, returns the drawn network
-              function drawGraph() {
-                  container = document.getElementById('mynetwork');
-
-                  // --- Data Definition ---
-                  var allNodesData = [
-                      // Ontology Classes
-                      {"color": "#FDD4A0", "font": {"color": "black"}, "id": "Entity", "label": "Entity", "shape": "box", "size": 30},
-                      {"color": "#FDD4A0", "font": {"color": "black"}, "id": "Continuant", "label": "Continuant", "shape": "box", "size": 25},
-                      {"color": "#FDD4A0", "font": {"color": "black"}, "id": "Occurrent", "label": "Occurrent", "shape": "box", "size": 25},
-                      {"color": "#FFA500", "font": {"color": "black"}, "id": "Aircraft", "label": "Aircraft", "shape": "box", "size": 20},
-                      {"color": "#FFA500", "font": {"color": "black"}, "id": "Person", "label": "Person", "shape": "box", "size": 20},
-                      {"color": "#FFA500", "font": {"color": "black"}, "id": "RepairProcess", "label": "RepairProcess", "shape": "box", "size": 20},
-                      // Instances
-                      {"color": "#8A2BE2", "font": {"color": "black"}, "id": "Aircraft-Inst-1", "label": "Aircraft N737AA", "shape": "dot", "size": 15},
-                      {"color": "#8A2BE2", "font": {"color": "black"}, "id": "Person-Inst-1", "label": "John Doe", "shape": "dot", "size": 15},
-                      {"color": "#8A2BE2", "font": {"color": "black"}, "id": "Repair-Inst-1", "label": "Repair-01", "shape": "dot", "size": 15},
-                      {"color": "#8A2BE2", "font": {"color": "black"}, "id": "Aircraft-Inst-2", "label": "Aircraft N905FR", "shape": "dot", "size": 15},
-                      {"color": "#8A2BE2", "font": {"color": "black"}, "id": "Person-Inst-2", "label": "Jane Smith", "shape": "dot", "size": 15},
-                      {"color": "#8A2BE2", "font": {"color": "black"}, "id": "Repair-Inst-2", "label": "Repair-02", "shape": "dot", "size": 15},
-                      {"color": "#8A2BE2", "font": {"color": "black"}, "id": "Repair-Inst-3", "label": "Repair-03", "shape": "dot", "size": 15}
-                  ];
-
-                  var allEdgesData = [
-                      // Ontology Edges
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "Continuant", "label": "rdfs:subClassOf", "to": "Entity"},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "Occurrent", "label": "rdfs:subClassOf", "to": "Entity"},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "Aircraft", "label": "rdfs:subClassOf", "to": "Continuant"},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "Person", "label": "rdfs:subClassOf", "to": "Continuant"},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "RepairProcess", "label": "rdfs:subClassOf", "to": "Occurrent"},
-                      {"arrows": "to", "color": "#DC143C", "from": "RepairProcess", "label": "has_participant", "to": "Aircraft", "width": 2},
-                      {"arrows": "to", "color": "#DC143C", "from": "RepairProcess", "label": "has_participant", "to": "Person", "width": 2},
-                      // Instance Edges
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "Aircraft-Inst-1", "label": "rdf:type", "to": "Aircraft"},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "Person-Inst-1", "label": "rdf:type", "to": "Person"},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "Repair-Inst-1", "label": "rdf:type", "to": "RepairProcess"},
-                      {"arrows": "to", "color": "#DC143C", "from": "Repair-Inst-1", "label": "has_participant", "to": "Aircraft-Inst-1", "width": 2},
-                      {"arrows": "to", "color": "#DC143C", "from": "Repair-Inst-1", "label": "has_participant", "to": "Person-Inst-1", "width": 2},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "Aircraft-Inst-2", "label": "rdf:type", "to": "Aircraft"},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "Person-Inst-2", "label": "rdf:type", "to": "Person"},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "Repair-Inst-2", "label": "rdf:type", "to": "RepairProcess"},
-                      {"arrows": "to", "color": "#DC143C", "from": "Repair-Inst-2", "label": "has_participant", "to": "Aircraft-Inst-2", "width": 2},
-                      {"arrows": "to", "color": "#DC143C", "from": "Repair-Inst-2", "label": "has_participant", "to": "Person-Inst-2", "width": 2},
-                      {"arrows": "to", "color": "#808080", "dashes": true, "from": "Repair-Inst-3", "label": "rdf:type", "to": "RepairProcess"},
-                      {"arrows": "to", "color": "#DC143C", "from": "Repair-Inst-3", "label": "has_participant", "to": "Person-Inst-1", "width": 2},
-                      {"arrows": "to", "color": "#DC143C", "from": "Repair-Inst-3", "label": "has_participant", "to": "Aircraft-Inst-2", "width": 2}
-                  ];
-                  
-                  nodes = new vis.DataSet(allNodesData);
-                  edges = new vis.DataSet(allEdgesData);
-
-                  // Store original styles for resetting later
-                  nodes.forEach(node => {
-                      originalNodeStyles[node.id] = { color: node.color, size: node.size, font: node.font };
-                  });
-                   edges.forEach(edge => {
-                      originalEdgeStyles[edge.id] = { color: edge.color, width: edge.width, dashes: edge.dashes };
-                  });
-
-
-                  // --- Graph Configuration and Drawing ---
-                  data = {nodes: nodes, edges: edges};
-                  options = {
-                      "edges": {"smooth": {"enabled": true, "type": "dynamic"}},
-                      "interaction": {"dragNodes": true, "hideEdgesOnDrag": false, "hideNodesOnDrag": false, "tooltipDelay": 200},
-                      "physics": {
-                          "enabled": true,
-                           "barnesHut": {"gravitationalConstant": -8000, "springConstant": 0.04, "springLength": 150},
-                          "stabilization": {"enabled": true, "iterations": 1000, "fit": true}
-                      }
-                  };
-                  
-                  network = new vis.Network(container, data, options);
-              }
-
-              function runQuery() {
-                // First, reset any previous highlighting
-                resetGraph();
-
-                // --- Define the nodes and edges that are the result of the query ---
-                // John Doe repaired two aircraft via two different repair processes.
-                const resultNodeIds = [
-                    'Person-Inst-1',   // John Doe
-                    'Repair-Inst-1',   // First repair
-                    'Aircraft-Inst-1', // First aircraft
-                    'Repair-Inst-3',   // Second repair
-                    'Aircraft-Inst-2'  // Second aircraft
-                ];
+            # LINK 2: System HAS_PART CCA (*** NEW PART ***)
+            if key_sys_mat and key_sys_ser:
+                # We regenerate the System IRI (Matches Step 0)
+                sys_inst_iri = generate_iri(CAT_SYS_INST, "GLOBAL", key_sys_mat, key_sys_ser)
                 
-                const highlightColor = "#03A64A"; // A bright green color
-                const highlightNodeSize = 25;
-                const highlightEdgeWidth = 4;
+                # Relation: System --has_continuant_part--> CCA
+                builder.add_relationship(sys_inst_iri, REL_HAS_PART, cca_iri)
 
-                // --- Prepare the updates for Vis.js ---
-                let nodesToUpdate = [];
-                resultNodeIds.forEach(id => {
-                    nodesToUpdate.push({
-                        id: id,
-                        color: highlightColor,
-                        size: highlightNodeSize,
-                        font: {color: 'black', size: 16, face: 'arial', bold: true}
-                    });
-                });
+            mapped_items.add(combo_key)
+        
+        count += 1
 
-                let edgesToUpdate = [];
-                // Find edges connecting the result nodes for both repair paths
-                let allEdges = edges.get({
-                    filter: function (item) {
-                        return (item.from === 'Repair-Inst-1' && (item.to === 'Person-Inst-1' || item.to === 'Aircraft-Inst-1')) ||
-                               (item.from === 'Repair-Inst-3' && (item.to === 'Person-Inst-1' || item.to === 'Aircraft-Inst-2'));
-                    }
-                });
-
-                allEdges.forEach(edge => {
-                    edgesToUpdate.push({
-                        id: edge.id,
-                        color: highlightColor,
-                        width: highlightEdgeWidth,
-                        dashes: false
-                    });
-                });
-
-                // --- Apply the updates to the graph ---
-                nodes.update(nodesToUpdate);
-                edges.update(edgesToUpdate);
-              }
-
-              function resetGraph() {
-                 let nodesToUpdate = [];
-                 let edgesToUpdate = [];
-
-                 for(const id in originalNodeStyles){
-                    nodesToUpdate.push({id: id, ...originalNodeStyles[id]});
-                 }
-                 for(const id in originalEdgeStyles){
-                    edgesToUpdate.push({id: id, ...originalEdgeStyles[id]});
-                 }
-
-                 nodes.update(nodesToUpdate);
-                 edges.update(edgesToUpdate);
-              }
-
-
-              drawGraph();
-        </script>
-    </body>
-</html>
+    g.serialize(destination=output_path, format="turtle")
+    print(f"Success. Mapped {count} physical items and linked to Systems.")
+    print(f"Output saved to: {output_path}")
