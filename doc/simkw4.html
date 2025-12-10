@@ -1,1 +1,115 @@
+step_1stlevelmaterial.py
+
+import pandas as pd
+from rdflib import Graph, XSD
+from framework.config import *
+from framework.utils import normalize_key, clean_literal, clean_date_time
+from framework.identity import generate_iri, generate_label
+from framework.graph_builder import CCOGraphBuilder
+
+def run(csv_path, output_path, source_name):
+    print(f"--- [Step: 1stLevelMaterial] Processing Design Families ---")
+    
+    # 1. Setup
+    g = Graph()
+    g.bind("ockms", OCKMS)
+    g.bind("iof", IOF)
+    g.bind("bfo", BFO)
+    builder = CCOGraphBuilder(g)
+    
+    # 2. Load Data
+    try:
+        df = pd.read_csv(csv_path, low_memory=False)
+    except Exception as e:
+        print(f"Error reading CSV: {e}")
+        return
+
+    # =========================================================
+    # A. GENERATE ROBUST ROW IDs
+    # =========================================================
+    print("Generating Row IDs...")
+    
+    # Clean up Date/Time for ID generation
+    # CreatedOn (Date) -> YYYYMMDD
+    df['clean_date'] = pd.to_datetime(df['CreatedOn'], errors='coerce').dt.strftime('%Y%m%d').fillna('00000000')
+    
+    # CreatTime -> HHMMSS
+    df['clean_time'] = df['CreatTime'].apply(clean_date_time)
+    
+    # Serial & Seq
+    df['clean_sn']  = df['1stLevelSerial'].fillna('UNK').astype(str).str.strip().str.upper()
+    df['clean_seq'] = df['SeqNum'].fillna('0').astype(str).str.strip()
+
+    # Create Base ID: Serial_Date_Time_Seq
+    df['base_id'] = (
+        df['clean_sn'] + "_" + 
+        df['clean_date'] + "_" + 
+        df['clean_time'] + "_" + 
+        df['clean_seq']
+    )
+
+    # Tie-Breaker (cumcount)
+    df['dup_idx'] = df.groupby('base_id').cumcount()
+    
+    # Final RowID: Base_Index
+    df['RowID'] = df['base_id'] + "_" + df['dup_idx'].astype(str)
+
+    # =========================================================
+    # B. MAPPING LOOP
+    # =========================================================
+    mapped_designs = set()
+    count = 0
+
+    for idx, row in df.iterrows():
+        # 1. Ingredients
+        raw_pn = row.get('1stLevelMaterial')
+        row_id = row['RowID']
+
+        # 2. Normalize
+        key_pn = normalize_key(raw_pn)
+        lit_pn = clean_literal(raw_pn)
+
+        # Skip rows without a Part Number
+        if not key_pn: continue
+
+        # 3. Generate IRIs
+        # Entity: Design Family
+        design_iri = generate_iri(CAT_CCA_DESIGN, "GLOBAL", key_pn)
+        
+        # ICE: Part Number Identifier
+        ice_iri = generate_iri(CAT_ID_DESIGN, "GLOBAL", key_pn)
+
+        # IBE: The Record (Unique per RowID)
+        ibe_iri = generate_iri(CAT_IBE, source_name, row_id, "1stLevelMaterial")
+
+        # 4. Build Pattern
+        builder.create_designative_pattern(
+            entity_iri=design_iri,
+            ice_iri=ice_iri,
+            ibe_iri=ibe_iri,
+            
+            # Label Strategy (Spaces, no colons)
+            entity_label=generate_label("circuit_card_assembly_design", pn=lit_pn),
+            ice_label=generate_label("circuit_card_assembly_design_identifier", val=lit_pn),
+            ibe_label=generate_label("information_bearing_entity", src=source_name, row=row_id, col="1stLevelMaterial"),
+            
+            literal_value=lit_pn,
+            ice_class=OCKMS.CircuitCardAssemblyDesignIdentifier,
+            
+            # Explicit Property/Datatype Mapping
+            data_property=PROP_HAS_TEXT_VALUE,
+            data_type=XSD.string
+        )
+
+        # 5. Type Assertion (Once per unique PartNum)
+        if key_pn not in mapped_designs:
+            builder.add_type(design_iri, OCKMS.CircuitCardAssemblyDesign)
+            mapped_designs.add(key_pn)
+        
+        count += 1
+
+    # 6. Save
+    g.serialize(destination=output_path, format="turtle")
+    print(f"Success. Mapped {count} rows. Found {len(mapped_designs)} unique Designs.")
+    print(f"Output saved to: {output_path}")
 
