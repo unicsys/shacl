@@ -1,336 +1,149 @@
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Interactive SPARQL Visualization</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js"></script>
+step_defcode.py
 
-    <style>
-        body, html {
-            height: 100%;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-        }
-        #mynetwork {
-            width: 100%;
-            height: 95vh;
-            border: 1px solid #ddd;
-            background-color: #fff;
-            border-radius: 5px;
-        }
-        .sparql-query-container {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: #ffffff;
-            border: 1px solid #ddd;
-            padding: 15px;
-            border-radius: 5px;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-        .sparql-query-container .sparql-line {
-            display: block;
-            padding: 1px 5px;
-            margin: 0 -5px;
-            border-radius: 3px;
-            transition: background-color 0.3s ease;
-        }
-        .sparql-query-container .highlight-line {
-            background-color: #fff1a8;
-        }
-        .sparql-comment { color: #8B4513; }
-        .sparql-keyword { color: #800080; font-weight: bold; }
-        .sparql-variable { color: #333; }
-        .sparql-uri { color: #008080; }
-        .sparql-class-type { color: #D2691E; }
-        .sparql-property { color: #00008B; }
-        .sparql-identifier { color: #4169E1; }
-        #explanation-box {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #e9ecef;
-            border-radius: 5px;
-            border: 1px solid #ced4da;
-            min-height: 70px;
-        }
-        #results-container {
-             margin-top: 10px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container-fluid pt-3">
-        <div class="row">
-            <!-- Left Column -->
-            <div class="col-lg-5">
-                <div class="sparql-query-container">
-                    <span class="sparql-line sparql-comment"># Finds all aircraft repaired by the individual identified as ex:JohnDoe</span>
-                    <span class="sparql-line"><span class="sparql-keyword">PREFIX</span> ex: <<span class="sparql-uri">http://example.com/ontology#</span>></span>
-                    <span class="sparql-line"><span class="sparql-keyword">PREFIX</span> rdf: <<span class="sparql-uri">http://www.w3.org/1999/02/22-rdf-syntax-ns#</span>></span>
-                    <span class="sparql-line"><span class="sparql-keyword">PREFIX</span> rdfs: <<span class="sparql-uri">http://www.w3.org/2000/01/rdf-schema#</span>></span>
-                    <br>
-                    <span class="sparql-line" id="step5-line"><span class="sparql-keyword">SELECT</span> <span class="sparql-keyword">DISTINCT</span> <span class="sparql-variable">?aircraft</span> <span class="sparql-variable">?aircraftLabel</span></span>
-                    <span class="sparql-line"><span class="sparql-keyword">WHERE</span> {</span>
-                    <div style="padding-left: 20px;">
-                        <span class="sparql-line sparql-comment"># 1. Use the specific URI for the person...</span>
-                        <span class="sparql-line" id="step0-line"><span class="sparql-keyword">VALUES</span> <span class="sparql-variable">?person</span> { <span class="sparql-identifier">ex:JohnDoe</span> }</span>
-                        <span class="sparql-line sparql-comment"># 2. Find a repair process...</span>
-                        <span class="sparql-line" id="step1-line"><span class="sparql-variable">?repair</span> <span class="sparql-keyword">a</span> <span class="sparql-class-type">ex:RepairProcess</span> .</span>
-                        <span class="sparql-line sparql-comment"># 3. ...that has our person as a participant...</span>
-                        <span class="sparql-line" id="step2-line"><span class="sparql-variable">?repair</span> <span class="sparql-property">ex:has_participant</span> <span class="sparql-variable">?person</span> .</span>
-                        <span class="sparql-line sparql-comment"># 4. ...AND has an aircraft as a participant.</span>
-                        <span class="sparql-line" id="step3-line"><span class="sparql-variable">?repair</span> <span class="sparql-property">ex:has_participant</span> <span class="sparql-variable">?aircraft</span> .</span>
-                        <span class="sparql-line sparql-comment"># 5. Ensure ?aircraft is of type ex:Aircraft.</span>
-                        <span class="sparql-line" id="step4-line"><span class="sparql-variable">?aircraft</span> <span class="sparql-keyword">a</span> <span class="sparql-class-type">ex:Aircraft</span> .</span>
-                        <span class="sparql-line sparql-comment"># 6. Finally, get the label for display.</span>
-                        <span class="sparql-line" id="step6-line"><span class="sparql-variable">?aircraft</span> <span class="sparql-property">rdfs:label</span> <span class="sparql-variable">?aircraftLabel</span> .</span>
-                    </div>
-                    <span class="sparql-line">}</span>
-                </div>
+import pandas as pd
+# ENSURE URIRef IS IMPORTED
+from rdflib import Graph, XSD, Literal, RDF, RDFS, URIRef 
+from framework.config import *
+from framework.utils import normalize_key, clean_literal, clean_date_time
+from framework.identity import generate_iri, generate_label
+from framework.graph_builder import CCOGraphBuilder
 
-                <div class="mt-2">
-                    <button class="btn btn-primary" onclick="nextStep();">Next Step</button>
-                    <button class="btn btn-secondary" onclick="resetAll();">Reset</button>
-                </div>
-                
-                <div id="explanation-box">
-                    <strong>Explanation:</strong>
-                    <p id="explanation-text" class="mb-0">Click "Next Step" to begin the query execution.</p>
-                </div>
 
-                <div id="results-container">
-                    <h6>Query Results:</h6>
-                    <table class="table table-sm table-bordered table-striped">
-                        <thead><tr><th>?aircraft</th><th>?aircraftLabel</th></tr></thead>
-                        <tbody id="results-body"></tbody>
-                    </table>
-                </div>
-            </div>
+def run(csv_path, output_path, source_name):
+    print(f"--- [Step: DefCode] Processing Defects (bearer_of) ---")
+    
+    g = Graph()
+    g.bind("ockms", OCKMS)
+    g.bind("iof", IOF)
+    g.bind("bfo", BFO)
+    g.bind("cco", CCO)
+    builder = CCOGraphBuilder(g)
+    
+    try:
+        df = pd.read_csv(csv_path, low_memory=False)
+    except Exception as e:
+        print(f"Error: {e}")
+        return
 
-            <!-- Right Column -->
-            <div class="col-lg-7">
-                <div id="mynetwork"></div>
-            </div>
-        </div>
-    </div>
+    # =========================================================
+    # A. REGENERATE ROW IDs
+    # =========================================================
+    df['clean_date'] = pd.to_datetime(df['CreatedOn'], errors='coerce').dt.strftime('%Y%m%d').fillna('00000000')
+    df['clean_time'] = df['CreatTime'].apply(clean_date_time)
+    df['clean_sn']   = df['1stLevelSerial'].fillna('UNK').astype(str).str.strip().str.upper()
+    df['clean_seq']  = df['SeqNum'].fillna('0').astype(str).str.strip()
 
-    <script>
-        var network;
-        var nodes, edges;
-        var originalNodeStyles = {};
-        var originalEdgeStyles = {};
-        var currentStep = -1;
+    df['base_id'] = df['clean_sn'] + "_" + df['clean_date'] + "_" + df['clean_time'] + "_" + df['clean_seq']
+    df['dup_idx'] = df.groupby('base_id').cumcount()
+    df['RowID']   = df['base_id'] + "_" + df['dup_idx'].astype(str)
 
-        const highlightOptions = {
-            node: { 
-                color: { background: '#ff5722', border: '#d44a1c' },
-                font: { color: 'black' } 
-            },
-            edge: { 
-                color: '#ff5722', 
-                width: 3.5,
-                arrows: 'to'
-            }
-        };
+    # =========================================================
+    # B. MAPPING LOOP
+    # =========================================================
+    count = 0
 
-        const querySteps = [
-             { 
-                lineId: 'step0-line',
-                explanation: 'Start by binding the ?person variable to the specific individual, ex:JohnDoe.',
-                nodesToHighlight: ['Person-Inst-1'],
-                edgesToHighlight: []
-            },
-            { 
-                lineId: 'step1-line',
-                explanation: 'Next, find all nodes in the graph that are of the type ex:RepairProcess.',
-                nodesToHighlight: ['Repair-Inst-1', 'Repair-Inst-2', 'Repair-Inst-3'],
-                edgesToHighlight: []
-            },
-            { 
-                lineId: 'step2-line',
-                explanation: 'Now, filter those repairs. Keep only the ones that have ex:JohnDoe as a participant. This leaves Repair-01 and Repair-03.',
-                nodesToHighlight: ['Person-Inst-1', 'Repair-Inst-1', 'Repair-Inst-3'],
-                edgesToHighlight: ['e14', 'e18']
-            },
-            { 
-                lineId: 'step3-line',
-                explanation: 'From these two valid repairs, find their other participants. This binds the ?aircraft variable to two individuals.',
-                nodesToHighlight: ['Person-Inst-1', 'Repair-Inst-1', 'Repair-Inst-3', 'Aircraft-Inst-1', 'Aircraft-Inst-2'],
-                edgesToHighlight: ['e13', 'e14', 'e18', 'e19']
-            },
-            { 
-                lineId: 'step4-line',
-                explanation: 'This step verifies that the found participants are indeed of type ex:Aircraft. Both nodes satisfy this condition.',
-                nodesToHighlight: ['Aircraft-Inst-1', 'Aircraft-Inst-2'],
-                edgesToHighlight: ['e8', 'e11']
-            },
-             { 
-                lineId: 'step5-line',
-                explanation: 'The SELECT clause specifies which variables we want in our final output: ?aircraft (the URI) and ?aircraftLabel (the name).',
-                nodesToHighlight: ['Aircraft-Inst-1', 'Aircraft-Inst-2'],
-                edgesToHighlight: []
-            },
-            { 
-                lineId: 'step6-line',
-                explanation: 'Retrieve the rdfs:label for the final ?aircraft nodes. The query is now complete and the results are projected into the table.',
-                nodesToHighlight: ['Aircraft-Inst-1', 'Aircraft-Inst-2'],
-                edgesToHighlight: [],
-                isFinal: true
-            }
-        ];
-
-        function resetAll() {
-            currentStep = -1;
-            document.querySelectorAll('.sparql-line').forEach(el => el.classList.remove('highlight-line'));
-            document.getElementById('explanation-text').textContent = 'Click "Next Step" to begin the query execution.';
-            document.getElementById('results-body').innerHTML = '';
-            resetGraphStyles();
-        }
-
-        function nextStep() {
-            currentStep++;
-            if (currentStep >= querySteps.length) {
-                currentStep = 0;
-            }
-            resetAllButKeepState();
-            
-            const step = querySteps[currentStep];
-            document.getElementById(step.lineId).classList.add('highlight-line');
-            document.getElementById('explanation-text').textContent = step.explanation;
-
-            const nodesToUpdate = step.nodesToHighlight.map(id => ({id: id, ...highlightOptions.node}));
-            if(nodesToUpdate.length > 0) nodes.update(nodesToUpdate);
-
-            const edgesToUpdate = step.edgesToHighlight.map(id => ({id: id, ...highlightOptions.edge}));
-            if(edgesToUpdate.length > 0) edges.update(edgesToUpdate);
-            
-            if (step.isFinal) {
-                populateResults();
-            }
-        }
-
-        function resetAllButKeepState() {
-            resetGraphStyles();
-            document.querySelectorAll('.sparql-line').forEach(el => el.classList.remove('highlight-line'));
-            document.getElementById('results-body').innerHTML = '';
-        }
-
-        function resetGraphStyles() {
-            const nodesToUpdate = Object.keys(originalNodeStyles).map(id => ({ id: id, ...originalNodeStyles[id] }));
-            if (nodesToUpdate.length) nodes.update(nodesToUpdate);
-            
-            // Fix: Get the current edge data to preserve all properties
-            const edgesToUpdate = edges.get().map(edge => {
-                const originalStyle = originalEdgeStyles[edge.id] || {};
-                return {
-                    id: edge.id,
-                    color: originalStyle.color || edge.color,
-                    width: originalStyle.width || edge.width,
-                    dashes: originalStyle.dashes !== undefined ? originalStyle.dashes : edge.dashes,
-                    arrows: originalStyle.arrows !== undefined ? originalStyle.arrows : edge.arrows
-                };
-            });
-            if (edgesToUpdate.length) edges.update(edgesToUpdate);
-        }
+    for idx, row in df.iterrows():
+        # Ingredients
+        raw_pn   = row.get('1stLevelMaterial')
+        raw_sn   = row.get('1stLevelSerial')
+        raw_code = row.get('DefCode')
+        raw_desc = row.get('DefCodeDescription')
         
-        function populateResults() {
-             const resultsBody = document.getElementById('results-body');
-             const results = [
-                 {uri: 'ex:N737AA', label: 'Aircraft N737AA'},
-                 {uri: 'ex:N905FR', label: 'Aircraft N905FR'}
-             ];
-             results.forEach(res => {
-                 let row = resultsBody.insertRow();
-                 row.insertCell(0).textContent = res.uri;
-                 row.insertCell(1).textContent = res.label;
-             });
-        }
+        # Target Triggers
+        raw_ref  = row.get('RefDesigDescription')
+        raw_fpn  = row.get('FailedComponent')
+        
+        row_id   = row['RowID']
 
-        function drawGraph() {
-            const container = document.getElementById('mynetwork');
-            const allNodesData = [
-                {"id": "Entity", "label": "Entity", "shape": "box", color: {background:'#FDD4A0', border: '#c7a87e'}},
-                {"id": "Continuant", "label": "Continuant", "shape": "box", color: {background:'#FDD4A0', border: '#c7a87e'}},
-                {"id": "Occurrent", "label": "Occurrent", "shape": "box", color: {background:'#FDD4A0', border: '#c7a87e'}},
-                {"id": "Aircraft", "label": "Aircraft", "shape": "box", color: {background:'#FFA500', border: '#c78100'}},
-                {"id": "Person", "label": "Person", "shape": "box", color: {background:'#FFA500', border: '#c78100'}},
-                {"id": "RepairProcess", "label": "RepairProcess", "shape": "box", color: {background:'#FFA500', border: '#c78100'}},
-                {"id": "Aircraft-Inst-1", "label": "Aircraft N737AA", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}},
-                {"id": "Person-Inst-1", "label": "John Doe", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}},
-                {"id": "Repair-Inst-1", "label": "Repair-01", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}},
-                {"id": "Aircraft-Inst-2", "label": "Aircraft N905FR", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}},
-                {"id": "Person-Inst-2", "label": "Jane Smith", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}},
-                {"id": "Repair-Inst-2", "label": "Repair-02", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}},
-                {"id": "Repair-Inst-3", "label": "Repair-03", "shape": "dot", color: {background:'#8A2BE2', border: '#6c22b5'}}
-            ];
-             const allEdgesData = [
-                {"id": "e1", "from": "Continuant", "to": "Entity", "label": "rdfs:subClassOf", "dashes": true, "arrows": "to"},
-                {"id": "e2", "from": "Occurrent", "to": "Entity", "label": "rdfs:subClassOf", "dashes": true, "arrows": "to"},
-                {"id": "e3", "from": "Aircraft", "to": "Continuant", "label": "rdfs:subClassOf", "dashes": true, "arrows": "to"},
-                {"id": "e4", "from": "Person", "to": "Continuant", "label": "rdfs:subClassOf", "dashes": true, "arrows": "to"},
-                {"id": "e5", "from": "RepairProcess", "to": "Occurrent", "label": "rdfs:subClassOf", "dashes": true, "arrows": "to"},
-                {"id": "e6", "from": "RepairProcess", "to": "Aircraft", "label": "has_participant", "arrows": "to"},
-                {"id": "e7", "from": "RepairProcess", "to": "Person", "label": "has_participant", "arrows": "to"},
-                {"id": "e8", "from": "Aircraft-Inst-1", "to": "Aircraft", "label": "rdf:type", "dashes": true, "arrows": "to"},
-                {"id": "e9", "from": "Person-Inst-1", "to": "Person", "label": "rdf:type", "dashes": true, "arrows": "to"},
-                {"id": "e10", "from": "Repair-Inst-1", "to": "RepairProcess", "label": "rdf:type", "dashes": true, "arrows": "to"},
-                {"id": "e11", "from": "Aircraft-Inst-2", "to": "Aircraft", "label": "rdf:type", "dashes": true, "arrows": "to"},
-                {"id": "e12", "from": "Person-Inst-2", "to": "Person", "label": "rdf:type", "dashes": true, "arrows": "to"},
-                {"id": "e13", "from": "Repair-Inst-1", "to": "Aircraft-Inst-1", "label": "has_participant", "arrows": "to"},
-                {"id": "e14", "from": "Repair-Inst-1", "to": "Person-Inst-1", "label": "has_participant", "arrows": "to"},
-                {"id": "e15", "from": "Repair-Inst-2", "to": "RepairProcess", "label": "rdf:type", "dashes": true, "arrows": "to"},
-                {"id": "e16", "from": "Repair-Inst-2", "to": "Aircraft-Inst-2", "label": "has_participant", "arrows": "to"},
-                {"id": "e17", "from": "Repair-Inst-2", "to": "Person-Inst-2", "label": "has_participant", "arrows": "to"},
-                {"id": "e18", "from": "Repair-Inst-3", "to": "Person-Inst-1", "label": "has_participant", "arrows": "to"},
-                {"id": "e19", "from": "Repair-Inst-3", "to": "Aircraft-Inst-2", "label": "has_participant", "arrows": "to"}
-            ];
+        key_pn   = normalize_key(raw_pn)
+        key_sn   = normalize_key(raw_sn)
+        key_code = normalize_key(raw_code)
+        key_ref  = normalize_key(raw_ref)
+        key_fpn  = normalize_key(raw_fpn)
+        
+        lit_code = clean_literal(raw_code)
+        lit_desc = clean_literal(raw_desc)
+        lit_sn   = clean_literal(raw_sn)
+
+        if not key_pn or not key_sn or not key_code: continue
+
+        # ---------------------------------------------------------
+        # 1. DETERMINE TARGET (Bearer of the Defect)
+        # ---------------------------------------------------------
+        # Default: The Board
+        board_iri = generate_iri(CAT_CCA_INST, "GLOBAL", key_pn, key_sn)
+        target_iri = board_iri
+        
+        # Check if Component Exists (RefDes OR FailedPart)
+        if key_ref or key_fpn:
+            # Reconstruct Component IRI (Matches Step 6 logic)
+            # Identity: Board + RefDes (or FailedPN)
+            comp_id_key = key_ref if key_ref else key_fpn
             
-            nodes = new vis.DataSet(allNodesData);
-            edges = new vis.DataSet(allEdgesData);
-
-            // Save original styles for nodes
-            nodes.forEach(node => {
-                originalNodeStyles[node.id] = { color: node.color, font: node.font };
-            });
+            # Use 'electronic_component' category
+            # Ensure CAT_COMPONENT is in config.py, or define it here:
+            # CAT_COMPONENT = "electronic_component" 
+            target_iri = generate_iri(CAT_COMPONENT, "GLOBAL", key_pn, key_sn, comp_id_key)
             
-            // Save complete original styles for edges including all properties
-            edges.forEach(edge => {
-                originalEdgeStyles[edge.id] = { 
-                    color: edge.color || '#848484', 
-                    width: edge.width || 1.5, 
-                    dashes: edge.dashes || false,
-                    arrows: edge.arrows || 'to'  // Ensure arrows property is saved
-                };
-            });
+            # (Note: We assume Step 6 created this node)
 
-            const data = { nodes, edges };
-            const options = {
-                nodes: {
-                    font: { color: '#343434' },
-                    borderWidth: 2,
-                    size: 20
-                },
-                edges: {
-                    color: '#848484',
-                    font: { align: 'top', size: 12, color: '#333' },
-                    smooth: { type: 'continuous' },
-                    width: 1.5,
-                    arrows: 'to' // Global default
-                },
-                physics: {
-                    solver: 'barnesHut',
-                    barnesHut: { gravitationalConstant: -25000 }
-                },
-                interaction: {
-                    tooltipDelay: 200,
-                    hideEdgesOnDrag: true
-                }
-            };
-            network = new vis.Network(container, data, options);
-        }
+        # ---------------------------------------------------------
+        # 2. CREATE DEFECT (Entity)
+        # ---------------------------------------------------------
+        # Identity: Unique to this Row (Event)
+        defect_iri = generate_iri(CAT_DEFECT, "GLOBAL", row_id, key_code)
+        
+        # ICE: Defect Classification Code
+        ice_iri = generate_iri(CAT_ID_DEFECT, "GLOBAL", key_code)
+        ibe_iri = generate_iri(CAT_IBE, source_name, row_id, "DefCode")
 
-        drawGraph();
-    </script>
-</body>
-</html>
+        builder.create_designative_pattern(
+            entity_iri=defect_iri,
+            ice_iri=ice_iri,
+            ibe_iri=ibe_iri,
+            
+            # Label
+            entity_label=generate_label("non_nominal_quality", code=lit_code, sn=lit_sn),
+            ice_label=generate_label("defect_classification_code", code=lit_code),
+            ibe_label=generate_label("information_bearing_entity", src=source_name, row=row_id, col="DefCode"),
+            
+            literal_value=lit_code,
+            ice_class=OCKMS.DefectClassificationCode
+        )
+        builder.add_type(defect_iri, OCKMS.Defect)
+
+        # ---------------------------------------------------------
+        # 3. LINK: Target --bearer_of--> Defect
+        # ---------------------------------------------------------
+        # Use BFO 'bearer of' (0000196)
+        builder.add_relationship(target_iri, REL_BEARER_OF, defect_iri)
+
+        # ---------------------------------------------------------
+        # 4. DEFECT DESCRIPTION (Descriptive ICE)
+        # ---------------------------------------------------------
+        if lit_desc:
+            desc_ice_iri = generate_iri(CAT_DESC_DEFECT, "GLOBAL", row_id, key_code)
+            desc_ibe_iri = generate_iri(CAT_IBE, source_name, row_id, "DefCodeDescription")
+            
+            # Manual 'describes' pattern
+            desc_node = builder.g.resource(desc_ice_iri)
+            desc_node.add(RDF.type, OCKMS.DefectClassificationDescription)
+            desc_node.add(RDFS.label, Literal(generate_label("defect_classification_description", code=lit_code)))
+            
+            # Link: Description --describes--> Defect Entity
+            # FIX: URIRef is now imported and will work here
+            desc_node.add(REL_DESCRIBES, URIRef(defect_iri))
+            
+            # IBE Link
+            ibe_node = builder.g.resource(desc_ibe_iri)
+            ibe_node.add(RDF.type, CCO.InformationBearingEntity)
+            ibe_node.add(RDFS.label, Literal(generate_label("information_bearing_entity", src=source_name, row=row_id, col="DefCodeDescription")))
+            ibe_node.add(PROP_HAS_TEXT_VALUE, Literal(lit_desc, datatype=XSD.string))
+            
+            desc_node.add(REL_DEPENDS_ON, ibe_node)
+
+        count += 1
+
+    g.serialize(destination=output_path, format="turtle")
+    print(f"Success. Mapped {count} defects.")
+    
