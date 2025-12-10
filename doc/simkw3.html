@@ -1,1 +1,126 @@
+step_1revisionlevel.py
+
+import pandas as pd
+from rdflib import Graph, XSD
+from framework.config import *
+from framework.utils import normalize_key, clean_literal, clean_date_time
+from framework.identity import generate_iri, generate_label
+from framework.graph_builder import CCOGraphBuilder
+
+def run(csv_path, output_path, source_name):
+    print(f"--- [Step: 1RevisionLevel] Processing Design Revisions ---")
+    
+    # 1. Setup
+    g = Graph()
+    g.bind("ockms", OCKMS)
+    g.bind("iof", IOF)
+    g.bind("bfo", BFO)
+    g.bind("cco", CCO)
+    builder = CCOGraphBuilder(g)
+    
+    # 2. Load Data
+    try:
+        df = pd.read_csv(csv_path, low_memory=False)
+    except Exception as e:
+        print(f"Error reading CSV: {e}")
+        return
+
+    # =========================================================
+    # A. GENERATE ROBUST ROW IDs (Standard Logic)
+    # =========================================================
+    df['clean_date'] = pd.to_datetime(df['CreatedOn'], errors='coerce').dt.strftime('%Y%m%d').fillna('00000000')
+    df['clean_time'] = df['CreatTime'].apply(clean_date_time)
+    df['clean_sn']   = df['1stLevelSerial'].fillna('UNK').astype(str).str.strip().str.upper()
+    df['clean_seq']  = df['SeqNum'].fillna('0').astype(str).str.strip()
+
+    df['base_id'] = (
+        df['clean_sn'] + "_" + 
+        df['clean_date'] + "_" + 
+        df['clean_time'] + "_" + 
+        df['clean_seq']
+    )
+    
+    # Tie-Breaker
+    df['dup_idx'] = df.groupby('base_id').cumcount()
+    df['RowID']   = df['base_id'] + "_" + df['dup_idx'].astype(str)
+
+    # =========================================================
+    # B. MAPPING LOOP
+    # =========================================================
+    mapped_revisions = set()
+    count = 0
+
+    for idx, row in df.iterrows():
+        # 1. Ingredients
+        raw_pn  = row.get('1stLevelMaterial')
+        raw_rev = row.get('1RevisionLevel')
+        row_id  = row['RowID']
+
+        key_pn  = normalize_key(raw_pn)
+        key_rev = normalize_key(raw_rev)
+        
+        lit_pn  = clean_literal(raw_pn)
+        lit_rev = clean_literal(raw_rev)
+
+        # 2. STRICT CHECK: Missing Revision
+        # If the revision column is blank, we cannot create a Revision Node.
+        # We skip this row.
+        if not key_pn or not key_rev: 
+            continue
+
+        # 3. Generate IRIs
+        
+        # A. Design Revision (Entity)
+        # Seed: Category | Scope | PartNum | Rev
+        rev_iri = generate_iri(CAT_CCA_REV, "GLOBAL", key_pn, key_rev)
+        
+        # B. Revision Identifier (ICE)
+        # Seed: Category | Scope | Rev
+        ice_iri = generate_iri(CAT_ID_REV, "GLOBAL", key_rev)
+
+        # C. The IBE (Record) - Unique to this row
+        ibe_iri = generate_iri(CAT_IBE, source_name, row_id, "1RevisionLevel")
+
+        # 4. Build Pattern (The Revision Node)
+        builder.create_designative_pattern(
+            entity_iri=rev_iri,
+            ice_iri=ice_iri,
+            ibe_iri=ibe_iri,
+            
+            # Label: "Circuit Card Assembly Design Revision 752... B"
+            entity_label=generate_label("circuit_card_assembly_design_revision", pn=lit_pn, rev=lit_rev),
+            ice_label=generate_label("circuit_card_assembly_design_revision_identifier", val=lit_rev),
+            ibe_label=generate_label("information_bearing_entity", src=source_name, row=row_id, col="1RevisionLevel"),
+            
+            literal_value=lit_rev,
+            ice_class=OCKMS.CircuitCardAssemblyDesignRevisionIdentifier,
+            data_property=PROP_HAS_TEXT_VALUE,
+            data_type=XSD.string
+        )
+
+        # 5. Type Assertion & Linking (Deduplicated)
+        # Uniqueness Key: PartNum + Rev
+        combo_key = (key_pn, key_rev)
+        
+        if combo_key not in mapped_revisions:
+            # Type the Revision
+            builder.add_type(rev_iri, OCKMS.CircuitCardAssemblyDesignRevision)
+            
+            # -------------------------------------------------------------
+            # THE LINK: Design Family -> has_part -> Revision
+            # -------------------------------------------------------------
+            # We re-calculate the Family IRI (Deterministic Hash)
+            family_iri = generate_iri(CAT_CCA_DESIGN, "GLOBAL", key_pn)
+            
+            # Use REL_HAS_PART (BFO 0000110) from Config
+            builder.add_relationship(family_iri, REL_HAS_PART, rev_iri)
+            
+            mapped_revisions.add(combo_key)
+        
+        count += 1
+
+    # 6. Save
+    g.serialize(destination=output_path, format="turtle")
+    print(f"Success. Mapped {count} rows with valid revisions. Found {len(mapped_revisions)} unique Revisions.")
+    print(f"Output saved to: {output_path}")
 
