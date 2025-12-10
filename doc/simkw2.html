@@ -1,1 +1,35 @@
+import pandas as pd
+
+def normalize_key(value):
+    """
+    Standardizes keys for Hashing (IRI Generation).
+    Rules: No Nulls, Trim Whitespace, Uppercase.
+    """
+    if value is None: return ""
+    s = str(value)
+    if s.lower() == 'nan' or not s.strip(): return ""
+    return s.strip().upper()
+
+def clean_literal(value):
+    """
+    Cleans data for Display Literals.
+    Rules: No Nulls, Trim Whitespace, Keep Casing.
+    """
+    if value is None: return ""
+    s = str(value)
+    if s.lower() == 'nan' or not s.strip(): return ""
+    return s.strip()
+
+def clean_date_time(value):
+    """
+    Converts date/time strings to pure numbers for RowID generation.
+    Example: '7/1/2025' -> '20250701', '09:51:31' -> '095131'
+    """
+    if value is None: return "00000000"
+    s = str(value).strip()
+    if not s or s.lower() == 'nan': return "00000000"
+    
+    # Remove separators
+    s = s.replace("/", "").replace("-", "").replace(":", "").replace(" ", "")
+    return s
 
